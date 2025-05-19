@@ -1,6 +1,6 @@
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { EVENTS } from './events.js';
+
 
 const httpServer = createServer();
 const allowedOrigins = process.env.APP_BASE_URL
@@ -21,9 +21,7 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('client connected', socket.id);
-  socket.on('disconnect', (reason) => {
-    console.log('client disconnected', socket.id, reason);
+
   });
 });
 
