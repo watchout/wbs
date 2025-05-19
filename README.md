@@ -125,6 +125,8 @@ For a full list of functional requirements, see:
 
 - [Functional Specification (EN)](docs/functional_spec.md)
 - [機能仕様書 (JA)](docs/functional_spec.ja.md)
+- [Realtime Socket Events (EN)](docs/socket_events.md)
+- [リアルタイムイベント仕様 (JA)](docs/socket_events.ja.md)
 
 ---
 
