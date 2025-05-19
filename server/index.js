@@ -2,8 +2,21 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 
 const httpServer = createServer();
+const allowedOrigins = process.env.APP_BASE_URL
+  ? process.env.APP_BASE_URL.split(',')
+  : '*';
 const io = new Server(httpServer, {
-  cors: { origin: '*' }
+  cors: {
+    origin: allowedOrigins
+  }
+});
+
+io.use((socket, next) => {
+  const { roomId } = socket.handshake.query;
+  if (!roomId) {
+    return next(new Error('roomId required'));
+  }
+  next();
 });
 
 io.on('connection', (socket) => {
