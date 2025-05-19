@@ -3,6 +3,7 @@
 このドキュメントは README に記載された要件をまとめたものです。
 
 - **リアルタイム同期**: WebSocket(Socket.IO) を用いたルーム単位の同期。P95 1 秒未満を目標とする。
+- **Socket.IO イベント名**: `room:join`, `room:leave`, `room:update` を使用してルームの参加・退出・更新を扱う。
 - **Google カレンダー連携**: インクリメンタル同期と Webhook を利用した双方向同期。
 - **オフラインキオスク対応**: PWA + IndexedDB により 24 時間キャッシュし、WiFi がなくても表示を維持。
 - **多言語インタフェース**: `ja`, `en`, `vi`, `zhHans`, `fil`, `ne`, `ptBR` をサポート。

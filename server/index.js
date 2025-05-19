@@ -1,5 +1,6 @@
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { EVENTS } from './events.js';
 
 const httpServer = createServer();
 const allowedOrigins = process.env.APP_BASE_URL
