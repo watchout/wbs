@@ -113,7 +113,7 @@ $ ./scripts/bootstrap_vps.sh   # installs docker + watchtower
 | `DATABASE_URL`                              | Postgres connection string        |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | OAuth2 creds                      |
 | `JWT_SECRET`                                | 32byte secret for session tokens |
-| `APP_BASE_URL`                              | e.g. `https://wbs.example.com`    |
+| `APP_BASE_URL`                              | e.g. `https://wbs.example.com` (used for Socket.IO CORS)    |
 
 See `.env.sample` for full list.
 
