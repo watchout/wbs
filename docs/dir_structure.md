@@ -11,6 +11,8 @@ The repository is organized as follows:
 │   ├── devops.ja.md
 │   ├── functional_spec.md
 │   ├── functional_spec.ja.md
+│   ├── socket_events.md
+│   ├── socket_events.ja.md
 │   └── ui_flow.mmd
 └── prisma/             # Prisma ORM schemas
     ├── schema.prisma
