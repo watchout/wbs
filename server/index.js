@@ -21,6 +21,9 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
   console.log('client connected', socket.id);
+  socket.on('disconnect', (reason) => {
+    console.log('client disconnected', socket.id, reason);
+  });
 });
 
 const port = process.env.PORT || 3001;
