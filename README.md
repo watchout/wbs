@@ -1,4 +1,4 @@
-~# WBS  Whiteboard Signage System
+# WBS  Whiteboard Signage System
 
 > **Nuxt3 + Prisma + Socket.IO + ConoHaVPS**
 > Collaborative scheduling & signage platform replacing physical whiteboards.
@@ -139,4 +139,4 @@ See `.env.sample` for full list.
 ## License
 
 MIT  2025watchout
-~
+
