@@ -3,6 +3,7 @@
 This document compiles requirements mentioned in the project's README.
 
 - **Realtime Synchronization**: WebSocket (Socket.IO) based room synchronization with a target latency of under one second (P95).
+- **Socket.IO Events**: `room:join`, `room:leave`, `room:update` are used for room membership and data updates.
 - **Google Calendar Sync**: Bidirectional integration using incremental sync and webhooks.
 - **Offline Kiosk Support**: PWA with IndexedDB caching for 24 hours to keep screens functional without WiFi.
 - **Multilanguage Interface**: Supports `ja`, `en`, `vi`, `zhHans`, `fil`, `ne`, `ptBR` languages.
