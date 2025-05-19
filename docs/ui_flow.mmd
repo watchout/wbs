@@ -1,0 +1,8 @@
+graph TD
+  A(Login) --> B{Role}
+  B -->|ADMIN| C[Dashboard]
+  B -->|MEMBER| D[Schedule Board]
+  B -->|DEVICE| E[Signage Screen]
+  C --> D
+  D --> E
+  E -->|Offline\nPWA| F[Cached Display]
