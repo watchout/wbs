@@ -1,5 +1,7 @@
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import Ajv from 'ajv';
+import { Events, Schemas } from './events.js';
 
 const httpServer = createServer();
 const allowedOrigins = process.env.APP_BASE_URL
@@ -11,6 +13,11 @@ const io = new Server(httpServer, {
   }
 });
 
+const ajv = new Ajv();
+const validators = Object.fromEntries(
+  Object.entries(Schemas).map(([event, schema]) => [event, ajv.compile(schema)])
+);
+
 io.use((socket, next) => {
   const { roomId } = socket.handshake.query;
   if (!roomId) {
@@ -21,6 +28,25 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
   console.log('client connected', socket.id);
+
+  socket.onAny((event, payload) => {
+    const validate = validators[event];
+    if (validate && !validate(payload)) {
+      socket.emit('error', {
+        message: 'invalid payload',
+        errors: validate.errors
+      });
+      return;
+    }
+    // Placeholder handlers: simply broadcast to room
+    if (event === Events.JOIN) {
+      socket.join(socket.handshake.query.roomId);
+    } else if (event === Events.LEAVE) {
+      socket.leave(socket.handshake.query.roomId);
+    } else if (event === Events.UPDATE) {
+      io.to(socket.handshake.query.roomId).emit(event, payload);
+    }
+  });
 });
 
 const port = process.env.PORT || 3001;
