@@ -46,7 +46,7 @@ $ pnpm install
 $ cp .env.sample .env.local
 # edit .env.local with your DATABASE_URL, OAuth client info and JWT_SECRET
 
-# 3. Start dev stack (Nuxt + SQLite)
+# 3. Start the Socket.IO server
 $ pnpm dev
 
 # 4. Prisma studio (optional)
@@ -66,7 +66,7 @@ $ pnpm prisma:studio
 
 | Script                 | What it does                        |
 | ---------------------- | ----------------------------------- |
-| `pnpm dev`             | Nuxtdev server + hmr               |
+| `pnpm dev`             | Start Socket.IO server (dev mode)  |
 | `pnpm build`           | NuxtSSG/SSR build                  |
 | `pnpm lint`            | ESLint + Stylelint + Prettier check |
 | `pnpm test`            | Vitest unit tests                   |
@@ -125,6 +125,8 @@ For a full list of functional requirements, see:
 
 - [Functional Specification (EN)](docs/functional_spec.md)
 - [機能仕様書 (JA)](docs/functional_spec.ja.md)
+- [Realtime Socket Events (EN)](docs/socket_events.md)
+- [リアルタイムイベント仕様 (JA)](docs/socket_events.ja.md)
 
 ---
 

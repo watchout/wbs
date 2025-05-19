@@ -1,6 +1,6 @@
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { EVENTS, registerSocketHandlers } from './events.js';
+
 
 const httpServer = createServer();
 const allowedOrigins = process.env.APP_BASE_URL
@@ -21,14 +21,7 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-  const { roomId } = socket.handshake.query;
-  socket.join(roomId);
-  console.log('client connected', socket.id, 'room', roomId);
 
-  registerSocketHandlers(socket);
-
-  socket.on('disconnect', () => {
-    console.log('client disconnected', socket.id);
   });
 });
 
