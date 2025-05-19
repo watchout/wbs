@@ -42,8 +42,9 @@ flowchart TD
 $ git clone git@github.com:watchout/wbs.git && cd wbs
 $ pnpm install
 
-# 2. Copy env template & fill Google creds
+# 2. Copy env template & fill credentials
 $ cp .env.sample .env.local
+# edit .env.local with your DATABASE_URL, OAuth client info and JWT_SECRET
 
 # 3. Start dev stack (Nuxt + SQLite)
 $ pnpm dev
