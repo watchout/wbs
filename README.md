@@ -119,6 +119,15 @@ See `.env.sample` for full list.
 
 ---
 
+## Documentation
+
+For a full list of functional requirements, see:
+
+- [Functional Specification (EN)](docs/functional_spec.md)
+- [機能仕様書 (JA)](docs/functional_spec.ja.md)
+
+---
+
 ## Quality Gates
 
 * **Unit**  Vitest (90% line coverage target)
