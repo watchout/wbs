@@ -1,0 +1,153 @@
+~// prisma/schema.prisma  v0.1  (20250519)
+// -------------------------------------------
+// NOTE: datasource & generator blocks are kept minimal; adjust
+//       according to your local DB connection in dev.
+// -------------------------------------------
+
+datasource db {
+  provider = "postgresql"   // dev uses sqlite:"file:./dev.db"; set via env var
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------ ENUMS ------------
+
+enum Role {
+  ADMIN
+  MEMBER
+  DEVICE     // kiosk 
+}
+
+enum Source {
+  INTERNAL
+  GOOGLE
+  CSV
+}
+
+// ------------ MODELS ------------
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  timezone    String   @default("Asia/Tokyo")
+
+  users       User[]
+  devices     Device[]
+  schedules   Schedule[]
+  auditLogs   AuditLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}
+
+model User {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  email          String   @unique
+  name           String?
+  role           Role     @default(MEMBER)
+
+  // OAuth2 (Google) credential reference
+  calendars      CalendarOAuth[]
+
+  schedulesAuthored Schedule[]   @relation("author")
+  auditLogs      AuditLog[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, role])
+}
+
+model CalendarOAuth {
+  id             String   @id @default(uuid())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  provider       String   @default("google")
+  accessToken    String   @db.VarChar(2048)  // 
+  refreshToken   String   @db.VarChar(2048)
+  expiry         DateTime?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, provider])
+}
+
+model Device {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  name           String
+  kioskSecret    String   @unique
+  language       String   @default("ja")
+  lastHeartbeat  DateTime?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+model Schedule {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  author         User?    @relation("author", fields: [authorId], references: [id])
+  authorId       String?
+
+  title          String
+  description    String?
+  start          DateTime
+  end            DateTime
+  color          String?      // Tailwind color key  e.g. "wasabi"
+  source         Source       @default(INTERNAL)
+
+  versions       ScheduleVersion[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, start])
+}
+
+model ScheduleVersion {
+  id          String   @id @default(uuid())
+  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  scheduleId  String
+
+  diffJson    Json      // before/after  JSON 
+  version     Int       @default(1)
+  createdAt   DateTime  @default(now())
+
+  @@unique([scheduleId, version])
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  user           User?    @relation(fields: [userId], references: [id])
+  userId         String?
+
+  action         String   // e.g. "SCHEDULE_CREATE"
+  targetId       String?  // id of entity affected
+  meta           Json?
+
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+}
+~
