@@ -1,0 +1,11 @@
+{
+  "name": "wbs",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node server/index.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.2"
+  }
+}
