@@ -6,6 +6,7 @@
     "dev": "node server/index.js"
   },
   "dependencies": {
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "ajv": "^8.15.1"
   }
 }
