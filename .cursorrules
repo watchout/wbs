@@ -1,0 +1,22 @@
+# ミエルボード for 現場 / 現場WEEK - Cursor AI ルール
+
+このプロジェクトは AI駆動開発を前提としています。
+以下のルールを厳守し、品質・セキュリティ・保守性を担保してください。
+
+## 🚫 絶対禁止事項
+
+### データベース
+- ❌ DBスキーマの変更（prisma/schema.prisma の修正禁止）
+- ❌ マイグレーションファイルの作成・実行
+- ✅ 拡張は Schedule.metadata (Json) フィールドで実現
+
+### マルチテナント
+- ❌ organizationId なしのクエリ
+- ❌ organizationId ?? 'default' のようなフォールバック
+- ✅ すべてのAPIで requireAuth() を使用し、organizationId でフィルタ
+
+### SQL・ORM
+- ❌ 生SQLクエリ（prisma.$queryRaw 等の使用禁止）
+- ✅ Prisma ORMのみ使用
+
+詳細は docs/QUALITY_MANAGEMENT_OVERVIEW.md を参照してください。
