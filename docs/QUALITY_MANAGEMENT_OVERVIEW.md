@@ -1,7 +1,7 @@
 # Quality Management Overview（品質管理体制）
 
 **プロジェクト**: ミエルボード for 現場 / 現場WEEK  
-**最終更新**: 2025-12-05
+**最終更新**: 2025-12-07
 
 ---
 
@@ -60,6 +60,12 @@ Layer 3: 標準・規則
 ---
 
 ## 🔗 関連ドキュメント
+
+### SSOT・仕様
+- `docs/SSOT_GENBA_WEEK.md` - **設計の唯一の正**
+- `docs/phase0_weak_current_spec.md` - Phase 0 詳細仕様
+- `docs/phase0_architecture.md` - アーキテクチャ設計
+- `docs/INDEX_WEAK_CURRENT.md` - ドキュメント索引
 
 ### 基本設定
 - `.cursorrules` - AI制御ルール
