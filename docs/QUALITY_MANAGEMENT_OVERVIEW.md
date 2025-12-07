@@ -61,6 +61,13 @@ Layer 3: 標準・規則
 
 ## 🔗 関連ドキュメント
 
+### 基本設定
 - `.cursorrules` - AI制御ルール
 - `.github/PULL_REQUEST_TEMPLATE.md` - PRテンプレート
 - `.github/workflows/ci.yml` - CI設定
+- `docs/GITHUB_SETUP_GUIDE.md` - GitHub保護ブランチ設定
+
+### 開発ルール
+- `docs/TEST_STRATEGY.md` - テスト戦略
+- `docs/BRANCH_AND_RELEASE.md` - ブランチ・リリース戦略
+- `docs/DONE_DEFINITION.md` - 完了の定義（DoD）
