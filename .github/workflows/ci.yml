@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+        continue-on-error: false
+      - run: npm run typecheck
+        continue-on-error: false
+
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+        env:
+          NODE_ENV: production
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+  ssot-compliance:
+    name: SSOT Compliance Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check for forbidden patterns
+        run: |
+          echo "🔍 禁止パターンチェック中..."
+          
+          # スキーマ変更チェック
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q "prisma/schema.prisma"; then
+            echo "❌ エラー: prisma/schema.prisma の変更が検出されました"
+            echo "スキーマ変更は禁止されています。Schedule.metadata を使用してください。"
+            exit 1
+          fi
+          
+          # 生SQLチェック
+          if git diff origin/${{ github.base_ref }}...HEAD | grep -q '\$queryRaw\|\$executeRaw'; then
+            echo "❌ エラー: 生SQLクエリの使用が検出されました"
+            exit 1
+          fi
+          
+          echo "✅ 禁止パターンチェック: 合格"
