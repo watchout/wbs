@@ -234,5 +234,8 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
   }
 })
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 0d9bc7b (feat: 週間ボードAPI実装（Sprint 1 Week 1）)
