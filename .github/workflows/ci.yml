@@ -13,22 +13,24 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      # pnpm を利用した依存インストール + キャッシュ
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
+      - name: Guard: no mixed lockfiles
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "Found pnpm-lock.yaml but workflow uses npm. Remove it or switch workflow."
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci --prefer-offline --no-audit --fund=false
       - name: Lint
-        run: pnpm lint
+        run: npm run lint
         continue-on-error: false
       - name: Type Check
-        run: pnpm typecheck
+        run: npm run typecheck
         continue-on-error: false
 
   build:
@@ -37,19 +39,21 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      # pnpm を利用した依存インストール + キャッシュ
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
+      - name: Guard: no mixed lockfiles
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "Found pnpm-lock.yaml but workflow uses npm. Remove it or switch workflow."
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci --prefer-offline --no-audit --fund=false
       - name: Build
-        run: pnpm build
+        run: npm run build
         env:
           NODE_ENV: production
 
@@ -59,19 +63,21 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      # pnpm を利用した依存インストール + キャッシュ
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
+      - name: Guard: no mixed lockfiles
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "Found pnpm-lock.yaml but workflow uses npm. Remove it or switch workflow."
+            exit 1
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci --prefer-offline --no-audit --fund=false
       - name: Security Audit
-        run: pnpm audit --audit-level=moderate
+        run: npm audit --audit-level=moderate
         continue-on-error: true
 
   ssot-compliance:

@@ -1,6 +1,6 @@
 # ミエルボード for 現場 / 現場WEEK - ドキュメント索引
 
-**最終更新**: 2025-12-07
+**最終更新**: 2025-01-10
 
 ---
 
@@ -29,10 +29,17 @@ docs/
 │   ├── GITHUB_SETUP_GUIDE.md
 │   └── TAG_COMMANDS.md 🏷️ タグ方式コマンド（NEW）
 │
-├── 4. セットアップ・完了レポート
+├── 4. AI役割分担システム 🤖 （NEW）
+│   ├── AI_ROLES/README.md - AI役割一覧・運用方法
+│   ├── AI_ROLES/DESIGN_AI_PROMPT.md - 設計AI初期プロンプト
+│   ├── AI_ROLES/MANAGEMENT_AI_PROMPT.md - 管理AI初期プロンプト
+│   ├── AI_ROLES/IMPLEMENTATION_AI_PROMPT.md - 実装AI初期プロンプト
+│   └── AI_ROLES/AUDIT_AI_PROMPT.md - 監査AI初期プロンプト
+│
+├── 5. セットアップ・完了レポート
 │   └── DEVELOPMENT_RULES_PACK_COMPLETE.md
 │
-└── 5. 索引（本ドキュメント）
+└── 6. 索引（本ドキュメント）
     └── INDEX_WEAK_CURRENT.md
 ```
 
@@ -159,6 +166,22 @@ docs/
 
 ---
 
+#### `GITHUB_OPERATIONS_GUIDE.md` - GitHub操作ガイド（NEW）
+
+**対象**: 管理AI、開発者全員
+
+**内容**:
+- GitHub CLI (`gh`) の使い方
+- PRマージ操作（Squash/Merge/Rebase）
+- PRレビュー操作（承認/差し戻し/コメント）
+- ブランチ操作
+- リリースタグ作成
+- 管理AIの制約と対処方法
+
+**読むタイミング**: PRマージ時、GitHub操作が必要な時
+
+---
+
 #### 🏷️ `TAG_COMMANDS.md` - タグ方式コマンド（NEW）
 
 **対象**: 設計AI、実装AI、開発者全員
@@ -179,7 +202,87 @@ docs/
 
 ---
 
-### 4️⃣ セットアップ・完了レポート
+### 4️⃣ AI役割分担システム 🤖
+
+#### `AI_ROLES/README.md` - AI役割一覧・運用方法
+
+**対象**: 全員（特にAI駆動開発を行う場合は必読）
+
+**内容**:
+- なぜ役割分担が必要か
+- 4つのAIロール（設計/管理/実装/監査）の概要
+- 各AIの権限マトリクス
+- 典型的なワークフロー
+- 実際の運用方法
+
+**読むタイミング**: AI駆動開発を始める前
+
+---
+
+#### `AI_ROLES/DESIGN_AI_PROMPT.md` - 設計AI初期プロンプト
+
+**対象**: 設計AIとして動作させるチャット
+
+**内容**:
+- 設計AIの役割・責任
+- 必須読み込みドキュメント
+- タグコマンド（`>> write`, `>> impl`, `>> fix`, `>> rfv`）
+- Implementation Halt Protocol
+- 実装時の思考フレームワーク
+- 初回起動時のチェックリスト
+
+**使い方**: 新しい設計AI用チャットで、このファイルを最初に読み込ませる
+
+---
+
+#### `AI_ROLES/MANAGEMENT_AI_PROMPT.md` - 管理AI初期プロンプト
+
+**対象**: 管理AIとして動作させるチャット / あなた自身（人間の場合）
+
+**内容**:
+- 管理AIの役割・責任（PRマージ権限を持つ最終承認者）
+- PRレビュー・マージフロー（Phase 1〜9）
+- タグコマンド（`>> next`, `>> prmt`）
+- 進捗管理の原則（Planeとの連携）
+- 判断時の思考フレームワーク
+- 緊急時の対応プロトコル
+
+**使い方**: PRレビュー時にこのプロンプトの「監査フロー」に従う
+
+---
+
+#### `AI_ROLES/IMPLEMENTATION_AI_PROMPT.md` - 実装AI初期プロンプト
+
+**対象**: 実装AIとして動作させるチャット
+
+**内容**:
+- 実装AIの役割・責任
+- 実装フロー（Phase 0〜6）
+  - SSOT読了 → 既存調査 → ハルシネーション防止 → 実装 → テスト → PR作成
+- 禁止パターンの回避方法
+- Evidence取得・提出方法
+- Implementation Halt Protocol
+
+**使い方**: 新しい実装AI用チャットで、このファイルを最初に読み込ませる
+
+---
+
+#### `AI_ROLES/AUDIT_AI_PROMPT.md` - 監査AI初期プロンプト
+
+**対象**: 監査AIとして動作させるチャット
+
+**内容**:
+- 監査AIの役割・責任
+- 監査フロー（Phase 1〜9）
+  - PRテンプレート確認 → Evidence検証 → 禁止パターン検出 → SSOT準拠 → セキュリティ監査
+- 監査レポート生成
+- 差し戻し基準
+
+**使い方**: 新しい監査AI用チャットで、このファイルを最初に読み込ませる
+
+---
+
+### 5️⃣ セットアップ・完了レポート
 
 #### `DEVELOPMENT_RULES_PACK_COMPLETE.md` - 開発ルールパック完了レポート
 
@@ -195,7 +298,7 @@ docs/
 
 ---
 
-### 5️⃣ 索引
+### 6️⃣ 索引
 
 #### `INDEX_WEAK_CURRENT.md` - 本ドキュメント
 
@@ -240,15 +343,46 @@ docs/
 
 ---
 
-### 🤖 設計AI / 実装AI
+### 🎨 設計AI
 
-1. `SSOT_GENBA_WEEK.md` - **最優先**
-2. `.cursorrules` - **タグコマンドを含む**
-3. `TAG_COMMANDS.md` - **タグ方式の詳細**
-4. `QUALITY_MANAGEMENT_OVERVIEW.md`
+1. `AI_ROLES/DESIGN_AI_PROMPT.md` - **最優先（初期プロンプト）**
+2. `SSOT_GENBA_WEEK.md` - **メインSSOT**
+3. `.cursorrules` - **開発ルール**
+4. `TAG_COMMANDS.md` - **タグ方式の詳細**
+5. `QUALITY_MANAGEMENT_OVERVIEW.md`
+6. `DONE_DEFINITION.md`
+7. `TEST_STRATEGY.md`
+
+---
+
+### 🛠️ 実装AI
+
+1. `AI_ROLES/IMPLEMENTATION_AI_PROMPT.md` - **最優先（初期プロンプト）**
+2. 実装対象のSSOT（例: `SSOT_GENBA_WEEK.md`）
+3. `.cursorrules` - **開発ルール**
+4. `TEST_STRATEGY.md` - **テスト戦略**
 5. `DONE_DEFINITION.md`
-6. `TEST_STRATEGY.md`
-7. 実装対象に応じた詳細仕様
+6. 実装対象に応じた詳細仕様
+
+---
+
+### 👔 管理AI（あなた自身）
+
+1. `AI_ROLES/MANAGEMENT_AI_PROMPT.md` - **最優先（初期プロンプト）**
+2. `QUALITY_MANAGEMENT_OVERVIEW.md` - **品質管理の全体像**
+3. `DONE_DEFINITION.md` - **完了の定義**
+4. `BRANCH_AND_RELEASE.md` - **ブランチ戦略**
+5. `.github/PULL_REQUEST_TEMPLATE.md` - **PRテンプレート**
+
+---
+
+### 🔍 監査AI
+
+1. `AI_ROLES/AUDIT_AI_PROMPT.md` - **最優先（初期プロンプト）**
+2. `QUALITY_MANAGEMENT_OVERVIEW.md` - **品質管理の全体像**
+3. `DONE_DEFINITION.md` - **完了の定義**
+4. `.cursorrules` - **禁止事項確認**
+5. `TEST_STRATEGY.md` - **テスト戦略**
 
 ---
 
@@ -303,6 +437,12 @@ docs/
 | `GITHUB_SETUP_GUIDE.md` | ✅ 完成 | 2025-12-07 |
 | `DEVELOPMENT_RULES_PACK_COMPLETE.md` | ✅ 完成 | 2025-12-07 |
 | `TAG_COMMANDS.md` | ✅ 完成 | 2025-12-07 |
+| `GITHUB_OPERATIONS_GUIDE.md` | ✅ 完成 | 2025-01-10 |
+| `AI_ROLES/README.md` | ✅ 完成 | 2025-01-10 |
+| `AI_ROLES/DESIGN_AI_PROMPT.md` | ✅ 完成 | 2025-01-10 |
+| `AI_ROLES/MANAGEMENT_AI_PROMPT.md` | ✅ 完成 | 2025-01-10 |
+| `AI_ROLES/IMPLEMENTATION_AI_PROMPT.md` | ✅ 完成 | 2025-01-10 |
+| `AI_ROLES/AUDIT_AI_PROMPT.md` | ✅ 完成 | 2025-01-10 |
 | `phase0_weak_current_spec.md` | ✅ 完成 | 2025-12-07 |
 | `phase0_architecture.md` | ✅ 完成 | 2025-12-07 |
 
