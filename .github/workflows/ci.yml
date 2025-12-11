@@ -13,14 +13,22 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      # pnpm を利用した依存インストール + キャッシュ
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint
         continue-on-error: false
-      - run: npm run typecheck
+      - name: Type Check
+        run: pnpm typecheck
         continue-on-error: false
 
   build:
@@ -29,12 +37,19 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      # pnpm を利用した依存インストール + キャッシュ
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
         env:
           NODE_ENV: production
 
@@ -44,12 +59,19 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      # pnpm を利用した依存インストール + キャッシュ
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm audit --audit-level=moderate
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Security Audit
+        run: pnpm audit --audit-level=moderate
         continue-on-error: true
 
   ssot-compliance:
