@@ -21,7 +21,9 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-
+  // minimal placeholder handlers
+  socket.on('disconnect', () => {
+    // noop
   });
 });
 
