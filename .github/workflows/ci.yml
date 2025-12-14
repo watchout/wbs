@@ -24,7 +24,8 @@ jobs:
         run: node --check server/index.js && node --check server/events.js
         continue-on-error: false
       - name: Type Check
-        run: echo "typecheck: skipped (no TS toolchain configured yet)"
+        run: |
+          echo "typecheck: skipped (no TS toolchain configured yet)"
         continue-on-error: false
 
   build:
