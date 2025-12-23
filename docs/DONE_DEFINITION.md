@@ -32,7 +32,7 @@
 
 ### 3. 🛡️ .cursorrules 準拠
 
-- [ ] スキーマ変更をしていない（`prisma/schema.prisma` 未変更）
+- [ ] スキーマ変更をしていない、または（変更した場合）管理AI承認と影響範囲修正が揃っている
 - [ ] 生SQLを使っていない（Prisma ORMのみ使用）
 - [ ] マルチテナント原則を守っている（`organizationId` でフィルタ）
 - [ ] `tenant_id ?? 'default'` のようなフォールバック禁止
@@ -153,6 +153,7 @@ PRを作成するときは、以下をコピペして埋めてください：
 - `docs/TEST_STRATEGY.md` - テスト戦略
 - `docs/BRANCH_AND_RELEASE.md` - ブランチ戦略
 - `.cursorrules` - AI制御ルール
+
 
 
 

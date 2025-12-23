@@ -485,7 +485,7 @@ sequenceDiagram
 
 ### データベース
 
-- ❌ **スキーマ変更禁止**
+- ❌ **スキーマ変更は原則禁止（例外: 管理AI承認 + 影響範囲修正が揃う場合のみ）**
 - ✅ `Schedule.metadata` で拡張
 
 ### マルチテナント
@@ -504,12 +504,14 @@ sequenceDiagram
 
 - `docs/SSOT_GENBA_WEEK.md` - 設計SSOT（必読）
 - `docs/phase0_architecture.md` - アーキテクチャ設計
+- `docs/UI_ROUTING_MAP.md` - UI・ルーティング設計（URL一覧・遷移図）
 - `docs/TEST_STRATEGY.md` - テスト戦略
 - `docs/DONE_DEFINITION.md` - 完了の定義
 
 ---
 
 **この仕様書は、SSOT に基づいて作成されています。仕様変更があれば、まず SSOT を更新してください。**
+
 
 
 
