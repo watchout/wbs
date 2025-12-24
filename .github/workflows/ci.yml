@@ -67,9 +67,11 @@ jobs:
         run: |
           echo "🔍 禁止パターンチェック中..."
           
-          # 生SQLチェック
-          if git diff origin/${{ github.base_ref }}...HEAD | grep -q '\$queryRaw\|\$executeRaw'; then
-            echo "❌ エラー: 生SQLクエリの使用が検出されました"
+          # 生SQLチェック（ci.yml自体を除外）
+          RAW_SQL_COUNT=$(git diff origin/${{ github.base_ref }}...HEAD -- ':(exclude).github/' | grep -c 'queryRaw\|executeRaw' || echo "0")
+          if [ "$RAW_SQL_COUNT" -gt "0" ]; then
+            echo "❌ エラー: 生SQLクエリの使用が検出されました ($RAW_SQL_COUNT 箇所)"
+            git diff origin/${{ github.base_ref }}...HEAD -- ':(exclude).github/' | grep -n 'queryRaw\|executeRaw' || true
             exit 1
           fi
           
