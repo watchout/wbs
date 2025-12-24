@@ -1,5 +1,8 @@
 node_modules/
 .env.local
+.nuxt/
+.output/
+.playwright-mcp/
 
 # logs
 npm-debug.log*

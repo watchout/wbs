@@ -8,7 +8,7 @@
  * - プレーンテキストの場合はそのまま使用
  */
 
-interface ScheduleMetadata {
+export interface ScheduleMetadata {
   siteName?: string      // 現場名（例: "◯◯ホテル"）
   activityType?: string  // 用件（例: "工事", "打合せ", "保守"）
 }
@@ -17,6 +17,7 @@ interface Schedule {
   id: string
   title: string
   description?: string | null
+  metadata?: ScheduleMetadata | null
   start: Date
   end: Date
 }
@@ -37,13 +38,17 @@ export function formatTime(date: Date): string {
  * @param description - スケジュールのdescription（JSON文字列 or プレーンテキスト）
  * @returns パースされたメタデータ
  */
-export function parseScheduleMetadata(description?: string | null): ScheduleMetadata {
-  if (!description) {
-    return {}
+export function parseScheduleMetadata(
+  metadata?: ScheduleMetadata | null,
+  description?: string | null
+): ScheduleMetadata {
+  // Phase 0: まずは schema の Schedule.metadata を正とする
+  if (metadata && (metadata.siteName || metadata.activityType)) {
+    return metadata
   }
 
-  // JSON形式かどうかを判定（先頭が "{" で始まる）
-  if (description.trim().startsWith('{')) {
+  // 後方互換: description にJSON文字列が入っている場合のみフォールバックで読む
+  if (description && description.trim().startsWith('{')) {
     try {
       const parsed = JSON.parse(description)
       return {
@@ -51,13 +56,10 @@ export function parseScheduleMetadata(description?: string | null): ScheduleMeta
         activityType: parsed.activityType
       }
     } catch (error) {
-      // JSONパースに失敗した場合は空のメタデータを返す
-      console.warn('Failed to parse schedule metadata:', error)
-      return {}
+      console.warn('Failed to parse schedule metadata from description:', error)
     }
   }
 
-  // プレーンテキストの場合は空のメタデータ
   return {}
 }
 
@@ -73,7 +75,7 @@ export function parseScheduleMetadata(description?: string | null): ScheduleMeta
  * @returns 表示用テキスト
  */
 export function formatScheduleForDisplay(schedule: Schedule): string {
-  const metadata = parseScheduleMetadata(schedule.description)
+  const metadata = parseScheduleMetadata(schedule.metadata, schedule.description)
 
   // 開始・終了時刻
   const startHour = formatTime(schedule.start)
@@ -120,7 +122,7 @@ export function formatScheduleForDisplay(schedule: Schedule): string {
 export function createScheduleMetadata(
   siteName?: string,
   activityType?: string
-): string {
+): ScheduleMetadata | null {
   const metadata: ScheduleMetadata = {}
 
   if (siteName) {
@@ -133,10 +135,10 @@ export function createScheduleMetadata(
 
   // メタデータが空の場合は空文字列を返す
   if (Object.keys(metadata).length === 0) {
-    return ''
+    return null
   }
 
-  return JSON.stringify(metadata)
+  return metadata
 }
 
 /**
@@ -178,8 +180,3 @@ export function getWeekEnd(date: Date): Date {
   return weekEnd
 }
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 0d9bc7b (feat: 週間ボードAPI実装（Sprint 1 Week 1）)

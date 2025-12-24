@@ -1,11 +1,16 @@
-~// prisma/schema.prisma  v0.1  (20250519)
+// prisma/schema.prisma  v0.2  (2024-12-17)
 // -------------------------------------------
-// NOTE: datasource & generator blocks are kept minimal; adjust
-//       according to your local DB connection in dev.
+// ミエルボード for 現場 - 統合スキーマ
+// 
+// 設計原則:
+// - 全プロダクト（WEEK/STOCK/DRIVE）で共通の基盤
+// - Site（現場）を軸にモジュール間連携
+// - 拡張はmetadata（Json）を優先
+// - スキーマ変更は管理AI承認必須
 // -------------------------------------------
 
 datasource db {
-  provider = "postgresql"   // dev uses sqlite:"file:./dev.db"; set via env var
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -13,36 +18,98 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ------------ ENUMS ------------
+// ============================================
+// ENUMS
+// ============================================
 
 enum Role {
-  ADMIN
-  MEMBER
-  DEVICE     // kiosk 
+  ADMIN       // 管理者：全権限
+  MANAGER     // マネージャー：部門管理
+  MEMBER      // 一般社員：自分の予定編集
+  VIEWER      // 閲覧者：閲覧のみ
+  DEVICE      // デバイス：サイネージ用
 }
 
 enum Source {
-  INTERNAL
-  GOOGLE
-  CSV
+  INTERNAL    // 手動入力
+  GOOGLE      // Googleカレンダー連携
+  OUTLOOK     // Outlookカレンダー連携
+  CSV         // CSVインポート
+  API         // 外部API連携
 }
 
-// ------------ MODELS ------------
+// [DRIVE] アルコールチェック結果
+enum AlcoholCheckResult {
+  PASSED      // 合格（0.00mg/L）
+  DETECTED    // 検出あり（要確認）
+  FAILED      // 不合格
+  SKIPPED     // スキップ（理由記載必須）
+}
+
+// [STOCK] 在庫移動タイプ
+enum InventoryMovementType {
+  IN          // 入庫
+  OUT         // 出庫
+  TRANSFER    // 移動（現場間）
+  ADJUST      // 棚卸調整
+  RETURN      // 返却
+}
+
+// ============================================
+// 共通基盤（全プロダクト共通）
+// ============================================
 
 model Organization {
   id          String   @id @default(uuid())
   name        String
+  slug        String   @unique
   timezone    String   @default("Asia/Tokyo")
-
+  
+  // 契約情報
+  plan        String   @default("starter")  // starter, business, professional, enterprise
+  modules     String[] @default(["week"])   // 利用モジュール: week, stock, drive
+  
+  // リレーション
   users       User[]
   devices     Device[]
-  schedules   Schedule[]
+  departments Department[]
+  sites       Site[]
   auditLogs   AuditLog[]
+  
+  // [WEEK]
+  schedules   Schedule[]
+  
+  // [STOCK]
+  assets      Asset[]
+  inventories Inventory[]
+  
+  // [DRIVE]
+  vehicles    Vehicle[]
+  alcoholChecks AlcoholCheck[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([name])
+  @@index([slug])
+}
+
+model Department {
+  id             String       @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  name           String
+  code           String?      // 部門コード（外部連携用）
+  parentId       String?      // 親部門（階層構造用）
+  
+  users          User[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId, name])
 }
 
 model User {
@@ -53,17 +120,32 @@ model User {
   email          String   @unique
   name           String?
   role           Role     @default(MEMBER)
+  employeeCode   String?  // 社員番号（外部連携用）
 
-  // OAuth2 (Google) credential reference
+  isActive       Boolean  @default(true)
+  department     Department? @relation(fields: [departmentId], references: [id])
+  departmentId   String?
+
+  // OAuth2連携
   calendars      CalendarOAuth[]
 
-  schedulesAuthored Schedule[]   @relation("author")
+  // [WEEK] 予定
+  schedulesAuthored Schedule[] @relation("author")
+  
+  // [DRIVE] アルコールチェック・運転記録
+  alcoholChecks  AlcoholCheck[]
+  drivingRecords DrivingRecord[]
+  
+  // 監査
   auditLogs      AuditLog[]
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@index([organizationId, role])
+  @@index([organizationId, departmentId])
+  @@index([organizationId, isActive])
+  @@index([employeeCode])
 }
 
 model CalendarOAuth {
@@ -71,10 +153,11 @@ model CalendarOAuth {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
 
-  provider       String   @default("google")
-  accessToken    String   @db.VarChar(2048)  // 
+  provider       String   @default("google")  // google, outlook
+  accessToken    String   @db.VarChar(2048)
   refreshToken   String   @db.VarChar(2048)
   expiry         DateTime?
+  calendarId     String?  // 同期対象のカレンダーID
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -87,16 +170,67 @@ model Device {
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
 
-  name           String
+  name           String           // "1F受付ボード", "会議室A"
   kioskSecret    String   @unique
   language       String   @default("ja")
+  displayMode    String   @default("week")  // week, stock, drive, dashboard
   lastHeartbeat  DateTime?
+  
+  // 表示設定
+  config         Json?    // フィルタ設定、表示オプション等
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@index([organizationId])
 }
+
+// ============================================
+// Site（現場）- 全モジュール共通の軸
+// ============================================
+
+model Site {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  name           String           // "◯◯ホテル", "△△ビル"
+  code           String?          // 現場コード
+  address        String?          // 住所
+  latitude       Float?           // 緯度（位置情報用）
+  longitude      Float?           // 経度
+  
+  // 現場種別
+  siteType       String?          // "工事", "保守", "点検"
+  status         String   @default("active")  // active, completed, suspended
+  
+  // 期間
+  startDate      DateTime?        // 工期開始
+  endDate        DateTime?        // 工期終了
+  
+  // メタデータ（柔軟な拡張用）
+  metadata       Json?
+
+  // [WEEK] この現場の予定
+  schedules      Schedule[]
+  
+  // [STOCK] この現場の在庫
+  inventories    Inventory[]
+  
+  // [DRIVE] この現場への配車
+  drivingRecords DrivingRecord[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, code])
+  @@index([organizationId, name])
+  @@index([organizationId, status])
+}
+
+// ============================================
+// [WEEK] 週間スケジュール
+// ============================================
 
 model Schedule {
   id             String   @id @default(uuid())
@@ -105,13 +239,20 @@ model Schedule {
 
   author         User?    @relation("author", fields: [authorId], references: [id])
   authorId       String?
+  
+  // 現場との紐付け（任意）
+  site           Site?    @relation(fields: [siteId], references: [id])
+  siteId         String?
 
   title          String
   description    String?
+  metadata       Json?            // siteName, activityType等
   start          DateTime
   end            DateTime
-  color          String?      // Tailwind color key  e.g. "wasabi"
-  source         Source       @default(INTERNAL)
+  isAllDay       Boolean  @default(false)
+  color          String?          // Tailwind color key
+  source         Source   @default(INTERNAL)
+  externalId     String?          // 外部カレンダーのイベントID
 
   versions       ScheduleVersion[]
 
@@ -119,6 +260,9 @@ model Schedule {
   updatedAt      DateTime @updatedAt
 
   @@index([organizationId, start])
+  @@index([organizationId, authorId])
+  @@index([organizationId, siteId])
+  @@index([externalId])
 }
 
 model ScheduleVersion {
@@ -126,12 +270,203 @@ model ScheduleVersion {
   schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   scheduleId  String
 
-  diffJson    Json      // before/after  JSON 
-  version     Int       @default(1)
-  createdAt   DateTime  @default(now())
+  diffJson    Json
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
 
   @@unique([scheduleId, version])
 }
+
+// ============================================
+// [STOCK] 在庫・資材管理
+// ============================================
+
+model Asset {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  name           String           // "LANケーブル Cat6", "コンセント"
+  code           String?          // 資材コード
+  category       String?          // "配線材", "部品", "工具"
+  unit           String   @default("個")  // 単位: 個, 本, m, kg
+  
+  // 在庫管理
+  minStock       Int?             // 最低在庫数（アラート用）
+  maxStock       Int?             // 最大在庫数
+  
+  // 仕入れ情報
+  supplier       String?          // 仕入先
+  unitPrice      Float?           // 単価
+  
+  metadata       Json?
+
+  inventories    Inventory[]
+  movements      InventoryMovement[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, code])
+  @@index([organizationId, name])
+  @@index([organizationId, category])
+}
+
+model Inventory {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  asset          Asset    @relation(fields: [assetId], references: [id])
+  assetId        String
+  
+  // ロケーション（現場 or 倉庫）
+  site           Site?    @relation(fields: [siteId], references: [id])
+  siteId         String?
+  location       String?          // "本社倉庫", "車両A"（現場以外の場合）
+  
+  quantity       Int      @default(0)
+  reservedQty    Int      @default(0)  // 予約済み数量
+
+  movements      InventoryMovement[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([assetId, siteId, location])
+  @@index([organizationId, assetId])
+  @@index([siteId])
+}
+
+model InventoryMovement {
+  id             String   @id @default(uuid())
+  
+  inventory      Inventory @relation(fields: [inventoryId], references: [id])
+  inventoryId    String
+  
+  asset          Asset    @relation(fields: [assetId], references: [id])
+  assetId        String
+
+  type           InventoryMovementType
+  quantity       Int              // 移動数量（入庫は+、出庫は-）
+  
+  // 移動元/先
+  fromLocation   String?
+  toLocation     String?
+  
+  note           String?
+  performedBy    String?          // 実行者ID
+  performedAt    DateTime @default(now())
+
+  createdAt      DateTime @default(now())
+
+  @@index([inventoryId, performedAt])
+  @@index([assetId, performedAt])
+}
+
+// ============================================
+// [DRIVE] 車両・アルコールチェック
+// ============================================
+
+model Vehicle {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  name           String           // "営業1号車", "工事トラック"
+  plateNumber    String           // ナンバープレート
+  vehicleType    String?          // "普通車", "軽自動車", "トラック"
+  
+  // 車検情報
+  inspectionDate DateTime?        // 車検満了日
+  insuranceDate  DateTime?        // 保険満了日
+  
+  isActive       Boolean  @default(true)
+  metadata       Json?
+
+  drivingRecords DrivingRecord[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, plateNumber])
+  @@index([organizationId, isActive])
+}
+
+model AlcoholCheck {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+
+  checkTime      DateTime @default(now())
+  checkType      String   @default("before")  // before: 乗車前, after: 乗車後
+  
+  // 測定結果
+  result         AlcoholCheckResult
+  alcoholLevel   Float?           // mg/L（検出時のみ）
+  
+  // 確認者
+  confirmedBy    String?          // 確認者ID（対面確認の場合）
+  confirmedAt    DateTime?
+  
+  // 機器情報
+  deviceId       String?          // 測定機器ID
+  
+  // スキップ理由（result=SKIPPEDの場合必須）
+  skipReason     String?
+  
+  // 画像証跡
+  photoUrl       String?
+  
+  metadata       Json?
+
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, checkTime])
+  @@index([userId, checkTime])
+}
+
+model DrivingRecord {
+  id             String   @id @default(uuid())
+  
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  
+  vehicle        Vehicle  @relation(fields: [vehicleId], references: [id])
+  vehicleId      String
+  
+  // 目的地（現場）
+  site           Site?    @relation(fields: [siteId], references: [id])
+  siteId         String?
+  destination    String?          // 現場以外の場合
+  
+  // 走行情報
+  departureTime  DateTime
+  arrivalTime    DateTime?
+  returnTime     DateTime?
+  
+  startMileage   Float?           // 出発時メーター
+  endMileage     Float?           // 到着時メーター
+  
+  purpose        String?          // 用件
+  note           String?
+  
+  metadata       Json?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, departureTime])
+  @@index([vehicleId, departureTime])
+  @@index([siteId])
+}
+
+// ============================================
+// 監査・ログ
+// ============================================
 
 model AuditLog {
   id             String   @id @default(uuid())
@@ -142,12 +477,23 @@ model AuditLog {
   user           User?    @relation(fields: [userId], references: [id])
   userId         String?
 
-  action         String   // e.g. "SCHEDULE_CREATE"
-  targetId       String?  // id of entity affected
-  meta           Json?
+  // アクション情報
+  module         String           // week, stock, drive, auth
+  action         String           // CREATE, UPDATE, DELETE, LOGIN, etc.
+  targetType     String?          // Schedule, Inventory, Vehicle, etc.
+  targetId       String?
+  
+  // 変更内容
+  before         Json?
+  after          Json?
+  
+  // リクエスト情報
+  ipAddress      String?
+  userAgent      String?
 
   createdAt      DateTime @default(now())
 
   @@index([organizationId, createdAt])
+  @@index([module, action])
+  @@index([targetType, targetId])
 }
-~

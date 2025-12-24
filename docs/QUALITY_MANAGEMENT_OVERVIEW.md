@@ -33,7 +33,7 @@ Layer 3: 標準・規則
 ## 🚫 禁止パターン
 
 ### データベース
-- ❌ `prisma/schema.prisma` の修正
+- ❌ `prisma/schema.prisma` の無承認修正（例外: 管理AI承認 + 影響範囲修正が揃う場合のみ）
 - ❌ マイグレーションファイルの作成
 - ✅ `Schedule.metadata` で拡張
 

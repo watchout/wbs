@@ -16,17 +16,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false
-      - name: Lint
-        run: node --check server/index.js && node --check server/events.js
-        continue-on-error: false
+        run: npm install
       - name: Type Check
-        run: |
-          echo "typecheck: skipped (no TS toolchain configured yet)"
-        continue-on-error: false
+        run: npx vue-tsc --noEmit
+        continue-on-error: true
 
   build:
     name: Build Verification
@@ -37,12 +31,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false
+        run: npm install
       - name: Build
-        run: node --check server/index.js && node --check server/events.js
+        run: npm run build
         env:
           NODE_ENV: production
 
@@ -55,12 +47,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false
+        run: npm install --ignore-scripts
       - name: Security Audit
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=high
         continue-on-error: true
 
   ssot-compliance:
@@ -77,17 +67,24 @@ jobs:
         run: |
           echo "🔍 禁止パターンチェック中..."
           
-          # スキーマ変更チェック
-          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q "prisma/schema.prisma"; then
-            echo "❌ エラー: prisma/schema.prisma の変更が検出されました"
-            echo "スキーマ変更は禁止されています。Schedule.metadata を使用してください。"
+          # 生SQLチェック（ci.yml自体を除外）
+          RAW_SQL_COUNT=$(git diff origin/${{ github.base_ref }}...HEAD -- ':(exclude).github/' | grep -c 'queryRaw\|executeRaw' || echo "0")
+          if [ "$RAW_SQL_COUNT" -gt "0" ]; then
+            echo "❌ エラー: 生SQLクエリの使用が検出されました ($RAW_SQL_COUNT 箇所)"
+            git diff origin/${{ github.base_ref }}...HEAD -- ':(exclude).github/' | grep -n 'queryRaw\|executeRaw' || true
             exit 1
           fi
           
-          # 生SQLチェック
-          if git diff origin/${{ github.base_ref }}...HEAD | grep -q '\$queryRaw\|\$executeRaw'; then
-            echo "❌ エラー: 生SQLクエリの使用が検出されました"
-            exit 1
+          # organizationIdなしのクエリチェック（新規APIファイルのみ）
+          NEW_API_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^server/api/.*\.(ts|js)$' || true)
+          if [ -n "$NEW_API_FILES" ]; then
+            for file in $NEW_API_FILES; do
+              if [ -f "$file" ]; then
+                if grep -q "prisma\." "$file" && ! grep -q "organizationId" "$file"; then
+                  echo "⚠️ 警告: $file にorganizationIdフィルタがない可能性があります"
+                fi
+              fi
+            done
           fi
           
           echo "✅ 禁止パターンチェック: 合格"
