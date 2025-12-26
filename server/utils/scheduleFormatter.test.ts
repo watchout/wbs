@@ -29,41 +29,36 @@ describe('scheduleFormatter', () => {
   })
 
   describe('parseScheduleMetadata', () => {
-    it('should prefer metadata object', () => {
-      const result = parseScheduleMetadata({
+    it('should parse JSON metadata correctly', () => {
+      const jsonMetadata = JSON.stringify({
         siteName: '◯◯ホテル',
         activityType: '工事'
       })
+
+      const result = parseScheduleMetadata(jsonMetadata)
 
       expect(result.siteName).toBe('◯◯ホテル')
       expect(result.activityType).toBe('工事')
     })
 
-    it('should fallback to description JSON if metadata is null', () => {
-      const jsonDescription = JSON.stringify({
-        siteName: '◯◯ホテル',
-        activityType: '工事'
-      })
-      const result = parseScheduleMetadata(null, jsonDescription)
-      expect(result.siteName).toBe('◯◯ホテル')
-      expect(result.activityType).toBe('工事')
-    })
-
-    it('should return empty object for plain text description', () => {
+    it('should return empty object for plain text', () => {
       const plainText = 'これは通常のメモです'
-      const result = parseScheduleMetadata(null, plainText)
+
+      const result = parseScheduleMetadata(plainText)
+
       expect(result).toEqual({})
     })
 
     it('should return empty object for null or undefined', () => {
-      expect(parseScheduleMetadata(null, null)).toEqual({})
-      expect(parseScheduleMetadata(undefined, undefined)).toEqual({})
-      expect(parseScheduleMetadata(undefined, '')).toEqual({})
+      expect(parseScheduleMetadata(null)).toEqual({})
+      expect(parseScheduleMetadata(undefined)).toEqual({})
+      expect(parseScheduleMetadata('')).toEqual({})
     })
 
     it('should handle invalid JSON gracefully', () => {
       const invalidJson = '{ invalid json }'
-      const result = parseScheduleMetadata(null, invalidJson)
+
+      const result = parseScheduleMetadata(invalidJson)
 
       expect(result).toEqual({})
     })
@@ -74,11 +69,10 @@ describe('scheduleFormatter', () => {
       const schedule = {
         id: 'test-1',
         title: '現場作業',
-        metadata: {
+        description: JSON.stringify({
           siteName: '◯◯ホテル',
           activityType: '新館工事'
-        },
-        description: null,
+        }),
         start: new Date('2025-01-15T09:00:00Z'),
         end: new Date('2025-01-15T18:00:00Z')
       }
@@ -132,23 +126,28 @@ describe('scheduleFormatter', () => {
   })
 
   describe('createScheduleMetadata', () => {
-    it('should create metadata object', () => {
+    it('should create metadata JSON string', () => {
       const result = createScheduleMetadata('◯◯ホテル', '工事')
 
-      expect(result?.siteName).toBe('◯◯ホテル')
-      expect(result?.activityType).toBe('工事')
+      const parsed = JSON.parse(result)
+
+      expect(parsed.siteName).toBe('◯◯ホテル')
+      expect(parsed.activityType).toBe('工事')
     })
 
     it('should create metadata with only siteName', () => {
       const result = createScheduleMetadata('◯◯ホテル')
-      expect(result?.siteName).toBe('◯◯ホテル')
-      expect(result?.activityType).toBeUndefined()
+
+      const parsed = JSON.parse(result)
+
+      expect(parsed.siteName).toBe('◯◯ホテル')
+      expect(parsed.activityType).toBeUndefined()
     })
 
-    it('should return null when no metadata', () => {
+    it('should return empty string when no metadata', () => {
       const result = createScheduleMetadata()
 
-      expect(result).toBeNull()
+      expect(result).toBe('')
     })
   })
 
@@ -231,3 +230,8 @@ describe('scheduleFormatter', () => {
   })
 })
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> 0d9bc7b (feat: 週間ボードAPI実装（Sprint 1 Week 1）)

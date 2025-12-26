@@ -85,8 +85,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     // スケジュールを取得（週の範囲内）
     const schedules = await prisma.schedule.findMany({
       where: {
-        // NOTE: Prisma Middleware ではなく、明示的に organizationId で絞り込む（マルチテナント境界の担保）
-        organizationId: authContext.organizationId,
+        // Prisma Middleware により organizationId は自動フィルタ
         start: {
           gte: weekStart,
           lt: weekEnd
@@ -94,7 +93,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
         // 部門フィルタ（optional）
         ...(departmentId && {
           author: {
-            departmentId
+            departmentId: departmentId
           }
         })
       },
@@ -121,11 +120,11 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     // 組織内の全ユーザーを取得
     const users = await prisma.user.findMany({
       where: {
-        organizationId: authContext.organizationId,
+        // Prisma Middleware により organizationId は自動フィルタ
         isActive: true,
         // 部門フィルタ（optional）
         ...(departmentId && {
-          departmentId
+          departmentId: departmentId
         })
       },
       include: {
@@ -187,7 +186,6 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
           id: schedule.id,
           title: schedule.title,
           description: schedule.description,
-          metadata: schedule.metadata as { siteName?: string; activityType?: string } | null,
           start: schedule.start,
           end: schedule.end
         }),
@@ -198,7 +196,6 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
           id: schedule.id,
           title: schedule.title,
           description: schedule.description,
-          metadata: schedule.metadata as { siteName?: string; activityType?: string } | null,
           start: schedule.start,
           end: schedule.end
         })
@@ -237,3 +234,8 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
   }
 })
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> 0d9bc7b (feat: 週間ボードAPI実装（Sprint 1 Week 1）)
