@@ -207,7 +207,7 @@
 
 #### データモデル
 
-**既存 `Schedule` テーブルを使用（スキーマ変更禁止）**
+**既存 `Schedule` テーブルを使用（原則スキーマ変更禁止・例外あり）**
 
 **拡張方法**: `Schedule.metadata` (Json) フィールドに追加情報を格納
 
@@ -354,7 +354,7 @@ export function formatScheduleForDisplay(schedule: Schedule): string {
 
 AIが守るべき開発ルール：
 
-- ✅ スキーマ変更禁止
+- ✅ スキーマ変更は原則禁止（例外: 管理AI承認 + 影響範囲修正が揃う場合のみ）
 - ✅ マルチテナント分離必須
 - ✅ 生SQL禁止（Prisma ORMのみ）
 - ✅ `requireAuth()` 使用必須
@@ -503,8 +503,9 @@ AIが守るべき開発ルール：
 - **本ドキュメント** - ミエルボード for 現場 / 現場WEEK の設計SSOT
 
 ### 詳細仕様
-- `docs/phase0_weak_current_spec.md` - Phase 0 詳細仕様（作成予定）
-- `docs/phase0_architecture.md` - アーキテクチャ設計（作成予定）
+- `docs/phase0_weak_current_spec.md` - Phase 0 詳細仕様
+- `docs/phase0_architecture.md` - アーキテクチャ設計
+- `docs/UI_ROUTING_MAP.md` - UI・ルーティング設計（URL一覧・遷移図）
 
 ### 品質管理
 - `docs/QUALITY_MANAGEMENT_OVERVIEW.md` - 品質管理の全体像
@@ -518,6 +519,7 @@ AIが守るべき開発ルール：
 ---
 
 **このSSOTは、「ミエルボード for 現場」プロジェクトにおける設計・実装の唯一の正です。**
+
 
 
 

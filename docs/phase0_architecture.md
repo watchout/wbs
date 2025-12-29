@@ -615,12 +615,17 @@ model AlcoholCheck {
 
 - `docs/SSOT_GENBA_WEEK.md` - 設計SSOT
 - `docs/phase0_weak_current_spec.md` - 詳細仕様
+- `docs/UI_ROUTING_MAP.md` - UI・ルーティング設計（URL一覧・遷移図）
 - `docs/TEST_STRATEGY.md` - テスト戦略
 - `docs/QUALITY_MANAGEMENT_OVERVIEW.md` - 品質管理
 
 ---
 
 **このアーキテクチャは、Phase 1 以降の拡張を見据えた設計となっています。**
+
+
+
+
 
 
 
