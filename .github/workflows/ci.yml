@@ -19,9 +19,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wbs?schema=public
+        run: npm ci --prefer-offline --no-audit --fund=false --ignore-scripts
       - name: Lint
         run: node --check server/index.js && node --check server/events.js
         continue-on-error: false
@@ -42,9 +40,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wbs?schema=public
+        run: npm ci --prefer-offline --no-audit --fund=false --ignore-scripts
       - name: Build
         run: node --check server/index.js && node --check server/events.js
         env:
@@ -62,9 +58,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --fund=false
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wbs?schema=public
+        run: npm ci --prefer-offline --no-audit --fund=false --ignore-scripts
       - name: Security Audit
         run: npm audit --audit-level=moderate
         continue-on-error: true
