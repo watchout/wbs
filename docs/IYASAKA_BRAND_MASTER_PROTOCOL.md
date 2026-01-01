@@ -24,7 +24,7 @@ IYASAKAの全ての事業は、以下の3つのフェーズのいずれか、あ
 
 ### ① 【整える】 - Foundation（基盤）
 
-* **対象：** 弱電プラス、現場ミエルAI、**dev-OS**
+* **対象：** 弱電プラス、ミエルプラス、**dev-OS**
 * **不：** 不透明、不安、不信、属人化、設計の破綻
 * **光：** 確信、可視化、安心、再現性
 * **役割：** 現場の足元と、知恵の土台（設計）を整え、挑戦できる状態を創る。
@@ -53,7 +53,7 @@ IYASAKAの全ての事業は、以下の3つのフェーズのいずれか、あ
 | --- | --- | --- | --- |
 | **dev-OS** | **基盤・設計** | AI開発のブラックボックス化、設計の破綻 | **「確信」**を持てるAIエンジニアチーム化 |
 | **弱電プラス** | **基盤・インフラ** | ネットワーク・機器トラブルの孤独な不安 | **「安堵」**。止まらないインフラと伴走者 |
-| **現場ミエルAI** | **基盤・可視化** | 在庫、予定、車両管理の散らかり | **「透明」**。探す時間が消え、対話が増える現場 |
+| **ミエルプラス** | **基盤・可視化** | 在庫、予定、車両管理の散らかり | **「透明」**。探す時間が消え、対話が増える現場 |
 | **配信プラス** | **拡張・接続** | リソース不足による発信チャンスの損失 | **「共鳴」**。あらゆる場所がメディアになる |
 | **多言語プラス** | **拡張・接続** | 言葉の壁による機会損失とコスト | **「無境界」**。想いがそのまま世界へ届く |
 | **OmotenasuAI** | **進化・循環** | フロント業務の逼迫と接客の画一化 | **「至福」**。データに基づいた究極の個客体験 |
@@ -71,7 +71,7 @@ mindmap
     Pillar1[整える / Foundation]
       devOS[dev-OS: 設計の正本]
       WeakDen[弱電プラス: インフラ]
-      MieruAI[現場ミエルAIシリーズ]
+      MielPlus[ミエルプラスシリーズ]
     
     Pillar2[つなぐ / Expansion]
       Haishin[配信プラス]
@@ -119,9 +119,9 @@ mindmap
 
 ---
 
-## 付録：現場ミエルAIの位置づけ
+## 付録：ミエルプラスの位置づけ
 
-このプロジェクト（現場ミエルAI）は、IYASAKAナラティブにおいて以下の役割を担います：
+このプロジェクト（ミエルプラス）は、IYASAKAナラティブにおいて以下の役割を担います：
 
 ### カテゴリ
 **① 【整える】 - Foundation（基盤）**
@@ -157,7 +157,7 @@ mindmap
 ```mermaid
 graph LR
     subgraph "Product LPs (Distributed)"
-        LP_A[現場ミエルAI LP]
+        LP_A[ミエルプラス LP]
         LP_B[弱電プラス LP]
         LP_C[配信プラス LP]
     end
@@ -171,7 +171,7 @@ graph LR
         Notify[通知: Slack/Email]
     end
 
-    LP_A -- "?p_id=mieru-ai" --> Form
+    LP_A -- "?p_id=miel-plus" --> Form
     LP_B -- "?p_id=weak-den" --> Form
     LP_C -- "?p_id=haishin" --> Form
     Form --> CRM
@@ -196,7 +196,7 @@ graph LR
 |------|-------------|
 | `dev-os` | dev-OS |
 | `weak-den` | 弱電プラス |
-| `mieru-ai` | 現場ミエルAI（総合） |
+| `miel-plus` | ミエルプラス（総合） |
 | `mieru-board` | ミエルボード |
 | `mieru-stock` | ミエルストック |
 | `mieru-drive` | ミエルドライブ |
@@ -215,12 +215,12 @@ graph LR
 ### CTAボタンの実装
 
 ```html
-<!-- 例：現場ミエルAIのCTAボタン -->
+<!-- 例：ミエルプラスのCTAボタン -->
 <a 
-  href="https://iyasaka.co.jp/contact?p_id=mieru-ai" 
+  href="https://iyasaka.co.jp/contact?p_id=miel-plus" 
   class="cta-button"
   rel="noopener noreferrer"
-  data-analytics-id="cta-mieru-ai-hero"
+  data-analytics-id="cta-miel-plus-hero"
 >
   無料で「不」を「光」に変える相談をする
 </a>

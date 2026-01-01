@@ -10,7 +10,7 @@
           </NuxtLink>
           <NuxtLink to="/" class="logo-sub">
             <span class="logo-sub-text">by</span>
-            <span class="logo-sub-brand">現場ミエルAI</span>
+            <span class="logo-sub-brand">ミエルプラス</span>
           </NuxtLink>
         </div>
         <div class="nav-links">
@@ -424,7 +424,7 @@
         <div class="footer-brand">
           <NuxtLink to="/" class="footer-logo">
             <span class="logo-icon">🤖</span>
-            <span>現場ミエルAI</span>
+            <span>ミエルプラス</span>
           </NuxtLink>
           <p>予定も、在庫も、車両も。現場がぜんぶミエル。</p>
         </div>
@@ -506,7 +506,7 @@ function submitContact() {
 }
 
 useHead({
-  title: 'ミエルボード | 予定がミエル - 週間スケジュールボード | 現場ミエルAI',
+  title: 'ミエルボード | 予定がミエル - 週間スケジュールボード | ミエルプラス',
   meta: [
     { name: 'description', content: '「◯◯さん今どこ？」をゼロにする週間スケジュールボード。ホワイトボードの予定表をデジタル化。事務所のテレビに常時表示で、誰が・どこで・何をしているかが一目瞭然。' }
   ]

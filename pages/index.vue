@@ -5,7 +5,7 @@
       <div class="nav-container">
         <div class="nav-logo">
           <span class="logo-icon">🤖</span>
-          <span class="logo-text">現場ミエルAI</span>
+          <span class="logo-text">ミエルプラス</span>
         </div>
         <div class="nav-links">
           <a href="#features">機能</a>
@@ -128,7 +128,7 @@
       <div class="section-container">
         <div class="solution-content">
           <div class="solution-text">
-            <h2>現場ミエルAIなら、<br>すべて解決。</h2>
+            <h2>ミエルプラスなら、<br>すべて解決。</h2>
             <p>
               事務所のテレビやモニターに、週間スケジュールを常時表示。
               誰が・どこで・何をしているかが、一目でわかります。
@@ -256,7 +256,7 @@
                   <div class="ai-foundation-icon">🤖</div>
                   <div class="ai-foundation-info">
                     <div class="ai-foundation-badge">全プラン標準搭載</div>
-                    <h3>現場ミエルAI <span class="beta-tag">β版準備中</span></h3>
+                    <h3>ミエルプラス <span class="beta-tag">β版準備中</span></h3>
                     <p>すべての製品を横断して検索・操作するAIコンシェルジュ</p>
                   </div>
                 </div>
@@ -285,7 +285,7 @@
             >
               <span class="trigger-content">
                 <span class="trigger-icon">🚀</span>
-                <span class="trigger-text">現場ミエルAIが日々の業務を10倍速に!!</span>
+                <span class="trigger-text">ミエルプラスが日々の業務を10倍速に!!</span>
               </span>
               <span class="trigger-arrow" :class="{ 'rotated': showAiDemo }">▼</span>
             </button>
@@ -645,7 +645,7 @@
                   <span class="product-price" v-else>要相談</span>
                 </div>
                 <div class="result-product ai-included">
-                  <span class="product-name">🤖 現場ミエルAI</span>
+                  <span class="product-name">🤖 ミエルプラス</span>
                   <span class="product-price included">
                     {{ typeof aiCredits[selectedUserTier] === 'number' ? aiCredits[selectedUserTier] + '回/月' : aiCredits[selectedUserTier] }}（標準搭載）
                   </span>
@@ -803,7 +803,7 @@
         <div class="footer-brand">
           <div class="footer-logo">
             <span class="logo-icon">🤖</span>
-            <span>現場ミエルAI</span>
+            <span>ミエルプラス</span>
           </div>
           <p>予定も、在庫も、車両も。現場がぜんぶミエル。</p>
         </div>
@@ -830,7 +830,7 @@
       </div>
       <div class="footer-bottom">
         <p class="footer-iyasaka">Powered by <a href="https://iyasaka.co.jp" target="_blank" rel="noopener noreferrer">IYASAKA</a> - 今ある「不」を、未来の「光」へ。</p>
-        <p>© 2024 現場ミエルAI / 有限会社IYASAKA. All rights reserved.</p>
+        <p>© 2024 ミエルプラス / 有限会社IYASAKA. All rights reserved.</p>
       </div>
     </footer>
 
@@ -1240,7 +1240,7 @@ function scrollToFeatures() {
 
 function scrollToContact() {
   // TODO: IYASAKA公式サイト構築後、以下に変更
-  // window.location.href = 'https://iyasaka.co.jp/contact?p_id=mieru-ai'
+  // window.location.href = 'https://iyasaka.co.jp/contact?p_id=miel-plus'
   document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
 }
 
@@ -1255,7 +1255,7 @@ function submitContact() {
 }
 
 useHead({
-  title: '現場ミエルAI | 予定も、在庫も、車両も。現場がぜんぶミエル。',
+  title: 'ミエルプラス | 予定も、在庫も、車両も。現場がぜんぶミエル。',
   meta: [
     { name: 'description', content: '現場の「見えない」をAIで解決。予定・在庫・車両・ファイルをまとめて見える化。ミエルボード・ミエルストック・ミエルドライブ・ミエルファイルで現場業務を効率化。' }
   ]
@@ -1778,7 +1778,7 @@ useHead({
 }
 
 .product-suite::before {
-  content: '現場ミエルAI';
+  content: 'ミエルプラス';
   position: absolute;
   top: -14px;
   left: 24px;
