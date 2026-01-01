@@ -1,4 +1,4 @@
-~// prisma/schema.prisma  v0.1  (20250519)
+// prisma/schema.prisma  v0.1  (20250519)
 // -------------------------------------------
 // NOTE: datasource & generator blocks are kept minimal; adjust
 //       according to your local DB connection in dev.
@@ -150,4 +150,3 @@ model AuditLog {
 
   @@index([organizationId, createdAt])
 }
-~

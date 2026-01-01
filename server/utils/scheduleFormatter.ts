@@ -177,9 +177,3 @@ export function getWeekEnd(date: Date): Date {
   weekEnd.setDate(weekEnd.getDate() + 7)
   return weekEnd
 }
-
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 0d9bc7b (feat: 週間ボードAPI実装（Sprint 1 Week 1）)
