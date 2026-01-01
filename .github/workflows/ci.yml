@@ -93,8 +93,10 @@ jobs:
             REMOVED=$(echo "$DIFF" | grep '^-' | grep -v '^---' || true)
             
             # 例外許可: 先頭行の "~//" → "//" への修復、および単独 "~" 行の除去
+            # 注意: bashのクォートとgrepの正規表現でバックスラッシュを二重にすると
+            #      期待と違う文字列（例: "\-"）をマッチしてしまうため、最小限のエスケープにする。
             ALLOWED_ADDED_REGEX='^\\+// prisma/schema\\.prisma'
-            ALLOWED_REMOVED_REGEX='^\\-~// prisma/schema\\.prisma|^\\-~$'
+            ALLOWED_REMOVED_REGEX='^-~// prisma/schema\\.prisma|^-~$'
             
             if echo "$ADDED" | grep -v -E "$ALLOWED_ADDED_REGEX" | grep -q .; then
               echo "❌ エラー: schema.prisma に許可されていない追加行があります"
