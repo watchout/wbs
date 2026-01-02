@@ -18,9 +18,10 @@ import {
 describe('scheduleFormatter', () => {
   describe('formatTime', () => {
     it('should format time correctly', () => {
-      const date1 = new Date('2025-01-15T09:00:00Z')
-      const date2 = new Date('2025-01-15T18:30:00Z')
-      const date3 = new Date('2025-01-15T00:00:00Z')
+      // ローカルタイムゾーンで時刻を設定
+      const date1 = new Date(2025, 0, 15, 9, 0, 0)  // 9:00
+      const date2 = new Date(2025, 0, 15, 18, 30, 0) // 18:30
+      const date3 = new Date(2025, 0, 15, 0, 0, 0)  // 0:00
 
       expect(formatTime(date1)).toBe('9')
       expect(formatTime(date2)).toBe('18')
@@ -73,8 +74,8 @@ describe('scheduleFormatter', () => {
           siteName: '◯◯ホテル',
           activityType: '新館工事'
         }),
-        start: new Date('2025-01-15T09:00:00Z'),
-        end: new Date('2025-01-15T18:00:00Z')
+        start: new Date(2025, 0, 15, 9, 0, 0),  // 9:00
+        end: new Date(2025, 0, 15, 18, 0, 0)    // 18:00
       }
 
       const result = formatScheduleForDisplay(schedule)
@@ -87,8 +88,8 @@ describe('scheduleFormatter', () => {
         id: 'test-2',
         title: '会議',
         description: null,
-        start: new Date('2025-01-15T10:00:00Z'),
-        end: new Date('2025-01-15T11:00:00Z')
+        start: new Date(2025, 0, 15, 10, 0, 0), // 10:00
+        end: new Date(2025, 0, 15, 11, 0, 0)    // 11:00
       }
 
       const result = formatScheduleForDisplay(schedule)
@@ -101,8 +102,8 @@ describe('scheduleFormatter', () => {
         id: 'test-3',
         title: '研修',
         description: null,
-        start: new Date('2025-01-15T00:00:00Z'),
-        end: new Date('2025-01-16T00:00:00Z')
+        start: new Date(2025, 0, 15, 0, 0, 0),  // 0:00
+        end: new Date(2025, 0, 16, 0, 0, 0)     // 次の日 0:00
       }
 
       const result = formatScheduleForDisplay(schedule)
@@ -115,8 +116,8 @@ describe('scheduleFormatter', () => {
         id: 'test-4',
         title: '打合せ',
         description: null,
-        start: new Date('2025-01-15T14:00:00Z'),
-        end: new Date('2025-01-15T14:30:00Z')
+        start: new Date(2025, 0, 15, 14, 0, 0),  // 14:00
+        end: new Date(2025, 0, 15, 14, 30, 0)    // 14:30
       }
 
       const result = formatScheduleForDisplay(schedule)
@@ -157,8 +158,8 @@ describe('scheduleFormatter', () => {
         id: 'test-5',
         title: '休み',
         description: null,
-        start: new Date('2025-01-15T00:00:00Z'),
-        end: new Date('2025-01-15T00:00:00Z')
+        start: new Date(2025, 0, 15, 0, 0, 0),
+        end: new Date(2025, 0, 15, 0, 0, 0)
       }
 
       expect(isHoliday(schedule)).toBe(true)
@@ -169,8 +170,8 @@ describe('scheduleFormatter', () => {
         id: 'test-6',
         title: '通常業務',
         description: null,
-        start: new Date('2025-01-15T09:00:00Z'),
-        end: new Date('2025-01-15T18:00:00Z')
+        start: new Date(2025, 0, 15, 9, 0, 0),
+        end: new Date(2025, 0, 15, 18, 0, 0)
       }
 
       expect(isHoliday(schedule)).toBe(false)
@@ -180,7 +181,7 @@ describe('scheduleFormatter', () => {
   describe('getWeekStart', () => {
     it('should get Monday of the week', () => {
       // 2025-01-15 は水曜日
-      const date = new Date('2025-01-15T12:00:00Z')
+      const date = new Date(2025, 0, 15, 12, 0, 0)
       const weekStart = getWeekStart(date)
 
       // 2025-01-13 (月曜) の 00:00:00 になるはず
@@ -192,7 +193,7 @@ describe('scheduleFormatter', () => {
 
     it('should handle Sunday correctly', () => {
       // 2025-01-19 は日曜日
-      const date = new Date('2025-01-19T12:00:00Z')
+      const date = new Date(2025, 0, 19, 12, 0, 0)
       const weekStart = getWeekStart(date)
 
       // 2025-01-13 (月曜) の 00:00:00 になるはず
@@ -201,7 +202,7 @@ describe('scheduleFormatter', () => {
 
     it('should handle Monday correctly', () => {
       // 2025-01-13 は月曜日
-      const date = new Date('2025-01-13T12:00:00Z')
+      const date = new Date(2025, 0, 13, 12, 0, 0)
       const weekStart = getWeekStart(date)
 
       // 同じ日（月曜）の 00:00:00 になるはず
@@ -213,7 +214,7 @@ describe('scheduleFormatter', () => {
   describe('getWeekEnd', () => {
     it('should get next Monday 00:00:00', () => {
       // 2025-01-15 は水曜日
-      const date = new Date('2025-01-15T12:00:00Z')
+      const date = new Date(2025, 0, 15, 12, 0, 0)
       const weekEnd = getWeekEnd(date)
 
       // 2025-01-20 (次の月曜) の 00:00:00 になるはず

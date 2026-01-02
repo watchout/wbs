@@ -79,17 +79,19 @@ export function formatScheduleForDisplay(schedule: Schedule): string {
   const startHour = formatTime(schedule.start)
   const endHour = formatTime(schedule.end)
 
-  // 時刻部分（開始時刻と終了時刻が同じ場合は省略）
+  // 終日判定（開始0時、終了が翌日0時 = 24時間以上の差）
+  const durationMs = schedule.end.getTime() - schedule.start.getTime()
+  const durationHours = durationMs / (1000 * 60 * 60)
+  const isAllDay = startHour === '0' && endHour === '0' && durationHours >= 24
+
+  // 時刻部分
   let timePart = ''
-  if (startHour === endHour) {
+  if (isAllDay) {
+    timePart = '終日'
+  } else if (startHour === endHour) {
     timePart = `${startHour}時`
   } else {
-    // 終日（0-24）の場合
-    if (startHour === '0' && endHour === '0') {
-      timePart = '終日'
-    } else {
-      timePart = `${startHour}-${endHour}`
-    }
+    timePart = `${startHour}-${endHour}`
   }
 
   // 表示テキストの組み立て
