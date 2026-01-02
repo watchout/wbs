@@ -61,7 +61,8 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     // クエリパラメータ取得
     const query = getQuery(event)
     const startDateParam = query.startDate as string | undefined
-    const departmentId = query.departmentId as string | undefined
+    // departmentId は将来の部門機能用（現在のスキーマでは未実装）
+    // const departmentId = query.departmentId as string | undefined
 
     // startDate のバリデーション
     let baseDate: Date
@@ -85,30 +86,18 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     // スケジュールを取得（週の範囲内）
     const schedules = await prisma.schedule.findMany({
       where: {
-        // Prisma Middleware により organizationId は自動フィルタ
+        organizationId: authContext.organizationId,
         start: {
           gte: weekStart,
           lt: weekEnd
-        },
-        // 部門フィルタ（optional）
-        ...(departmentId && {
-          author: {
-            departmentId: departmentId
-          }
-        })
+        }
       },
       include: {
         author: {
           select: {
             id: true,
             name: true,
-            email: true,
-            department: {
-              select: {
-                id: true,
-                name: true
-              }
-            }
+            email: true
           }
         }
       },
@@ -120,20 +109,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     // 組織内の全ユーザーを取得
     const users = await prisma.user.findMany({
       where: {
-        // Prisma Middleware により organizationId は自動フィルタ
-        isActive: true,
-        // 部門フィルタ（optional）
-        ...(departmentId && {
-          departmentId: departmentId
-        })
-      },
-      include: {
-        department: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
+        organizationId: authContext.organizationId
       },
       orderBy: {
         name: 'asc'
@@ -149,8 +125,8 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
         id: user.id,
         name: user.name || 'Unknown',
         email: user.email,
-        department: user.department?.name || null,
-        departmentId: user.department?.id || null,
+        department: null, // 将来の部門機能用（現在のスキーマでは未実装）
+        departmentId: null,
         schedules: {}
       })
     })

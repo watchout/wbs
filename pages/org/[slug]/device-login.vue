@@ -58,7 +58,7 @@ async function handleLogin() {
   error.value = ''
 
   try {
-    const response = await $fetch('/api/auth/device-login', {
+    const response = await $fetch<{ success: boolean }>('/api/auth/device-login', {
       method: 'POST',
       body: {
         deviceKey: deviceKey.value,
