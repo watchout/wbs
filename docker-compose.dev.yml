@@ -1,0 +1,25 @@
+# 開発用Docker Compose（PostgreSQL）
+# 起動: docker compose -f docker-compose.dev.yml up -d
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: wbs-postgres-dev
+    environment:
+      POSTGRES_USER: wbs_dev
+      POSTGRES_PASSWORD: wbs_dev_password
+      POSTGRES_DB: wbs_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wbs_dev -d wbs_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_dev_data:
