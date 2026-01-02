@@ -1,6 +1,6 @@
 # ミエルプラス - ドキュメント索引
 
-**最終更新**: 2024-12-19
+**最終更新**: 2026-01-03
 
 ---
 
@@ -19,7 +19,11 @@ docs/
 │
 ├── 1. SSOT（設計の唯一の正）
 │   ├── SSOT_GENBA_WEEK.md ⭐️ ミエルボード詳細仕様
-│   └── SSOT_MIEL_FILE.md 📁 ミエルファイル構想（Phase 4予定）
+│   ├── SSOT_PRICING.md 💰 統一料金体系
+│   ├── SSOT_MARKETING.md 📈 マーケティング戦略
+│   ├── SSOT_BRAND.md 🎨 ブランドガイドライン
+│   ├── SSOT_EXIT_STRATEGY.md 🚀 EXIT戦略・M&A（ANDPAD/freeeデュアルターゲット）
+│   └── SSOT_MIEL_FILE.md 📁 ミエルファイル詳細仕様（変更検知・履歴特化）
 │
 ├── 2. Phase 0 詳細仕様
 │   ├── phase0_weak_current_spec.md
@@ -35,11 +39,7 @@ docs/
 │   └── TAG_COMMANDS.md 🏷️ タグ方式コマンド（NEW）
 │
 ├── 4. AI役割分担システム 🤖 （NEW）
-│   ├── AI_ROLES/README.md - AI役割一覧・運用方法
-│   ├── AI_ROLES/DESIGN_AI_PROMPT.md - 設計AI初期プロンプト
-│   ├── AI_ROLES/MANAGEMENT_AI_PROMPT.md - 管理AI初期プロンプト
-│   ├── AI_ROLES/IMPLEMENTATION_AI_PROMPT.md - 実装AI初期プロンプト
-│   └── AI_ROLES/AUDIT_AI_PROMPT.md - 監査AI初期プロンプト
+│   └── AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md - 戦略コンテキスト（初回共有）
 │
 ├── 5. セットアップ・完了レポート
 │   └── DEVELOPMENT_RULES_PACK_COMPLETE.md
@@ -115,9 +115,8 @@ docs/
 
 **読むタイミング**: フロントエンド実装開始前
 
-**⚠️ 重要**: このドキュメントは **将来のNuxt 3 フロントエンド実装の設計書** です。  
-本リポジトリには現在 `pages/`, `components/`, `nuxt.config.ts` が存在しないため、  
-記載された UI ページ・コンポーネントは **すべて未作成** です。
+**⚠️ 重要**: このドキュメントは **Nuxt 3 UIの設計書** です。  
+現在は `pages/`, `components/`, `nuxt.config.ts` は存在しますが、設計書の内容と実装はズレ得るため、実装時は差分を都度レビューしてください。
 
 **特徴**:
 - SSOT と仕様書から抽出した「作るべき画面」の全体像
@@ -233,81 +232,24 @@ docs/
 
 ### 4️⃣ AI役割分担システム 🤖
 
-#### `AI_ROLES/README.md` - AI役割一覧・運用方法
+#### 🚀 `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md` - 戦略コンテキスト（NEW）
 
-**対象**: 全員（特にAI駆動開発を行う場合は必読）
+**対象**: 設計AI・管理AI
 
 **内容**:
-- なぜ役割分担が必要か
-- 4つのAIロール（設計/管理/実装/監査）の概要
-- 各AIの権限マトリクス
-- 典型的なワークフロー
-- 実際の運用方法
+- M&A EXIT戦略（3年10億円、ANDPAD/freeeデュアルターゲット）
+- ブランド体系（ミエルシリーズ、USP）
+- 開発優先順位（デュアルターゲット最適化）
+- 料金体系・ターゲット顧客・パートナー制度
+- 設計判断の優先順位・チェックリスト
+- 3年間のマイルストーン
 
-**読むタイミング**: AI駆動開発を始める前
+**使い方**: 設計AI・管理AIチャットで、役割プロンプトの次に読み込ませる
 
 ---
 
-#### `AI_ROLES/DESIGN_AI_PROMPT.md` - 設計AI初期プロンプト
-
-**対象**: 設計AIとして動作させるチャット
-
-**内容**:
-- 設計AIの役割・責任
-- 必須読み込みドキュメント
-- タグコマンド（`>> write`, `>> impl`, `>> fix`, `>> rfv`）
-- Implementation Halt Protocol
-- 実装時の思考フレームワーク
-- 初回起動時のチェックリスト
-
-**使い方**: 新しい設計AI用チャットで、このファイルを最初に読み込ませる
-
----
-
-#### `AI_ROLES/MANAGEMENT_AI_PROMPT.md` - 管理AI初期プロンプト
-
-**対象**: 管理AIとして動作させるチャット / あなた自身（人間の場合）
-
-**内容**:
-- 管理AIの役割・責任（PRマージ権限を持つ最終承認者）
-- PRレビュー・マージフロー（Phase 1〜9）
-- タグコマンド（`>> next`, `>> prmt`）
-- 進捗管理の原則（Planeとの連携）
-- 判断時の思考フレームワーク
-- 緊急時の対応プロトコル
-
-**使い方**: PRレビュー時にこのプロンプトの「監査フロー」に従う
-
----
-
-#### `AI_ROLES/IMPLEMENTATION_AI_PROMPT.md` - 実装AI初期プロンプト
-
-**対象**: 実装AIとして動作させるチャット
-
-**内容**:
-- 実装AIの役割・責任
-- 実装フロー（Phase 0〜6）
-  - SSOT読了 → 既存調査 → ハルシネーション防止 → 実装 → テスト → PR作成
-- 禁止パターンの回避方法
-- Evidence取得・提出方法
-- Implementation Halt Protocol
-
-**使い方**: 新しい実装AI用チャットで、このファイルを最初に読み込ませる
-
----
-
-#### `AI_ROLES/AUDIT_AI_PROMPT.md` - 監査AI初期プロンプト
-
-**対象**: 監査AIとして動作させるチャット
-
-**内容**:
-- 監査AIの役割・責任
-- 監査フロー（Phase 1〜9）
-  - PRテンプレート確認 → Evidence検証 → 禁止パターン検出 → SSOT準拠 → セキュリティ監査
-- 監査レポート生成
-- 差し戻し基準
-
-**使い方**: 新しい監査AI用チャットで、このファイルを最初に読み込ませる
+**補足（現状）**: `AI_ROLES/` 配下には現在 `STRATEGIC_CONTEXT_PROMPT.md` のみ存在します。  
+役割別プロンプト（設計AI/管理AI/実装AI/監査AI）を追加する場合は、必要になったタイミングで作成し、このINDEXに追記します。
 
 ---
 
@@ -374,7 +316,7 @@ docs/
 
 ### 🎨 設計AI
 
-1. `AI_ROLES/DESIGN_AI_PROMPT.md` - **最優先（初期プロンプト）**
+1. `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md` - **戦略コンテキスト**
 2. `SSOT_GENBA_WEEK.md` - **メインSSOT**
 3. `.cursorrules` - **開発ルール**
 4. `TAG_COMMANDS.md` - **タグ方式の詳細**
@@ -386,7 +328,7 @@ docs/
 
 ### 🛠️ 実装AI
 
-1. `AI_ROLES/IMPLEMENTATION_AI_PROMPT.md` - **最優先（初期プロンプト）**
+1. `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md`（必要なら）
 2. 実装対象のSSOT（例: `SSOT_GENBA_WEEK.md`）
 3. `.cursorrules` - **開発ルール**
 4. `TEST_STRATEGY.md` - **テスト戦略**
@@ -397,7 +339,7 @@ docs/
 
 ### 👔 管理AI（あなた自身）
 
-1. `AI_ROLES/MANAGEMENT_AI_PROMPT.md` - **最優先（初期プロンプト）**
+1. `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md`（必要なら）
 2. `QUALITY_MANAGEMENT_OVERVIEW.md` - **品質管理の全体像**
 3. `DONE_DEFINITION.md` - **完了の定義**
 4. `BRANCH_AND_RELEASE.md` - **ブランチ戦略**
@@ -407,7 +349,7 @@ docs/
 
 ### 🔍 監査AI
 
-1. `AI_ROLES/AUDIT_AI_PROMPT.md` - **最優先（初期プロンプト）**
+1. `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md`（必要なら）
 2. `QUALITY_MANAGEMENT_OVERVIEW.md` - **品質管理の全体像**
 3. `DONE_DEFINITION.md` - **完了の定義**
 4. `.cursorrules` - **禁止事項確認**
@@ -458,7 +400,11 @@ docs/
 | ドキュメント | 状態 | 最終更新 |
 |-------------|------|---------|
 | `SSOT_GENBA_WEEK.md` | ✅ 完成 | 2024-12-07 |
-| `SSOT_MIEL_FILE.md` | 📝 構想段階 | 2024-12-19 |
+| `SSOT_PRICING.md` | ✅ 完成 | 2026-01-02 |
+| `SSOT_MARKETING.md` | ✅ 完成 | 2026-01-02 |
+| `SSOT_BRAND.md` | ✅ 完成 | 2026-01-02 |
+| `SSOT_EXIT_STRATEGY.md` | ✅ 完成 | 2026-01-03 |
+| `SSOT_MIEL_FILE.md` | ✅ 完成 | 2026-01-03 |
 | `INDEX_WEAK_CURRENT.md` | ✅ 完成 | 2025-12-07 |
 | `QUALITY_MANAGEMENT_OVERVIEW.md` | ✅ 完成 | 2025-12-07 |
 | `TEST_STRATEGY.md` | ✅ 完成 | 2025-12-07 |
@@ -468,11 +414,7 @@ docs/
 | `DEVELOPMENT_RULES_PACK_COMPLETE.md` | ✅ 完成 | 2025-12-07 |
 | `TAG_COMMANDS.md` | ✅ 完成 | 2025-12-07 |
 | `GITHUB_OPERATIONS_GUIDE.md` | ✅ 完成 | 2025-01-10 |
-| `AI_ROLES/README.md` | ✅ 完成 | 2025-01-10 |
-| `AI_ROLES/DESIGN_AI_PROMPT.md` | ✅ 完成 | 2025-01-10 |
-| `AI_ROLES/MANAGEMENT_AI_PROMPT.md` | ✅ 完成 | 2025-01-10 |
-| `AI_ROLES/IMPLEMENTATION_AI_PROMPT.md` | ✅ 完成 | 2025-01-10 |
-| `AI_ROLES/AUDIT_AI_PROMPT.md` | ✅ 完成 | 2025-01-10 |
+| `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md` | ✅ 完成 | 2026-01-03 |
 | `phase0_weak_current_spec.md` | ✅ 完成 | 2025-12-07 |
 | `phase0_architecture.md` | ✅ 完成 | 2025-12-07 |
 
