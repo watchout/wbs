@@ -1,0 +1,209 @@
+[
+  {
+    "phase": "Phase 0（現在）",
+    "issues": [
+      {
+        "name": "【インフラ】開発用DB環境構築",
+        "priority": "urgent",
+        "description": "Docker PostgreSQL + Prisma シード",
+        "status": "In Progress",
+        "wbs_id": "WBS-4"
+      },
+      {
+        "name": "【認証】JWT認証基盤実装",
+        "priority": "high",
+        "description": "Cookie + JWT認証、デバイスログイン",
+        "status": "Backlog",
+        "wbs_id": "WBS-5"
+      },
+      {
+        "name": "【LP】ミエルストックLP作成",
+        "priority": "medium",
+        "description": "在庫管理製品の専用ランディングページ",
+        "status": "Backlog",
+        "wbs_id": "WBS-6"
+      },
+      {
+        "name": "【LP】ミエルドライブLP作成",
+        "priority": "medium",
+        "description": "車両管理製品の専用ランディングページ",
+        "status": "Backlog",
+        "wbs_id": "WBS-7"
+      },
+      {
+        "name": "【LP】ミエルファイルLP作成",
+        "priority": "medium",
+        "description": "ファイル管理製品の専用ランディングページ",
+        "status": "Backlog",
+        "wbs_id": "WBS-8"
+      }
+    ]
+  },
+  {
+    "phase": "Year 1 (2026) - PMF達成",
+    "issues": [
+      {
+        "name": "【ボード】カレンダー連携（Google）",
+        "priority": "urgent",
+        "description": "Googleカレンダーとの双方向同期。OAuth2認証、イベント取得・作成。ANDPADにもfreeeにも重要。",
+        "status": "Backlog",
+        "strategic_value": "ANDPAD: ◎ / freee: ◎"
+      },
+      {
+        "name": "【ボード】カレンダー連携（Outlook）",
+        "priority": "high",
+        "description": "Microsoft 365カレンダー連携。Graph API使用。",
+        "status": "Backlog",
+        "strategic_value": "ANDPAD: ◎ / freee: ◎"
+      },
+      {
+        "name": "【ドライブ】SSOT作成",
+        "priority": "high",
+        "description": "ミエルドライブ仕様書の作成。車両予約・アルコールチェック・運転日報。",
+        "status": "Backlog",
+        "strategic_value": "ANDPAD: ◎ / freee: △"
+      },
+      {
+        "name": "【ドライブ】車両管理API設計",
+        "priority": "high",
+        "description": "車両CRUD・予約API設計",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ドライブ】アルコールチェック記録",
+        "priority": "high",
+        "description": "乗車前後のアルコールチェック入力・記録。法規制対応。",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ドライブ】運転日報機能",
+        "priority": "medium",
+        "description": "運転日報の入力・出力機能",
+        "status": "Backlog"
+      },
+      {
+        "name": "【インフラ】本番環境構築",
+        "priority": "high",
+        "description": "ConoHa VPS + Docker Compose + PostgreSQL",
+        "status": "Backlog"
+      },
+      {
+        "name": "【インフラ】ドメイン・SSL設定",
+        "priority": "high",
+        "description": "本番ドメインとSSL証明書の設定",
+        "status": "Backlog"
+      },
+      {
+        "name": "【LP】メインLP改善 - CTAボタン・フォーム連携",
+        "priority": "high",
+        "description": "ミエルプラスメインLPのCTAボタンをIYASAKA HPフォームと連携",
+        "status": "Backlog"
+      },
+      {
+        "name": "【HP連携】リードキャプチャ実装",
+        "priority": "high",
+        "description": "IYASAKA HPとの連携、p_idパラメータによる製品識別",
+        "status": "Backlog"
+      }
+    ]
+  },
+  {
+    "phase": "Year 2 (2027) - スケール",
+    "issues": [
+      {
+        "name": "【AI】ミエルAI基盤設計",
+        "priority": "high",
+        "description": "横断検索・自然言語クエリの基盤設計。差別化技術。",
+        "status": "Backlog",
+        "strategic_value": "ANDPAD: ◎ / freee: ○"
+      },
+      {
+        "name": "【AI】チャットUI実装",
+        "priority": "medium",
+        "description": "AIチャットインターフェースの実装",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ファイル】SSOT作成",
+        "priority": "medium",
+        "description": "ミエルファイル仕様書の作成。変更検知・履歴特化。ANDPADにない差別化。",
+        "status": "Done",
+        "strategic_value": "ANDPAD: ◎ / freee: △"
+      },
+      {
+        "name": "【ファイル】ファイル管理API設計",
+        "priority": "medium",
+        "description": "ファイルアップロード・バージョン管理API",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ファイル】AI差分検出機能",
+        "priority": "medium",
+        "description": "図面の差分をAIで検出する機能。ANDPADにない差別化。",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ストック】SSOT作成",
+        "priority": "medium",
+        "description": "ミエルストック仕様書の作成",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ストック】在庫API設計",
+        "priority": "medium",
+        "description": "在庫CRUD API・現場別在庫の設計",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ストック】在庫一覧画面",
+        "priority": "medium",
+        "description": "在庫一覧・検索・フィルタ画面",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ストック】発注アラート機能",
+        "priority": "low",
+        "description": "在庫閾値による自動アラート",
+        "status": "Backlog"
+      },
+      {
+        "name": "【ボード】工数管理機能",
+        "priority": "medium",
+        "description": "スケジュールから工数を自動集計。freee連携の核心。",
+        "status": "Backlog",
+        "strategic_value": "ANDPAD: △ / freee: ◎"
+      },
+      {
+        "name": "【連携】freee API連携",
+        "priority": "medium",
+        "description": "freee勤怠・会計APIとの連携。工数→勤怠自動反映。",
+        "status": "Backlog",
+        "strategic_value": "ANDPAD: - / freee: ◎"
+      }
+    ]
+  },
+  {
+    "phase": "Year 3 (2028) - EXIT",
+    "issues": [
+      {
+        "name": "【連携】API公開",
+        "priority": "medium",
+        "description": "外部連携用REST/GraphQL API公開。M&A価値向上。",
+        "status": "Backlog"
+      },
+      {
+        "name": "【M&A】ANDPAD接触・交渉",
+        "priority": "high",
+        "description": "ANDPADへの売却交渉開始",
+        "status": "Backlog"
+      },
+      {
+        "name": "【M&A】freee接触・交渉",
+        "priority": "high",
+        "description": "freeeへの売却交渉開始",
+        "status": "Backlog"
+      }
+    ]
+  }
+]
+
