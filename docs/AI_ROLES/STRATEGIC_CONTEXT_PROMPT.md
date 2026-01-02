@@ -282,17 +282,17 @@ Year 1 (2026)             Year 2 (2027)             Year 3 (2028)
 ### 設計AIの場合
 
 1. 新しい設計AIチャットを開始
-2. `AI_ROLES/DESIGN_AI_PROMPT.md` を読み込み
-3. **このプロンプト**（`STRATEGIC_CONTEXT_PROMPT.md`）を読み込み
-4. 対象のSSOT（例: `SSOT_GENBA_WEEK.md`）を読み込み
+2. **このプロンプト**（`AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md`）を読み込み
+3. 対象のSSOT（例: `SSOT_GENBA_WEEK.md`）を読み込み
+4. `.cursorrules` / `docs/TAG_COMMANDS.md`（必要に応じて）を読み込み
 5. `>> write` または `>> impl` タグで作業開始
 
 ### 管理AIの場合
 
 1. 新しい管理AIチャットを開始
-2. `AI_ROLES/MANAGEMENT_AI_PROMPT.md` を読み込み
-3. **このプロンプト**（`STRATEGIC_CONTEXT_PROMPT.md`）を読み込み
-4. `>> next` タグでタスク選定、または PR レビュー開始
+2. **このプロンプト**（`AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md`）を読み込み
+3. `docs/QUALITY_MANAGEMENT_OVERVIEW.md` / `docs/DONE_DEFINITION.md`（必要に応じて）を読み込み
+4. `>> next`（※Plane API連携が未実装の場合は手動運用）または PR レビュー開始
 
 ---
 
