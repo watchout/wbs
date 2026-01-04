@@ -2,7 +2,7 @@
   <div class="weekly-board" :class="{ fullscreen: isFullscreen }">
     <!-- ヘッダー（フルスクリーン時は非表示） -->
     <header v-if="!isFullscreen" class="board-header">
-      <h1>{{ organization?.name || 'ミエルボード' }} - 現場WEEK</h1>
+      <h1>{{ organization?.name || '' }} ミエルボード</h1>
       <div class="controls">
         <button @click="previousWeek" class="btn btn-secondary">◀ 前の週</button>
         <span class="current-week">{{ weekLabel }}</span>
@@ -205,7 +205,7 @@ onMounted(() => {
 
 // ページタイトル
 useHead({
-  title: '週間ボード - 現場WEEK'
+  title: 'ミエルボード - 週間スケジュール'
 })
 </script>
 

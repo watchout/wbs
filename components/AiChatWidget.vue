@@ -137,14 +137,14 @@ const aiResponses: Record<string, string> = {
 🤖 <strong>トライアル特典:</strong> AIコンシェルジュ 2,000回分プレゼント！`,
 
   // 機能
-  '機能': `<strong>ミエルボードでできること</strong><br><br>
-📆 <strong>現場WEEK</strong>（利用可能）<br>
+  '機能': `<strong>ミエルプラスでできること</strong><br><br>
+📆 <strong>ミエルボード</strong>（利用可能）<br>
 ・週間スケジュールをサイネージ表示<br>
 ・「誰がどこにいるか」を一目で把握<br>
 ・Googleカレンダー連携<br><br>
-📦 <strong>現場STOCK</strong>（Coming Soon）<br>
+📦 <strong>ミエルストック</strong>（Coming Soon）<br>
 ・在庫・資材管理<br><br>
-🚗 <strong>現場DRIVE</strong>（Coming Soon）<br>
+🚗 <strong>ミエルドライブ</strong>（Coming Soon）<br>
 ・車両管理・アルコールチェック<br><br>
 🤖 <strong>AIコンシェルジュ</strong>（全プラン標準搭載）<br>
 ・「田中さん今どこ？」と聞くだけで即座に回答！`,
