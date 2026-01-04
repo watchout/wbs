@@ -39,7 +39,7 @@
 ```
 ミエルボード（MielBoard）
 └── ミエルボード for 現場
-    ├── 現場WEEK（週間スケジュール）
+    ├── ミエルボード（週間スケジュール）
     ├── 現場STOCK（在庫・資材管理）
     ├── 現場DRIVE（車両・アルコールチェック）
     ├── 現場LOG（日報・実績）※将来
@@ -237,7 +237,7 @@ STOCK ←→ DRIVE:
 
 ## 📚 関連ドキュメント
 
-- [SSOT_GENBA_WEEK.md](./SSOT_GENBA_WEEK.md) - 現場WEEK詳細仕様
+- [SSOT_GENBA_WEEK.md](./SSOT_GENBA_WEEK.md) - ミエルボード詳細仕様
 - [phase0_weak_current_spec.md](./phase0_weak_current_spec.md) - Phase 0 実装仕様
 - [UI_ROUTING_MAP.md](./UI_ROUTING_MAP.md) - UI/ルーティング設計
 - [QUALITY_MANAGEMENT_OVERVIEW.md](./QUALITY_MANAGEMENT_OVERVIEW.md) - 品質管理

@@ -1,6 +1,6 @@
 # GitHub Repository Setup Guide
 
-**プロジェクト**: ミエルボード for 現場 / 現場WEEK  
+**プロジェクト**: ミエルボード for 現場  
 **最終更新**: 2025-12-05
 
 ---

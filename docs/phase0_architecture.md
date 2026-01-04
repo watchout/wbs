@@ -1,7 +1,7 @@
-# Phase 0 アーキテクチャ設計: 現場WEEK
+# Phase 0 アーキテクチャ設計: ミエルボード
 
 **プロジェクト**: ミエルボード for 現場  
-**モジュール**: 現場WEEK  
+**モジュール**: ミエルボード  
 **Phase**: 0  
 **最終更新**: 2025-12-07
 
@@ -9,7 +9,7 @@
 
 ## 📋 このドキュメントについて
 
-このドキュメントは **Phase 0（現場WEEK）のアーキテクチャ設計** です。
+このドキュメントは **Phase 0（ミエルボード）のアーキテクチャ設計** です。
 
 **参照**:
 - `docs/SSOT_GENBA_WEEK.md` - 設計SSOT
@@ -525,7 +525,7 @@ export function logInfo(message: string, meta?: object) {
 
 - ✅ `Schedule.metadata` の拡張
 - ✅ 週間ボード用 API（`/api/schedules/weekly-board`）
-- ✅ 現場WEEK用 UI コンポーネント
+- ✅ ミエルボード用 UI コンポーネント
 
 ---
 
