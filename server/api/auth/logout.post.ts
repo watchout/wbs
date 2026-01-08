@@ -3,10 +3,11 @@
  * 
  * POST /api/auth/logout
  * 
- * Cookieをクリアしてログアウト
+ * セッションを削除してログアウト
  */
 
-import { setCookie } from 'h3'
+import { getCookie, setCookie } from 'h3'
+import { deleteSession } from '~/server/utils/session'
 
 interface LogoutResponse {
   success: boolean
@@ -14,16 +15,14 @@ interface LogoutResponse {
 }
 
 export default defineEventHandler(async (event): Promise<LogoutResponse> => {
-  // Cookieをクリア（maxAge: 0で即座に削除）
-  setCookie(event, 'access_token', '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 0
-  })
+  // セッションIDを取得して削除
+  const sessionId = getCookie(event, 'session_id')
+  if (sessionId) {
+    deleteSession(sessionId)
+  }
 
-  setCookie(event, 'refresh_token', '', {
+  // Cookieをクリア
+  setCookie(event, 'session_id', '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -36,4 +35,3 @@ export default defineEventHandler(async (event): Promise<LogoutResponse> => {
     message: 'ログアウトしました'
   }
 })
-

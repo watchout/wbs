@@ -9,12 +9,7 @@
 
 import { readBody, setCookie, createError } from 'h3'
 import { prisma } from '~/server/utils/prisma'
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  accessTokenCookieOptions,
-  refreshTokenCookieOptions
-} from '~/server/utils/jwt'
+import { createSession, deviceSessionCookieOptions } from '~/server/utils/session'
 
 interface DeviceLoginRequest {
   kioskSecret: string
@@ -64,29 +59,17 @@ export default defineEventHandler(async (event): Promise<DeviceLoginResponse> =>
     })
   }
 
-  // JWTトークン生成（デバイス用）
-  const accessToken = await generateAccessToken({
-    organizationId: device.organizationId,
+  // セッション作成（デバイス用）
+  const sessionId = createSession({
     userId: `device:${device.id}`,
-    email: `device-${device.id}@miel.local`,
-    role: 'DEVICE'
-  })
-
-  const refreshToken = await generateRefreshToken({
     organizationId: device.organizationId,
-    userId: `device:${device.id}`
+    email: `device-${device.id}@miel.local`,
+    role: 'DEVICE',
+    deviceId: device.id
   })
 
-  // Cookieに設定（デバイスは長期間有効）
-  setCookie(event, 'access_token', accessToken, {
-    ...accessTokenCookieOptions,
-    maxAge: 60 * 60 * 24 // 24時間
-  })
-
-  setCookie(event, 'refresh_token', refreshToken, {
-    ...refreshTokenCookieOptions,
-    maxAge: 60 * 60 * 24 * 30 // 30日
-  })
+  // セッションCookieを設定（長期間有効）
+  setCookie(event, 'session_id', sessionId, deviceSessionCookieOptions)
 
   return {
     success: true,
@@ -100,4 +83,3 @@ export default defineEventHandler(async (event): Promise<DeviceLoginResponse> =>
     }
   }
 })
-

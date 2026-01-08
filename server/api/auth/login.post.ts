@@ -3,21 +3,15 @@
  * 
  * POST /api/auth/login
  * 
- * メールアドレスでログイン（Phase 0: パスワードレス簡易認証）
+ * メールアドレスでログイン（MVP: パスワードレス簡易認証）
  */
 
 import { readBody, setCookie, createError } from 'h3'
 import { prisma } from '~/server/utils/prisma'
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  accessTokenCookieOptions,
-  refreshTokenCookieOptions
-} from '~/server/utils/jwt'
+import { createSession, sessionCookieOptions } from '~/server/utils/session'
 
 interface LoginRequest {
   email: string
-  organizationSlug?: string
 }
 
 interface LoginResponse {
@@ -66,22 +60,16 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
     })
   }
 
-  // JWTトークン生成
-  const accessToken = await generateAccessToken({
-    organizationId: user.organizationId!,
+  // セッション作成
+  const sessionId = createSession({
     userId: user.id,
+    organizationId: user.organizationId!,
     email: user.email,
     role: user.role
   })
 
-  const refreshToken = await generateRefreshToken({
-    organizationId: user.organizationId!,
-    userId: user.id
-  })
-
-  // Cookieに設定
-  setCookie(event, 'access_token', accessToken, accessTokenCookieOptions)
-  setCookie(event, 'refresh_token', refreshToken, refreshTokenCookieOptions)
+  // セッションCookieを設定
+  setCookie(event, 'session_id', sessionId, sessionCookieOptions)
 
   return {
     success: true,
@@ -97,4 +85,3 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
     }
   }
 })
-

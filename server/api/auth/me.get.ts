@@ -6,7 +6,8 @@
  * 認証済みユーザーの情報を返す
  */
 
-import { requireAuth } from '~/server/utils/authMiddleware'
+import { getCookie } from 'h3'
+import { getSession } from '~/server/utils/session'
 import { prisma } from '~/server/utils/prisma'
 
 interface MeResponse {
@@ -22,72 +23,87 @@ interface MeResponse {
     name: string
   } | null
   isAuthenticated: boolean
+  isDevice: boolean
 }
 
 export default defineEventHandler(async (event): Promise<MeResponse> => {
-  try {
-    const authContext = await requireAuth(event)
-
-    // デバイスログインの場合
-    if (authContext.userId?.startsWith('device:')) {
-      const deviceId = authContext.userId.replace('device:', '')
-      const device = await prisma.device.findUnique({
-        where: { id: deviceId },
-        include: { organization: true }
-      })
-
-      return {
-        success: true,
-        user: {
-          id: authContext.userId,
-          name: device?.name || 'デバイス',
-          email: authContext.email || '',
-          role: 'DEVICE'
-        },
-        organization: device?.organization ? {
-          id: device.organization.id,
-          name: device.organization.name
-        } : null,
-        isAuthenticated: true
-      }
-    }
-
-    // 通常ユーザーの場合
-    const user = await prisma.user.findUnique({
-      where: { id: authContext.userId },
-      include: { organization: true }
-    })
-
-    if (!user) {
-      return {
-        success: false,
-        user: null,
-        organization: null,
-        isAuthenticated: false
-      }
-    }
-
-    return {
-      success: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      },
-      organization: user.organization ? {
-        id: user.organization.id,
-        name: user.organization.name
-      } : null,
-      isAuthenticated: true
-    }
-  } catch {
+  const sessionId = getCookie(event, 'session_id')
+  
+  if (!sessionId) {
     return {
       success: false,
       user: null,
       organization: null,
-      isAuthenticated: false
+      isAuthenticated: false,
+      isDevice: false
     }
   }
-})
 
+  const session = getSession(sessionId)
+  
+  if (!session) {
+    return {
+      success: false,
+      user: null,
+      organization: null,
+      isAuthenticated: false,
+      isDevice: false
+    }
+  }
+
+  // デバイスログインの場合
+  if (session.deviceId) {
+    const device = await prisma.device.findUnique({
+      where: { id: session.deviceId },
+      include: { organization: true }
+    })
+
+    return {
+      success: true,
+      user: {
+        id: session.userId,
+        name: device?.name || 'デバイス',
+        email: session.email,
+        role: 'DEVICE'
+      },
+      organization: device?.organization ? {
+        id: device.organization.id,
+        name: device.organization.name
+      } : null,
+      isAuthenticated: true,
+      isDevice: true
+    }
+  }
+
+  // 通常ユーザーの場合
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    include: { organization: true }
+  })
+
+  if (!user) {
+    return {
+      success: false,
+      user: null,
+      organization: null,
+      isAuthenticated: false,
+      isDevice: false
+    }
+  }
+
+  return {
+    success: true,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    },
+    organization: user.organization ? {
+      id: user.organization.id,
+      name: user.organization.name
+    } : null,
+    isAuthenticated: true,
+    isDevice: false
+  }
+})

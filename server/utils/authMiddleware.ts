@@ -1,13 +1,14 @@
 /**
  * 認証ミドルウェア
  * 
- * SSOT準拠: JWT + Cookie認証
- * - ログイン時にJWT発行 → HttpOnly Cookie保持
- * - APIでは requireAuth(event) で検証
+ * MVP向けシンプルなセッションCookie認証
+ * - サーバー側でセッション管理
+ * - ログアウト即時反映
+ * - 開発モードではクエリパラメータでバイパス可能
  */
 
 import { createError, getQuery, getHeaders, getCookie, type H3Event } from 'h3'
-import { verifyToken, type MielJWTPayload } from './jwt'
+import { getSession } from './session'
 
 export interface AuthContext {
   /**
@@ -17,50 +18,37 @@ export interface AuthContext {
   userId?: string
   email?: string
   role?: string
+  isDevice?: boolean
 }
 
 /**
  * 認証必須API用。
  * 
  * 認証順序:
- * 1. Cookie (access_token) - 本番推奨
- * 2. Authorization ヘッダー (Bearer token)
- * 3. 開発モード: クエリパラメータ/ヘッダー (organizationId)
+ * 1. セッションCookie (session_id)
+ * 2. 開発モード: クエリパラメータ/ヘッダー (organizationId)
  */
 export async function requireAuth(event: H3Event): Promise<AuthContext> {
-  // 1. Cookie からトークン取得
-  const accessToken = getCookie(event, 'access_token')
-  if (accessToken) {
-    const payload = await verifyToken(accessToken)
-    if (payload && payload.type === 'access') {
+  // 1. セッションCookieから認証
+  const sessionId = getCookie(event, 'session_id')
+  if (sessionId) {
+    const session = getSession(sessionId)
+    if (session) {
       return {
-        organizationId: payload.organizationId,
-        userId: payload.userId,
-        email: payload.email,
-        role: payload.role
+        organizationId: session.organizationId,
+        userId: session.userId,
+        email: session.email,
+        role: session.role,
+        isDevice: !!session.deviceId
       }
     }
   }
 
-  // 2. Authorization ヘッダーから取得
-  const headers = getHeaders(event)
-  const authHeader = headers['authorization']
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7)
-    const payload = await verifyToken(token)
-    if (payload && payload.type === 'access') {
-      return {
-        organizationId: payload.organizationId,
-        userId: payload.userId,
-        email: payload.email,
-        role: payload.role
-      }
-    }
-  }
-
-  // 3. 開発モード: クエリパラメータまたはヘッダーからorganizationIdを取得
+  // 2. 開発モード: クエリパラメータまたはヘッダーからorganizationIdを取得
   if (process.env.NODE_ENV !== 'production') {
     const query = getQuery(event)
+    const headers = getHeaders(event)
+    
     const organizationId = 
       (query.organizationId as string) ||
       (headers['x-organization-id'] as string) ||
