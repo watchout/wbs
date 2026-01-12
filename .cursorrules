@@ -5,6 +5,60 @@
 
 ---
 
+## 🚨 禁止操作（CI違反で自動拒否）
+
+以下の操作は **CIで自動検出** され、PRがブロックされます。
+ガードレールより厳格な「絶対禁止」です。
+
+### 禁止1: 生SQL DDL/DML
+
+```typescript
+// ❌ 禁止（CIで検出 → PR拒否）
+await prisma.$queryRaw`CREATE TABLE ...`
+await prisma.$executeRaw`ALTER TABLE ...`
+await prisma.$executeRaw`INSERT INTO ...`
+
+// ✅ 許可
+await prisma.user.create({ data: { ... } })
+await prisma.schedule.findMany({ where: { ... } })
+```
+
+**検出パターン**: `$queryRaw` / `$executeRaw`  
+**例外**: なし
+
+---
+
+### 禁止2: マイグレーションファイルの改ざん
+
+```bash
+# ❌ 禁止（CIで検出 → PR拒否）
+prisma/migrations/20240101_init/migration.sql を編集
+
+# ✅ 許可
+prisma migrate dev --name add_new_table  # 新規マイグレーション作成
+```
+
+**検出**: 既存 `migration.sql` ファイルの変更  
+**理由**: マイグレーション履歴の改ざんはDB不整合の原因
+
+---
+
+### 禁止3: スキーマ変更時のマイグレーション漏れ
+
+```bash
+# ❌ 禁止（CI警告）
+schema.prisma を変更して、migration.sql を作成しない
+
+# ✅ 必須手順
+1. prisma/schema.prisma を編集
+2. npx prisma migrate dev --name <変更内容>
+3. 生成されたマイグレーションをコミット
+```
+
+**検出**: `schema.prisma` 変更あり + `migration.sql` 追加なし
+
+---
+
 ## 🛡️ AI駆動開発ガードレール
 
 ### 1. データベース整合性（最重要）
