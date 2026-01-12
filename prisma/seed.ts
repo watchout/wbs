@@ -17,23 +17,51 @@ async function main() {
   })
   console.log('✅ 組織作成:', org.name)
 
-  // 2. デモユーザー（3名）
+  // 2. デモ部署（3部門）
+  const departmentsData = [
+    { id: 'dept-001', name: '工事部', color: 'blue', sortOrder: 1 },
+    { id: 'dept-002', name: '営業部', color: 'green', sortOrder: 2 },
+    { id: 'dept-003', name: '保守部', color: 'orange', sortOrder: 3 }
+  ]
+
+  for (const deptData of departmentsData) {
+    await prisma.department.upsert({
+      where: { 
+        organizationId_name: { 
+          organizationId: org.id, 
+          name: deptData.name 
+        } 
+      },
+      update: {},
+      create: {
+        id: deptData.id,
+        name: deptData.name,
+        color: deptData.color,
+        sortOrder: deptData.sortOrder,
+        organizationId: org.id
+      }
+    })
+  }
+  console.log('✅ 部署作成:', departmentsData.length, '件')
+
+  // 3. デモユーザー（3名）- 部署割り当て
   const usersData = [
-    { id: 'user-001', email: 'tanaka@demo.com', name: '田中太郎', role: Role.ADMIN },
-    { id: 'user-002', email: 'sato@demo.com', name: '佐藤花子', role: Role.MEMBER },
-    { id: 'user-003', email: 'suzuki@demo.com', name: '鈴木一郎', role: Role.MEMBER }
+    { id: 'user-001', email: 'tanaka@demo.com', name: '田中太郎', role: Role.ADMIN, departmentId: 'dept-001' },
+    { id: 'user-002', email: 'sato@demo.com', name: '佐藤花子', role: Role.MEMBER, departmentId: 'dept-002' },
+    { id: 'user-003', email: 'suzuki@demo.com', name: '鈴木一郎', role: Role.MEMBER, departmentId: 'dept-003' }
   ]
 
   for (const userData of usersData) {
     const user = await prisma.user.upsert({
       where: { email: userData.email },
-      update: {},
+      update: { departmentId: userData.departmentId },
       create: {
         id: userData.id,
         email: userData.email,
         name: userData.name,
         role: userData.role,
-        organizationId: org.id
+        organizationId: org.id,
+        departmentId: userData.departmentId
       }
     })
     console.log('✅ ユーザー作成:', user.name)

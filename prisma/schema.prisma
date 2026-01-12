@@ -38,11 +38,30 @@ model Organization {
   devices     Device[]
   schedules   Schedule[]
   auditLogs   AuditLog[]
+  departments Department[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([name])
+}
+
+model Department {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  name           String
+  color          String?  // 表示色（Tailwind color key）
+  sortOrder      Int      @default(0)
+
+  users          User[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
 }
 
 model User {
@@ -54,6 +73,10 @@ model User {
   name           String?
   role           Role     @default(MEMBER)
 
+  // 部署
+  department     Department? @relation(fields: [departmentId], references: [id])
+  departmentId   String?
+
   // OAuth2 (Google) credential reference
   calendars      CalendarOAuth[]
 
@@ -64,6 +87,7 @@ model User {
   updatedAt      DateTime @updatedAt
 
   @@index([organizationId, role])
+  @@index([departmentId])
 }
 
 model CalendarOAuth {
