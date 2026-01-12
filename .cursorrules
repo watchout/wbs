@@ -1,14 +1,114 @@
-# ミエルボード for 現場 / 現場WEEK - Cursor AI ルール
+# ミエルボード for 現場 / ミエルボード - Cursor AI ルール
 
 このプロジェクトは AI駆動開発を前提としています。
 以下のルールを厳守し、品質・セキュリティ・保守性を担保してください。
 
-## 🚫 絶対禁止事項
+---
 
-### データベース
-- ❌ DBスキーマの変更（prisma/schema.prisma の修正禁止）
-- ❌ マイグレーションファイルの作成・実行
-- ✅ 拡張は Schedule.metadata (Json) フィールドで実現
+## 🛡️ AI駆動開発ガードレール
+
+### 1. データベース整合性（最重要）
+
+**原則**: PrismaスキーマとDBは常に一致させる
+
+#### ❌ 絶対禁止
+- **生SQLでのDDL操作**
+  - CREATE TABLE / ALTER TABLE / DROP TABLE
+  - CREATE INDEX / DROP INDEX
+  - その他スキーマ変更SQL
+- **Prismaを経由しないDB変更**
+  - psql / pgAdmin 等での直接DDL実行
+  - マイグレーションファイルの手動編集・削除
+- **prisma.$queryRaw / $executeRaw でのDDL/DML**
+  - DDL（スキーマ変更）: 完全禁止
+  - DML（INSERT/UPDATE/DELETE）: 禁止（Prisma ORM使用）
+  - SELECT: 例外的に許可（Prismaで表現できない複雑なクエリのみ）
+
+#### ✅ 必須手順（スキーマ変更時）
+1. `prisma/schema.prisma` を編集
+2. `npx prisma migrate dev --name <変更内容>` を実行
+3. 生成されたマイグレーションファイルをコミット
+4. Prisma Clientを再生成（`npx prisma generate`）
+5. `prisma/seed.ts` を必要に応じて更新
+
+#### ✅ 許可される操作
+- Prisma ORMを経由したCRUD操作
+- `prisma migrate dev` によるスキーマ変更
+- `prisma db seed` によるシードデータ投入
+- `prisma migrate status` による状態確認
+
+---
+
+### 2. マルチテナント整合性
+
+#### ❌ 絶対禁止
+- organizationId なしのクエリ
+- organizationId ?? 'default' のようなフォールバック
+- 他テナントのデータへのアクセス
+
+#### ✅ 必須
+- すべてのAPIで `requireAuth()` を使用
+- すべてのクエリで `organizationId` でフィルタ
+
+---
+
+### 3. コード整合性
+
+#### ❌ 禁止
+- 型定義を変更せずに実装だけ変更
+- SSOTを更新せずに仕様変更
+- APIレスポンス形式を変更してフロントエンド未更新
+
+#### ✅ 必須
+- 変更は「定義 → 実装」の順
+- 型変更時は影響範囲を確認
+- SSOT変更時は `>> rfv` で検証
+
+---
+
+### 4. プロジェクト管理整合性
+
+#### ❌ 禁止
+- 実装完了後のPlane更新忘れ
+- 複数Issueを1コミットに混在
+- コミットせずに長時間作業
+
+#### ✅ 必須
+- 1 Issue = 1 Branch = 1 PR（理想）
+- 実装完了時は必ずPlane更新
+- 小さく頻繁にコミット
+
+---
+
+### 5. 環境整合性
+
+#### ❌ 禁止
+- .envを直接編集して共有しない変更
+- ローカル依存パッケージの追加（package.json未更新）
+- 環境固有の設定をハードコード
+
+#### ✅ 必須
+- 環境変更はREADME/ドキュメント更新
+- 新規環境変数は `.env.example` にも追加
+- `npm ci` で依存関係を再現可能に
+
+---
+
+### 6. AI行動規範
+
+#### ❌ 禁止
+- ファイル存在を確認せずに編集
+- 破壊的操作を承認なしに実行
+- 推測で動作（不明点は確認）
+
+#### ✅ 必須
+- 編集前に `read_file` / `ls` で確認
+- 削除・上書きは事前に報告
+- 不明点は推測せず質問
+
+---
+
+## 🚫 従来の絶対禁止事項（継続）
 
 ### マルチテナント
 - ❌ organizationId なしのクエリ
@@ -16,7 +116,7 @@
 - ✅ すべてのAPIで requireAuth() を使用し、organizationId でフィルタ
 
 ### SQL・ORM
-- ❌ 生SQLクエリ（prisma.$queryRaw 等の使用禁止）
+- ❌ 生SQLクエリ（prisma.$queryRaw 等でのDDL/DML禁止）
 - ✅ Prisma ORMのみ使用
 
 詳細は docs/QUALITY_MANAGEMENT_OVERVIEW.md を参照してください。
@@ -51,7 +151,7 @@
 4. 作成後、`docs/INDEX_WEAK_CURRENT.md` に追記
 
 **制約**:
-- スキーマ変更禁止・マルチテナント原則を前提
+- マルチテナント原則を前提
 - 既存SSOTとの整合性を必ず確認
 
 ---
