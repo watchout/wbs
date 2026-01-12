@@ -21,43 +21,14 @@
       </div>
     </header>
 
-    <!-- 週間マトリクス -->
+    <!-- 週間マトリクス（コンポーネント） -->
     <main class="board-main">
-      <table class="schedule-matrix">
-        <thead>
-          <tr>
-            <th class="employee-header">社員</th>
-            <th v-for="day in weekDays" :key="day.key" class="day-header">
-              <div class="day-name">{{ day.label }}</div>
-              <div class="day-date">{{ day.date }}</div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="employee in employees" :key="employee.id" class="employee-row">
-            <td class="employee-name">
-              <div class="name">{{ employee.name }}</div>
-              <div class="department" v-if="employee.department">{{ employee.department }}</div>
-            </td>
-            <td 
-              v-for="day in weekDays" 
-              :key="day.key" 
-              class="schedule-cell"
-              :class="{ holiday: employee.schedules[day.key]?.isHoliday }"
-            >
-              <div v-if="employee.schedules[day.key]" class="schedule-content">
-                {{ employee.schedules[day.key]?.displayText }}
-              </div>
-              <div v-else class="no-schedule">-</div>
-            </td>
-          </tr>
-          <tr v-if="employees.length === 0">
-            <td :colspan="8" class="no-data">
-              {{ loading ? '読み込み中...' : 'データがありません' }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <WeeklyScheduleBoard
+        :employees="employees"
+        :week-days="weekDays"
+        :loading="loading"
+        :is-fullscreen="isFullscreen"
+      />
     </main>
 
     <!-- フルスクリーン時のコントロール -->
@@ -68,8 +39,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import WeeklyScheduleBoard from '~/components/genba/WeeklyScheduleBoard.vue'
 
 // 型定義
 interface DaySchedule {
@@ -176,6 +148,22 @@ async function fetchData() {
   }
 }
 
+// 部署一覧取得
+async function fetchDepartments() {
+  try {
+    const response = await $fetch<{
+      success: boolean
+      departments: Department[]
+    }>('/api/departments')
+
+    if (response.success) {
+      departments.value = response.departments
+    }
+  } catch (error) {
+    console.error('部署取得エラー:', error)
+  }
+}
+
 // 週の切り替え
 function previousWeek() {
   weekOffset.value--
@@ -201,6 +189,7 @@ function toggleFullscreen() {
 // 初期化
 onMounted(() => {
   fetchData()
+  fetchDepartments()
 })
 
 // ページタイトル
@@ -288,107 +277,9 @@ useHead({
   overflow: auto;
 }
 
-.schedule-matrix {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.schedule-matrix th,
-.schedule-matrix td {
-  border: 1px solid #e0e0e0;
-  padding: 0.75rem;
-  text-align: center;
-}
-
-.employee-header {
-  background: #f5f5f5;
-  font-weight: bold;
-  width: 150px;
-}
-
-.day-header {
-  background: #f5f5f5;
-  font-weight: bold;
-}
-
-.day-name {
-  font-size: 1.1rem;
-}
-
-.day-date {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-.employee-name {
-  text-align: left;
-  background: #fafafa;
-}
-
-.employee-name .name {
-  font-weight: bold;
-}
-
-.employee-name .department {
-  font-size: 0.75rem;
-  color: #888;
-}
-
-.schedule-cell {
-  min-width: 120px;
-  vertical-align: top;
-}
-
-.schedule-cell.holiday {
-  background: #fff3e0;
-}
-
-.schedule-content {
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-.no-schedule {
-  color: #ccc;
-}
-
-.no-data {
-  text-align: center;
-  color: #888;
-  padding: 2rem !important;
-}
-
 /* フルスクリーンモード */
 .fullscreen .board-main {
   padding: 2rem;
-}
-
-.fullscreen .schedule-matrix {
-  font-size: 1.2rem;
-  background: #16213e;
-  color: #eee;
-}
-
-.fullscreen .schedule-matrix th,
-.fullscreen .schedule-matrix td {
-  border-color: #334;
-}
-
-.fullscreen .employee-header,
-.fullscreen .day-header {
-  background: #0f3460;
-}
-
-.fullscreen .employee-name {
-  background: #1a1a2e;
-}
-
-.fullscreen .schedule-cell.holiday {
-  background: #3d2c1f;
 }
 
 .fullscreen-controls {
@@ -408,4 +299,3 @@ useHead({
   cursor: pointer;
 }
 </style>
-
