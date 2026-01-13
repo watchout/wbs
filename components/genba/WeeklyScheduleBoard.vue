@@ -1,5 +1,5 @@
 <template>
-  <div class="schedule-board" :class="{ fullscreen: isFullscreen }">
+  <div class="schedule-board" :class="{ fullscreen: isFullscreen }" :aria-busy="loading">
     <table class="schedule-matrix">
       <thead>
         <tr>
@@ -39,6 +39,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 // 型定義
 interface DaySchedule {
   scheduleId: string
@@ -74,11 +76,21 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const loading = computed(() => props.loading)
+
+function isAllDay(schedule: DaySchedule | undefined): boolean {
+  if (!schedule) return false
+  const hasSameStartEnd = schedule.start === schedule.end
+  const hasAllDayTitle = !!schedule.title && schedule.title.includes('終日')
+  const hasAllDayText = !!schedule.displayText && schedule.displayText.includes('終日')
+  return hasSameStartEnd || hasAllDayTitle || hasAllDayText
+}
+
 // セルのクラスを決定
 function getCellClass(schedule: DaySchedule | undefined): Record<string, boolean> {
   return {
     holiday: schedule?.isHoliday ?? false,
-    'all-day': schedule?.title === '終日' || (schedule?.start === schedule?.end)
+    'all-day': isAllDay(schedule)
   }
 }
 
@@ -89,6 +101,9 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
   // 休み/終日の場合
   if (schedule.isHoliday) {
     return schedule.title || '休み'
+  }
+  if (isAllDay(schedule)) {
+    return schedule.title || '終日'
   }
   
   // displayTextがあればそれを使用

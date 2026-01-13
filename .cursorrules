@@ -5,6 +5,21 @@
 
 ---
 
+## 📍 現在のPhase: Phase 0
+
+### Phase 0 運用ルール
+- main直接push: ✅ 許可
+- PR/レビュー: 任意
+- スピード優先、MVP検証に集中
+
+### ⚠️ Phase 1 移行時の作業
+Phase 1 開始時は以下を実行:
+1. GitHub main保護を厳格化
+2. この「現在のPhase」を更新
+3. `>> write PHASE1_MIGRATION` で移行手順を確認
+
+---
+
 ## 🚨 禁止操作（CI違反で自動拒否）
 
 以下の操作は **CIで自動検出** され、PRがブロックされます。
@@ -224,8 +239,12 @@ schema.prisma を変更して、migration.sql を作成しない
 2. 既存実装の有無をスキャン（`server/api/`, `components/` など）
 3. 実装プラン（Item/Step）を提示 → **ユーザー承認必須**
 4. 承認後、SSOT準拠の実装を行う
-5. テスト作成（`docs/TEST_STRATEGY.md` 参照）
-6. Plane Issue を更新（可能なら）
+5. テスト作成・実行（`docs/TEST_STRATEGY.md` 参照）
+   - `npm run typecheck` **必須**
+   - `npm run test` **必須**（Phase 0: 認証・マルチテナント境界のユニットテスト）
+6. Evidence提出
+   - テスト結果の出力（またはスクリーンショット）を報告に含める
+7. Plane Issue を更新（可能なら）
 
 **制約**:
 - 実装前に必ずSSOTを**最後まで読む**
