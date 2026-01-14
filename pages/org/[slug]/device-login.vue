@@ -61,8 +61,7 @@ async function handleLogin() {
     const response = await $fetch<{ success: boolean }>('/api/auth/device-login', {
       method: 'POST',
       body: {
-        deviceKey: deviceKey.value,
-        organizationSlug: slug.value
+        kioskSecret: deviceKey.value
       }
     })
 

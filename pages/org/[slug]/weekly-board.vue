@@ -122,11 +122,19 @@ function getWeekStart(offset: number = 0): Date {
   return start
 }
 
+// ローカル日付をYYYY-MM-DD形式に変換（タイムゾーン考慮）
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 // データ取得
 async function fetchData() {
   loading.value = true
   try {
-    const startDate = getWeekStart(weekOffset.value).toISOString().split('T')[0]
+    const startDate = formatLocalDate(getWeekStart(weekOffset.value))
     const params = new URLSearchParams({ startDate })
     if (selectedDepartment.value) {
       params.append('departmentId', selectedDepartment.value)
