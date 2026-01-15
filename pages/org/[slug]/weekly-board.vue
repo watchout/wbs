@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import WeeklyScheduleBoard from '~/components/genba/WeeklyScheduleBoard.vue'
 
@@ -86,6 +86,7 @@ const departments = ref<Department[]>([])
 const selectedDepartment = ref('')
 const weekOffset = ref(0) // 0 = 今週, -1 = 先週, 1 = 来週
 const isFullscreen = computed(() => route.query.fullscreen === 'true')
+let refreshTimer: ReturnType<typeof setInterval> | null = null
 
 // 週の日付ラベル
 const weekDays = computed(() => {
@@ -194,10 +195,41 @@ function toggleFullscreen() {
   router.push({ query: newQuery })
 }
 
+// 5分間隔の自動更新（サイネージのみ）
+function startAutoRefresh() {
+  stopAutoRefresh()
+  refreshTimer = setInterval(() => {
+    fetchData()
+    // TODO(WBS-11): Socket.IO に切り替えてポーリングを廃止
+  }, 5 * 60 * 1000)
+}
+
+function stopAutoRefresh() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+}
+
 // 初期化
 onMounted(() => {
   fetchData()
   fetchDepartments()
+  if (isFullscreen.value) {
+    startAutoRefresh()
+  }
+})
+
+watch(isFullscreen, (enabled) => {
+  if (enabled) {
+    startAutoRefresh()
+  } else {
+    stopAutoRefresh()
+  }
+})
+
+onUnmounted(() => {
+  stopAutoRefresh()
 })
 
 // ページタイトル
