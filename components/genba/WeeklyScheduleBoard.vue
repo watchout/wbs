@@ -202,9 +202,9 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
   padding: 2rem !important;
 }
 
-/* フルスクリーンモード */
+/* フルスクリーンモード（大型ディスプレイ用） */
 .schedule-board.fullscreen .schedule-matrix {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   background: #16213e;
   color: #eee;
 }
@@ -212,6 +212,7 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
 .schedule-board.fullscreen .schedule-matrix th,
 .schedule-board.fullscreen .schedule-matrix td {
   border-color: #334;
+  padding: 1rem 0.75rem;
 }
 
 .schedule-board.fullscreen .employee-header,
@@ -219,8 +220,27 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
   background: #0f3460;
 }
 
+.schedule-board.fullscreen .day-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.schedule-board.fullscreen .day-date {
+  font-size: 1rem;
+  color: #aaa;
+}
+
 .schedule-board.fullscreen .employee-name {
   background: #1a1a2e;
+}
+
+.schedule-board.fullscreen .employee-name .name {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.schedule-board.fullscreen .employee-name .department {
+  color: #aaa;
 }
 
 .schedule-board.fullscreen .schedule-cell.holiday {
@@ -231,12 +251,9 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
   background: #1a3a5c;
 }
 
-.schedule-board.fullscreen .employee-name .department {
-  color: #aaa;
-}
-
-.schedule-board.fullscreen .day-date {
-  color: #aaa;
+.schedule-board.fullscreen .schedule-content {
+  font-size: 1.1rem;
+  line-height: 1.5;
 }
 
 .schedule-board.fullscreen .no-schedule {
