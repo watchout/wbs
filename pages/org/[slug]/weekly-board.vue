@@ -43,6 +43,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import WeeklyScheduleBoard from '~/components/genba/WeeklyScheduleBoard.vue'
 
+// Socket.IOプラグイン
+const { $socketIO } = useNuxtApp()
+
 // 型定義
 interface DaySchedule {
   scheduleId: string
@@ -86,7 +89,9 @@ const departments = ref<Department[]>([])
 const selectedDepartment = ref('')
 const weekOffset = ref(0) // 0 = 今週, -1 = 先週, 1 = 来週
 const isFullscreen = computed(() => route.query.fullscreen === 'true')
+const organizationId = ref<string | null>(null)
 let refreshTimer: ReturnType<typeof setInterval> | null = null
+let socketCleanup: (() => void) | null = null
 
 // 週の日付ラベル
 const weekDays = computed(() => {
@@ -149,6 +154,11 @@ async function fetchData() {
 
     if (response.success) {
       employees.value = response.employees
+      // 組織IDを保存（Socket.IO接続用）
+      if (response.organizationId && !organizationId.value) {
+        organizationId.value = response.organizationId
+        setupSocketIO()
+      }
     }
   } catch (error) {
     console.error('データ取得エラー:', error)
@@ -195,12 +205,38 @@ function toggleFullscreen() {
   router.push({ query: newQuery })
 }
 
-// 5分間隔の自動更新（サイネージのみ）
+// Socket.IO接続設定
+function setupSocketIO() {
+  if (!organizationId.value || !$socketIO) return
+
+  // 組織ルームに参加
+  $socketIO.joinOrganization(organizationId.value)
+
+  // スケジュール変更イベントを監視
+  socketCleanup = $socketIO.onScheduleChange(() => {
+    console.log('[weekly-board] Schedule change detected, refreshing data...')
+    fetchData()
+  })
+
+  console.log('[weekly-board] Socket.IO setup completed')
+}
+
+// Socket.IO切断
+function cleanupSocketIO() {
+  if (socketCleanup) {
+    socketCleanup()
+    socketCleanup = null
+  }
+  if (organizationId.value && $socketIO) {
+    $socketIO.leaveOrganization(organizationId.value)
+  }
+}
+
+// 5分間隔の自動更新（フォールバック: Socket.IO接続断時用）
 function startAutoRefresh() {
   stopAutoRefresh()
   refreshTimer = setInterval(() => {
     fetchData()
-    // TODO(WBS-11): Socket.IO に切り替えてポーリングを廃止
   }, 5 * 60 * 1000)
 }
 
@@ -230,6 +266,7 @@ watch(isFullscreen, (enabled) => {
 
 onUnmounted(() => {
   stopAutoRefresh()
+  cleanupSocketIO()
 })
 
 // ページタイトル

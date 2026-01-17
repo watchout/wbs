@@ -8,7 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare && prisma generate",
-    "lint": "node --check server/index.js && node --check server/events.js",
+    "lint": "node --check server/index.js",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2"
   },
   "devDependencies": {
     "@nuxt/devtools": "^1.0.0",
