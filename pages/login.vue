@@ -19,18 +19,6 @@
           />
         </div>
 
-        <div class="form-group">
-          <label for="password">パスワード</label>
-          <input 
-            id="password"
-            v-model="password" 
-            type="password" 
-            placeholder="パスワード"
-            required
-            :disabled="loading"
-          />
-        </div>
-
         <div v-if="error" class="error-message">
           {{ error }}
         </div>
@@ -41,7 +29,7 @@
       </form>
 
       <div class="login-footer">
-        <a href="#" @click.prevent="forgotPassword">パスワードを忘れた方</a>
+        <p class="hint">メールアドレスを入力してログイン</p>
       </div>
     </div>
   </div>
@@ -54,7 +42,6 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const email = ref('')
-const password = ref('')
 const loading = ref(false)
 const error = ref('')
 
@@ -66,30 +53,21 @@ async function handleLogin() {
     // メールアドレスからテナントを自動判定してログイン
     const response = await $fetch<{
       success: boolean
-      user: {
-        id: string
-        organizationId: string
-      }
-      organizationSlug: string
-    }>('/api/auth/login-by-email', {
+      user: { id: string; name: string | null; email: string }
+      organization: { id: string; name: string; slug: string }
+    }>('/api/auth/login', {
       method: 'POST',
-      body: {
-        email: email.value,
-        password: password.value
-      }
+      body: { email: email.value }
     })
 
     // 成功時は該当テナントの週間ボードへリダイレクト
-    router.push(`/org/${response.organizationSlug}/weekly-board`)
-  } catch (err: any) {
-    error.value = err.data?.message || 'ログインに失敗しました'
+    router.push(`/org/${response.organization.slug}/weekly-board`)
+  } catch (err: unknown) {
+    const fetchError = err as { data?: { message?: string } }
+    error.value = fetchError.data?.message || 'ログインに失敗しました'
   } finally {
     loading.value = false
   }
-}
-
-function forgotPassword() {
-  alert('パスワードリセット機能は準備中です')
 }
 
 useHead({
@@ -201,14 +179,10 @@ useHead({
   text-align: center;
 }
 
-.login-footer a {
-  color: #1a73e8;
-  text-decoration: none;
+.login-footer .hint {
+  color: #888;
   font-size: 0.85rem;
-}
-
-.login-footer a:hover {
-  text-decoration: underline;
+  margin: 0;
 }
 </style>
 

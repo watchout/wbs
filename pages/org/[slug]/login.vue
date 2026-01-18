@@ -19,18 +19,6 @@
           />
         </div>
 
-        <div class="form-group">
-          <label for="password">パスワード</label>
-          <input 
-            id="password"
-            v-model="password" 
-            type="password" 
-            placeholder="パスワード"
-            required
-            :disabled="loading"
-          />
-        </div>
-
         <div v-if="error" class="error-message">
           {{ error }}
         </div>
@@ -40,13 +28,13 @@
         </button>
       </form>
 
-    <div class="login-footer">
-      <a href="#" @click.prevent="forgotPassword">パスワードを忘れた方</a>
-      <div class="divider"></div>
-      <NuxtLink :to="`/org/${slug}/device-login`" class="device-login-link">
-        📺 サイネージ/ホワイトボードの接続
-      </NuxtLink>
-    </div>
+      <div class="login-footer">
+        <p class="hint">メールアドレスを入力してログイン</p>
+        <div class="divider"></div>
+        <NuxtLink :to="`/org/${slug}/device-login`" class="device-login-link">
+          📺 サイネージ/ホワイトボードの接続
+        </NuxtLink>
+      </div>
     </div>
   </div>
 </template>
@@ -66,7 +54,6 @@ const router = useRouter()
 const slug = computed(() => route.params.slug as string)
 
 const email = ref('')
-const password = ref('')
 const loading = ref(false)
 const error = ref('')
 const organization = ref<Organization | null>(null)
@@ -76,27 +63,22 @@ async function handleLogin() {
   error.value = ''
 
   try {
-    // TODO: 認証API呼び出し
-    const response = await $fetch('/api/auth/login', {
+    await $fetch('/api/auth/login', {
       method: 'POST',
       body: {
         email: email.value,
-        password: password.value,
         organizationSlug: slug.value
       }
     })
 
     // 成功時は週間ボードへリダイレクト
     router.push(`/org/${slug.value}/weekly-board`)
-  } catch (err: any) {
-    error.value = err.data?.message || 'ログインに失敗しました'
+  } catch (err: unknown) {
+    const fetchError = err as { data?: { message?: string } }
+    error.value = fetchError.data?.message || 'ログインに失敗しました'
   } finally {
     loading.value = false
   }
-}
-
-function forgotPassword() {
-  alert('パスワードリセット機能は準備中です')
 }
 
 // 組織情報の取得（オプション）
@@ -219,14 +201,10 @@ useHead({
   text-align: center;
 }
 
-.login-footer a {
-  color: #1a73e8;
-  text-decoration: none;
+.hint {
+  color: #666;
   font-size: 0.85rem;
-}
-
-.login-footer a:hover {
-  text-decoration: underline;
+  margin: 0;
 }
 
 .divider {

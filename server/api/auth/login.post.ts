@@ -25,7 +25,18 @@ interface LoginResponse {
   organization: {
     id: string
     name: string
+    slug: string
   }
+}
+
+// 組織名からslugを生成（MVP: 簡易実装）
+function generateSlug(name: string): string {
+  // 日本語名の場合は "demo" を返す（デモ用途）
+  if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(name)) {
+    return 'demo'
+  }
+  // 英語名の場合はkebab-caseに変換
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
 
 export default defineEventHandler(async (event): Promise<LoginResponse> => {
@@ -81,7 +92,8 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
     },
     organization: {
       id: user.organization.id,
-      name: user.organization.name
+      name: user.organization.name,
+      slug: generateSlug(user.organization.name)
     }
   }
 })
