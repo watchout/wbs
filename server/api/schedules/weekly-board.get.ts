@@ -61,8 +61,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     // クエリパラメータ取得
     const query = getQuery(event)
     const startDateParam = query.startDate as string | undefined
-    // departmentId は将来の部門機能用（現在のスキーマでは未実装）
-    // const departmentId = query.departmentId as string | undefined
+    const departmentId = query.departmentId as string | undefined
 
     // startDate のバリデーション
     let baseDate: Date
@@ -109,7 +108,16 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     // 組織内の全ユーザーを取得
     const users = await prisma.user.findMany({
       where: {
-        organizationId: authContext.organizationId
+        organizationId: authContext.organizationId,
+        ...(departmentId && { departmentId })
+      },
+      include: {
+        department: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       },
       orderBy: {
         name: 'asc'
@@ -125,8 +133,8 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
         id: user.id,
         name: user.name || 'Unknown',
         email: user.email,
-        department: null, // 将来の部門機能用（現在のスキーマでは未実装）
-        departmentId: null,
+        department: user.department?.name ?? null,
+        departmentId: user.departmentId,
         schedules: {}
       })
     })
