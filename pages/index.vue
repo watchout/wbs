@@ -787,12 +787,12 @@
       <div class="section-container">
         <h2>まずは無料でお試しください</h2>
         <p>2週間の無料トライアル。クレジットカード不要。</p>
-        <div class="cta-form">
-          <input v-model="contactEmail" type="email" placeholder="メールアドレス" />
-          <button class="btn btn-primary btn-large" @click="submitContact">
-            無料トライアルを始める
-          </button>
-        </div>
+          <div class="cta-form">
+            <input v-model="contactEmail" type="email" placeholder="メールアドレス" :disabled="isSubmitting" />
+            <button class="btn btn-primary btn-large" @click="submitContact" :disabled="isSubmitting">
+              {{ isSubmitting ? '送信中...' : '無料トライアルを始める' }}
+            </button>
+          </div>
         <p class="cta-note">※ 担当者より2営業日以内にご連絡いたします</p>
       </div>
     </section>
@@ -866,6 +866,7 @@ const router = useRouter()
 const orgSlug = ref('')
 const showDeviceLogin = ref(false)
 const contactEmail = ref('')
+const isSubmitting = ref(false)
 const openFaq = ref<number | null>(null)
 const showComparison = ref(false)
 const selectedPlan = ref<any>(null)
@@ -1248,9 +1249,29 @@ function toggleFaq(index: number) {
   openFaq.value = openFaq.value === index ? null : index
 }
 
-function submitContact() {
-  if (contactEmail.value) {
-    alert(`${contactEmail.value} にトライアル案内をお送りします。\n（実際の送信機能は未実装です）`)
+async function submitContact() {
+  if (!contactEmail.value) return
+  
+  isSubmitting.value = true
+  try {
+    const { data, error } = await useFetch('/api/contact', {
+      method: 'POST',
+      body: { email: contactEmail.value }
+    })
+
+    if (error.value) {
+      alert(error.value.statusMessage || '送信に失敗しました。時間をおいて再度お試しください。')
+      return
+    }
+
+    alert('お申し込みありがとうございます！\n担当者より2営業日以内にご連絡いたします。')
+    contactEmail.value = '' // フォームクリア
+
+  } catch (e) {
+    alert('予期せぬエラーが発生しました')
+    console.error(e)
+  } finally {
+    isSubmitting.value = false
   }
 }
 
