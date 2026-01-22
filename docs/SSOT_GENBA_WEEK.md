@@ -242,14 +242,16 @@
 
 **既存 `Schedule` テーブルを使用（原則スキーマ変更禁止・例外あり）**
 
-**拡張方法**: `Schedule.metadata` (Json) フィールドに追加情報を格納
+**拡張方法**: `Schedule.description` (String) フィールドにJSON文字列を格納して追加情報を保持
+
+> **Phase 0 方針確定（WBS-39）**: スキーマ変更禁止ポリシーに従い、`metadata` カラム追加ではなく `description` にJSONを格納する方式を採用。
 
 ```typescript
-// Schedule.metadata の構造例
+// Schedule.description に格納するJSON文字列の構造例
+// description: '{"siteName":"◯◯ホテル","activityType":"工事"}'
 {
   siteName: "◯◯ホテル",        // 現場名
-  activityType: "工事",        // 用件
-  displayText: "9-18 ◯◯ホテル 新館配線"  // 表示用テキスト
+  activityType: "工事"         // 用件
 }
 ```
 
@@ -261,10 +263,11 @@
 
 ```typescript
 export function formatScheduleForDisplay(schedule: Schedule): string {
+  const metadata = parseScheduleMetadata(schedule.description);  // JSON文字列をパース
   const start = formatTime(schedule.start);  // "9"
   const end = formatTime(schedule.end);      // "18"
-  const siteName = schedule.metadata?.siteName || "";
-  const activityType = schedule.metadata?.activityType || "";
+  const siteName = metadata?.siteName || "";
+  const activityType = metadata?.activityType || "";
   
   return `${start}-${end} ${siteName} ${activityType}`;
   // => "9-18 ◯◯ホテル 工事"

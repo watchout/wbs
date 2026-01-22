@@ -1,11 +1,20 @@
 /**
  * Schedule Formatter Utility
- * 
+ *
  * スケジュールの表示テキスト整形を担当
- * 
- * Phase 0: 既存フィールド（description）を活用してメタデータを扱う
- * - description にJSON文字列を格納してメタデータを保存
- * - プレーンテキストの場合はそのまま使用
+ *
+ * ## メタデータ格納方式（WBS-39 で確定）
+ *
+ * Phase 0 では `Schedule.description` (String) にJSON文字列を格納してメタデータを表現する。
+ * スキーマ変更禁止ポリシー（SSOT_GENBA_WEEK.md 4-4項）に準拠。
+ *
+ * ### 格納形式
+ * - JSON文字列: `{"siteName":"◯◯ホテル","activityType":"工事"}`
+ * - プレーンテキスト: そのまま使用（後方互換性）
+ *
+ * ### 将来の拡張（Phase 1以降）
+ * - 必要に応じて `Schedule.metadata` (Json型) カラムを追加検討
+ * - その際は既存 description データの移行が必要
  */
 
 interface ScheduleMetadata {
