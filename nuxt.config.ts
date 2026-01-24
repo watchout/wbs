@@ -38,6 +38,22 @@ export default defineNuxtConfig({
   // モジュール
   modules: [],
 
+  // ビルド設定
+  build: {
+    analyze: process.env.ANALYZE === 'true'
+  },
+
+  // Vite設定（バンドル分析用）
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
+    }
+  },
+
   // 互換性設定
   compatibilityDate: '2024-12-01'
 })

@@ -206,4 +206,35 @@ describe('GET /api/schedules/weekly-board', () => {
       expect(response.weekStart).toBeDefined()
     })
   })
+
+  describe('パフォーマンス', () => {
+    it('should respond within 500ms for typical load', async () => {
+      const event = createMockEvent({
+        sessionId: ctxA.sessionId
+      })
+
+      const startTime = performance.now()
+      const response = await weeklyBoardHandler(event)
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      expect(response.success).toBe(true)
+      expect(duration).toBeLessThan(500)
+    })
+
+    it('should respond within 500ms with departmentId filter', async () => {
+      const event = createMockEvent({
+        sessionId: ctxA.sessionId,
+        query: { departmentId: 'non-existent-dept' }
+      })
+
+      const startTime = performance.now()
+      const response = await weeklyBoardHandler(event)
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      expect(response.success).toBe(true)
+      expect(duration).toBeLessThan(500)
+    })
+  })
 })

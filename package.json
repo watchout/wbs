@@ -14,7 +14,9 @@
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "analyze": "ANALYZE=true nuxt build",
+    "perf:api": "npx tsx scripts/perf-api.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
