@@ -787,15 +787,60 @@
       <div class="section-container">
         <h2>まずは無料でお試しください</h2>
         <p>2週間の無料トライアル。クレジットカード不要。</p>
+
+        <!-- 成功メッセージ -->
+        <div v-if="submitSuccess" class="form-success">
+          <span class="success-icon">✅</span>
+          <div>
+            <strong>お申し込みありがとうございます！</strong>
+            <p>担当者より2営業日以内にご連絡いたします。</p>
+          </div>
+        </div>
+
+        <!-- フォーム -->
+        <div v-else class="cta-form-container">
           <div class="cta-form">
-            <input v-model="contactEmail" type="email" placeholder="メールアドレス" :disabled="isSubmitting" />
-            <button class="btn btn-primary btn-large" @click="submitContact" :disabled="isSubmitting">
-              {{ isSubmitting ? '送信中...' : '無料トライアルを始める' }}
+            <input
+              v-model="contactCompanyName"
+              type="text"
+              placeholder="会社名（任意）"
+              :disabled="isSubmitting"
+              class="form-input"
+            />
+            <input
+              v-model="contactEmail"
+              type="email"
+              placeholder="メールアドレス *"
+              :disabled="isSubmitting"
+              class="form-input"
+              :class="{ 'input-error': emailError }"
+              @blur="validateEmail"
+            />
+            <span v-if="emailError" class="error-text">{{ emailError }}</span>
+            <button
+              class="btn btn-cta-pulse btn-large"
+              @click="submitContact"
+              :disabled="isSubmitting || !!emailError"
+            >
+              {{ isSubmitting ? '送信中...' : '🚀 無料トライアルを始める' }}
             </button>
           </div>
-        <p class="cta-note">※ 担当者より2営業日以内にご連絡いたします</p>
+          <p v-if="submitError" class="form-error">{{ submitError }}</p>
+          <p class="cta-note">※ 担当者より2営業日以内にご連絡いたします</p>
+        </div>
       </div>
     </section>
+
+    <!-- フローティングCTA -->
+    <Transition name="float">
+      <button
+        v-if="showFloatingCta"
+        class="floating-cta"
+        @click="scrollToContact"
+      >
+        🚀 無料トライアル
+      </button>
+    </Transition>
 
     <!-- フッター -->
     <footer class="footer">
@@ -866,12 +911,24 @@ const router = useRouter()
 const orgSlug = ref('')
 const showDeviceLogin = ref(false)
 const contactEmail = ref('')
+const contactCompanyName = ref('')
 const isSubmitting = ref(false)
+const submitSuccess = ref(false)
+const submitError = ref('')
+const emailError = ref('')
+const showFloatingCta = ref(false)
 const openFaq = ref<number | null>(null)
 const showComparison = ref(false)
 const selectedPlan = ref<any>(null)
 const showAiDemo = ref(false)
 const selectedProduct = ref<'board' | 'stock' | 'drive' | 'file' | null>(null)
+
+// スクロール検知
+if (typeof window !== 'undefined') {
+  window.addEventListener('scroll', () => {
+    showFloatingCta.value = window.scrollY > 500
+  })
+}
 
 // 製品選択（組み合わせ計算用）
 const selectedProducts = ref({
@@ -1249,26 +1306,47 @@ function toggleFaq(index: number) {
   openFaq.value = openFaq.value === index ? null : index
 }
 
+function validateEmail() {
+  if (!contactEmail.value) {
+    emailError.value = ''
+    return
+  }
+  const emailRegex = /^\S+@\S+\.\S+$/
+  if (!emailRegex.test(contactEmail.value)) {
+    emailError.value = '有効なメールアドレスを入力してください'
+  } else {
+    emailError.value = ''
+  }
+}
+
 async function submitContact() {
-  if (!contactEmail.value) return
-  
+  validateEmail()
+  if (!contactEmail.value || emailError.value) return
+
   isSubmitting.value = true
+  submitError.value = ''
+
   try {
     const { data, error } = await useFetch('/api/contact', {
       method: 'POST',
-      body: { email: contactEmail.value }
+      body: {
+        email: contactEmail.value,
+        companyName: contactCompanyName.value || undefined
+      }
     })
 
     if (error.value) {
-      alert(error.value.statusMessage || '送信に失敗しました。時間をおいて再度お試しください。')
+      submitError.value = error.value.statusMessage || '送信に失敗しました。時間をおいて再度お試しください。'
       return
     }
 
-    alert('お申し込みありがとうございます！\n担当者より2営業日以内にご連絡いたします。')
-    contactEmail.value = '' // フォームクリア
+    // 成功
+    submitSuccess.value = true
+    contactEmail.value = ''
+    contactCompanyName.value = ''
 
   } catch (e) {
-    alert('予期せぬエラーが発生しました')
+    submitError.value = '予期せぬエラーが発生しました'
     console.error(e)
   } finally {
     isSubmitting.value = false
@@ -3760,20 +3838,148 @@ useHead({
   margin-bottom: 2rem;
 }
 
-.cta-form {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
+.cta-form-container {
   max-width: 500px;
   margin: 0 auto;
 }
 
-.cta-form input {
-  flex: 1;
+.cta-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.cta-form .form-input {
   padding: 1rem;
-  border: none;
+  border: 2px solid transparent;
   border-radius: 8px;
   font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.cta-form .form-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.cta-form .form-input.input-error {
+  border-color: #ff6b6b;
+}
+
+.error-text {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  text-align: left;
+  margin-top: -0.5rem;
+}
+
+.form-error {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.form-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(72, 187, 120, 0.1);
+  border: 2px solid #48bb78;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.form-success .success-icon {
+  font-size: 2rem;
+}
+
+.form-success strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #48bb78;
+}
+
+.form-success p {
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* パルスアニメーション付きCTAボタン */
+.btn-cta-pulse {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: pulse 2s infinite;
+}
+
+.btn-cta-pulse:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-cta-pulse:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(102, 126, 234, 0);
+  }
+}
+
+/* フローティングCTA */
+.floating-cta {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  z-index: 90;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: pulse 2s infinite;
+}
+
+.floating-cta:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+}
+
+/* フローティングCTAトランジション */
+.float-enter-active,
+.float-leave-active {
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.float-enter-from,
+.float-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
 }
 
 .cta-note {

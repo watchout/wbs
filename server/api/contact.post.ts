@@ -2,7 +2,7 @@ import { prisma } from '~/server/utils/prisma'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { email } = body
+  const { email, companyName } = body
 
   if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
     throw createError({
@@ -12,11 +12,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // 1. Organizationの仮作成
-    // 名前はメールアドレスのドメイン部分などを利用して仮設定
+    // 1. Organizationの作成
+    // 会社名が提供されればそれを使用、なければメールドメインから生成
     const domain = email.split('@')[1]
-    const orgName = `${domain.split('.')[0]} (仮)`
-    
+    const orgName = companyName?.trim() || `${domain.split('.')[0]} (仮)`
+
     const organization = await prisma.organization.create({
       data: {
         name: orgName
