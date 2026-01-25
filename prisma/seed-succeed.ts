@@ -91,7 +91,7 @@ async function main() {
     create: {
       id: 'succeed-device-001',
       name: '事務所サイネージ',
-      kioskSecret: 'succeed-kiosk-secret-001',
+      kioskSecret: 'succeed-kiosk-secret-001', // ⚠️ 本番運用前に必ず変更すること
       organizationId: org.id
     }
   })

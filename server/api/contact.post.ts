@@ -4,7 +4,8 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { email, companyName } = body
 
-  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  if (!email || !emailRegex.test(email)) {
     throw createError({
       statusCode: 400,
       statusMessage: '有効なメールアドレスを入力してください'
@@ -36,7 +37,8 @@ export default defineEventHandler(async (event) => {
     })
 
     // 3. ログ出力（本来はメール送信やPlane連携）
-    console.log(`[LEAD] New lead acquired: ${email} (Org: ${organization.id})`)
+    // メールアドレスをマスク化してログ出力（PII保護）
+    console.log(`[LEAD] New lead acquired: ***@${email.split('@')[1]} (Org: ${organization.id})`)
 
     return {
       success: true,
