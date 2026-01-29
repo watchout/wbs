@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { requireAdmin, requireLeader, type AuthContext } from './authMiddleware'
+import { requireAdmin, requireLeader, canEditSchedule, type AuthContext } from './authMiddleware'
 
 describe('authMiddleware', () => {
   describe('requireAdmin', () => {
@@ -169,5 +169,125 @@ describe('マルチテナント境界', () => {
     }
 
     expect(context.isDevice).toBe(true)
+  })
+})
+
+describe('canEditSchedule - スケジュール編集権限', () => {
+  describe('ADMIN権限', () => {
+    it('ADMINは誰のスケジュールでも編集可能', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'admin-001', role: 'ADMIN' },
+        scheduleAuthorId: 'user-999',
+        scheduleAuthorDepartmentId: 'dept-999',
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(true)
+    })
+
+    it('SUPER_ADMINは誰のスケジュールでも編集可能', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'superadmin-001', role: 'SUPER_ADMIN' },
+        scheduleAuthorId: 'user-999',
+        scheduleAuthorDepartmentId: 'dept-999',
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(true)
+    })
+  })
+
+  describe('LEADER権限', () => {
+    it('LEADERは自分のスケジュールを編集可能', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'leader-001', role: 'LEADER' },
+        scheduleAuthorId: 'leader-001',
+        scheduleAuthorDepartmentId: 'dept-001',
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(true)
+    })
+
+    it('LEADERは同部署メンバーのスケジュールを編集可能', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'leader-001', role: 'LEADER' },
+        scheduleAuthorId: 'member-001',
+        scheduleAuthorDepartmentId: 'dept-001',  // 同じ部署
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(true)
+    })
+
+    it('LEADERは他部署メンバーのスケジュールを編集不可', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'leader-001', role: 'LEADER' },
+        scheduleAuthorId: 'member-999',
+        scheduleAuthorDepartmentId: 'dept-999',  // 異なる部署
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(false)
+    })
+
+    it('LEADERでも部署未所属の場合は他人のスケジュールを編集不可', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'leader-001', role: 'LEADER' },
+        scheduleAuthorId: 'member-001',
+        scheduleAuthorDepartmentId: 'dept-001',
+        userDepartmentId: null  // 部署未所属
+      })
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('MEMBER権限', () => {
+    it('MEMBERは自分のスケジュールを編集可能', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'member-001', role: 'MEMBER' },
+        scheduleAuthorId: 'member-001',
+        scheduleAuthorDepartmentId: 'dept-001',
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(true)
+    })
+
+    it('MEMBERは他人のスケジュールを編集不可（同部署でも）', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'member-001', role: 'MEMBER' },
+        scheduleAuthorId: 'member-002',
+        scheduleAuthorDepartmentId: 'dept-001',  // 同じ部署
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(false)
+    })
+
+    it('MEMBERは他部署のスケジュールを編集不可', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'member-001', role: 'MEMBER' },
+        scheduleAuthorId: 'member-999',
+        scheduleAuthorDepartmentId: 'dept-999',
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('authorIdがnullのスケジュール', () => {
+    it('ADMINはauthorIdがnullのスケジュールを編集可能', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'admin-001', role: 'ADMIN' },
+        scheduleAuthorId: null,
+        scheduleAuthorDepartmentId: null,
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(true)
+    })
+
+    it('MEMBERはauthorIdがnullのスケジュールを編集不可', () => {
+      const result = canEditSchedule({
+        authContext: { organizationId: 'org-001', userId: 'member-001', role: 'MEMBER' },
+        scheduleAuthorId: null,
+        scheduleAuthorDepartmentId: null,
+        userDepartmentId: 'dept-001'
+      })
+      expect(result).toBe(false)
+    })
   })
 })

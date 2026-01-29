@@ -19,6 +19,17 @@
           />
         </div>
 
+        <div class="form-group">
+          <label for="password">パスワード</label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            placeholder="パスワード"
+            :disabled="loading"
+          />
+        </div>
+
         <div v-if="error" class="error-message">
           {{ error }}
         </div>
@@ -29,7 +40,7 @@
       </form>
 
       <div class="login-footer">
-        <p class="hint">メールアドレスを入力してログイン</p>
+        <p class="hint">メールアドレスとパスワードを入力してログイン</p>
       </div>
     </div>
   </div>
@@ -42,6 +53,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const email = ref('')
+const password = ref('')
 const loading = ref(false)
 const error = ref('')
 
@@ -57,7 +69,10 @@ async function handleLogin() {
       organization: { id: string; name: string; slug: string }
     }>('/api/auth/login', {
       method: 'POST',
-      body: { email: email.value }
+      body: {
+        email: email.value,
+        ...(password.value && { password: password.value })
+      }
     })
 
     // 成功時は該当テナントの週間ボードへリダイレクト
@@ -183,6 +198,23 @@ useHead({
   color: #888;
   font-size: 0.85rem;
   margin: 0;
+}
+
+/* モバイル対応 */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 0.5rem;
+  }
+
+  .login-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .form-group input {
+    font-size: 16px; /* iOS zoom防止 */
+  }
 }
 </style>
 

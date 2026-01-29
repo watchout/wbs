@@ -8,6 +8,8 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { createTestContext, cleanupTestData, cleanupSession } from '../../../tests/helpers'
 import { getSession } from '../../utils/session'
+import { prisma } from '~/server/utils/prisma'
+import { hashPassword } from '~/server/utils/password'
 
 // APIハンドラを直接インポート
 import loginHandler from './login.post'
@@ -65,6 +67,12 @@ describe('POST /api/auth/login', () => {
 
   beforeAll(async () => {
     ctx = await createTestContext('login-test')
+    // パスワード設定（passwordHash未設定だとログイン不可のため）
+    const hash = await hashPassword('testpass123')
+    await prisma.user.update({
+      where: { id: ctx.user.id },
+      data: { passwordHash: hash }
+    })
   })
 
   afterAll(async () => {
@@ -115,7 +123,8 @@ describe('POST /api/auth/login', () => {
 
     it('should return 200 and set session cookie for valid user', async () => {
       const event = createMockEvent({
-        email: ctx.user.email
+        email: ctx.user.email,
+        password: 'testpass123'
       })
 
       const response = await loginHandler(event)
@@ -131,7 +140,8 @@ describe('POST /api/auth/login', () => {
 
     it('should return user info in response', async () => {
       const event = createMockEvent({
-        email: ctx.user.email
+        email: ctx.user.email,
+        password: 'testpass123'
       })
 
       const response = await loginHandler(event)
@@ -144,7 +154,8 @@ describe('POST /api/auth/login', () => {
 
     it('should return organization info with slug', async () => {
       const event = createMockEvent({
-        email: ctx.user.email
+        email: ctx.user.email,
+        password: 'testpass123'
       })
 
       const response = await loginHandler(event)
@@ -158,7 +169,8 @@ describe('POST /api/auth/login', () => {
   describe('セッション作成', () => {
     it('should create valid session after login', async () => {
       const event = createMockEvent({
-        email: ctx.user.email
+        email: ctx.user.email,
+        password: 'testpass123'
       })
 
       await loginHandler(event)

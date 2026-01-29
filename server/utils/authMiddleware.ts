@@ -10,6 +10,7 @@
 import { createError, getQuery, getHeaders, getCookie, type H3Event } from 'h3'
 import { getSession } from './session'
 
+
 export interface AuthContext {
   /**
    * マルチテナント境界の要。全APIで必須。
@@ -103,6 +104,56 @@ export function requireLeader(authContext: AuthContext): void {
     throw createError({
       statusCode: 403,
       statusMessage: 'リーダー以上の権限が必要です'
+    })
+  }
+}
+
+/**
+ * スケジュール編集権限チェック
+ * 
+ * 権限モデル:
+ * - ADMIN: 全員のスケジュールを編集可能
+ * - LEADER: 自分の部署メンバーのスケジュールを編集可能
+ * - MEMBER: 自分のスケジュールのみ編集可能
+ */
+export interface ScheduleEditCheckParams {
+  authContext: AuthContext
+  scheduleAuthorId: string | null
+  scheduleAuthorDepartmentId: string | null
+  userDepartmentId: string | null
+}
+
+export function canEditSchedule(params: ScheduleEditCheckParams): boolean {
+  const { authContext, scheduleAuthorId, scheduleAuthorDepartmentId, userDepartmentId } = params
+  
+  // ADMIN/SUPER_ADMIN は全員のスケジュールを編集可能
+  if (authContext.role === 'ADMIN' || authContext.role === 'SUPER_ADMIN') {
+    return true
+  }
+  
+  // 自分のスケジュールは編集可能
+  if (scheduleAuthorId === authContext.userId) {
+    return true
+  }
+  
+  // LEADER は自分の部署メンバーのスケジュールを編集可能
+  if (authContext.role === 'LEADER' && userDepartmentId) {
+    if (scheduleAuthorDepartmentId === userDepartmentId) {
+      return true
+    }
+  }
+  
+  return false
+}
+
+/**
+ * スケジュール編集権限を要求
+ */
+export function requireScheduleEditPermission(params: ScheduleEditCheckParams): void {
+  if (!canEditSchedule(params)) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'このスケジュールを編集する権限がありません'
     })
   }
 }
