@@ -17,6 +17,10 @@ interface MeResponse {
     name: string | null
     email: string
     role: string
+    department?: {
+      id: string
+      name: string
+    } | null
   } | null
   organization: {
     id: string
@@ -78,7 +82,7 @@ export default defineEventHandler(async (event): Promise<MeResponse> => {
   // 通常ユーザーの場合
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    include: { organization: true }
+    include: { organization: true, department: true }
   })
 
   if (!user) {
@@ -97,7 +101,11 @@ export default defineEventHandler(async (event): Promise<MeResponse> => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      department: user.department ? {
+        id: user.department.id,
+        name: user.department.name
+      } : null
     },
     organization: user.organization ? {
       id: user.organization.id,

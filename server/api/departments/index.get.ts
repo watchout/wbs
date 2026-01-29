@@ -25,11 +25,12 @@ export default defineEventHandler(async (event): Promise<GetDepartmentsResponse>
 
   const departments = await prisma.department.findMany({
     where: {
-      organizationId: auth.organizationId
+      organizationId: auth.organizationId,
+      deletedAt: null  // ソフトデリート済みは除外
     },
     include: {
       _count: {
-        select: { users: true }
+        select: { users: { where: { deletedAt: null } } }
       }
     },
     orderBy: [

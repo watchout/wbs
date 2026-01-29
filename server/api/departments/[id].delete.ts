@@ -29,11 +29,12 @@ export default defineEventHandler(async (event): Promise<DeleteDepartmentRespons
   const existing = await prisma.department.findFirst({
     where: {
       id,
-      organizationId: auth.organizationId
+      organizationId: auth.organizationId,
+      deletedAt: null  // ソフトデリート済みは除外
     },
     include: {
       _count: {
-        select: { users: true }
+        select: { users: { where: { deletedAt: null } } }
       }
     }
   })
@@ -53,8 +54,10 @@ export default defineEventHandler(async (event): Promise<DeleteDepartmentRespons
     })
   }
 
-  await prisma.department.delete({
-    where: { id }
+  // ソフトデリート（物理削除ではなく論理削除）
+  await prisma.department.update({
+    where: { id },
+    data: { deletedAt: new Date() }
   })
 
   return {
