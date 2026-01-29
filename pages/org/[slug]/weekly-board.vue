@@ -1,15 +1,11 @@
 <template>
   <div class="weekly-board" :class="{ fullscreen: isFullscreen }">
-    <!-- ヘッダー（フルスクリーン時は非表示） -->
-    <header v-if="!isFullscreen" class="board-header">
-      <h1>{{ organization?.name || '' }} ミエルボード</h1>
+    <!-- サブバー: 週切り替え・フィルター（フルスクリーン時は非表示） -->
+    <div v-if="!isFullscreen" class="sub-bar">
       <div class="controls">
         <button @click="previousWeek" class="btn btn-secondary">◀ 前の週</button>
         <span class="current-week">{{ weekLabel }}</span>
         <button @click="nextWeek" class="btn btn-secondary">次の週 ▶</button>
-        <button @click="toggleFullscreen" class="btn btn-primary">
-          {{ isFullscreen ? '通常表示' : 'サイネージ表示' }}
-        </button>
       </div>
       <div class="filters">
         <select v-model="selectedDepartment" @change="fetchData">
@@ -18,8 +14,11 @@
             {{ dept.name }}
           </option>
         </select>
+        <button @click="toggleFullscreen" class="btn btn-primary">
+          サイネージ表示
+        </button>
       </div>
-    </header>
+    </div>
 
     <!-- 週間マトリクス（コンポーネント） -->
     <main class="board-main">
@@ -28,8 +27,19 @@
         :week-days="weekDays"
         :loading="loading"
         :is-fullscreen="isFullscreen"
+        @cell-click="handleCellClick"
       />
     </main>
+
+    <!-- スケジュール入力モーダル -->
+    <ScheduleFormModal
+      v-if="showModal"
+      :schedule="editingSchedule"
+      :default-date="selectedDate"
+      :default-author-id="selectedAuthorId"
+      @close="closeModal"
+      @saved="handleSaved"
+    />
 
     <!-- フルスクリーン時のコントロール -->
     <div v-if="isFullscreen" class="fullscreen-controls">
@@ -42,6 +52,12 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import WeeklyScheduleBoard from '~/components/genba/WeeklyScheduleBoard.vue'
+import ScheduleFormModal from '~/components/ScheduleFormModal.vue'
+
+// defaultレイアウトを適用
+definePageMeta({
+  layout: 'default'
+})
 
 // Socket.IOプラグイン
 const { $socketIO } = useNuxtApp()
@@ -70,12 +86,6 @@ interface Department {
   name: string
 }
 
-interface Organization {
-  id: string
-  name: string
-  slug: string
-}
-
 // ルート情報
 const route = useRoute()
 const router = useRouter()
@@ -83,11 +93,19 @@ const slug = computed(() => route.params.slug as string)
 
 // 状態
 const loading = ref(false)
-const organization = ref<Organization | null>(null)
 const employees = ref<Employee[]>([])
 const departments = ref<Department[]>([])
 const selectedDepartment = ref('')
-const weekOffset = ref(0) // 0 = 今週, -1 = 先週, 1 = 来週
+const weekOffset = ref(0)
+const showModal = ref(false)
+const editingSchedule = ref<{
+  id: string
+  title: string
+  start: string
+  end: string
+} | undefined>(undefined)
+const selectedDate = ref('')
+const selectedAuthorId = ref('')
 const isFullscreen = computed(() => route.query.fullscreen === 'true')
 const organizationId = ref<string | null>(null)
 let refreshTimer: ReturnType<typeof setInterval> | null = null
@@ -98,14 +116,14 @@ const weekDays = computed(() => {
   const start = getWeekStart(weekOffset.value)
   const days = ['月', '火', '水', '木', '金', '土', '日']
   const keys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-  
+
   return days.map((label, index) => {
     const date = new Date(start)
     date.setDate(date.getDate() + index)
     return {
       key: keys[index],
-      label,
-      date: `${date.getMonth() + 1}/${date.getDate()}`
+      label: `${label} ${date.getMonth() + 1}/${date.getDate()}`,
+      date: formatLocalDate(date)
     }
   })
 })
@@ -205,6 +223,41 @@ function toggleFullscreen() {
   router.push({ query: newQuery })
 }
 
+// スケジュールモーダル
+function handleCellClick(payload: {
+  employeeId: string
+  authorId: string
+  dayKey: string
+  date: string
+  schedule?: DaySchedule
+}) {
+  selectedDate.value = payload.date
+  selectedAuthorId.value = payload.authorId
+
+  if (payload.schedule) {
+    editingSchedule.value = {
+      id: payload.schedule.scheduleId,
+      title: payload.schedule.title,
+      start: payload.schedule.start,
+      end: payload.schedule.end
+    }
+  } else {
+    editingSchedule.value = undefined
+  }
+
+  showModal.value = true
+}
+
+function closeModal() {
+  showModal.value = false
+  editingSchedule.value = undefined
+}
+
+async function handleSaved() {
+  closeModal()
+  await fetchData()
+}
+
 // Socket.IO接続設定
 function setupSocketIO() {
   if (!organizationId.value || !$socketIO) return
@@ -214,11 +267,8 @@ function setupSocketIO() {
 
   // スケジュール変更イベントを監視
   socketCleanup = $socketIO.onScheduleChange(() => {
-    console.log('[weekly-board] Schedule change detected, refreshing data...')
     fetchData()
   })
-
-  console.log('[weekly-board] Socket.IO setup completed')
 }
 
 // Socket.IO切断
@@ -271,16 +321,15 @@ onUnmounted(() => {
 
 // ページタイトル
 useHead({
-  title: 'ミエルボード - 週間スケジュール'
+  title: '週間スケジュール'
 })
 </script>
 
 <style scoped>
 .weekly-board {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-background, #f8f9fa);
+  min-height: calc(100vh - 60px); /* ヘッダー分を引く */
 }
 
 .weekly-board.fullscreen {
@@ -291,23 +340,19 @@ useHead({
   bottom: 0;
   z-index: 9999;
   background: #1a1a2e;
+  min-height: 100vh;
 }
 
-/* ヘッダー */
-.board-header {
-  padding: 1rem 2rem;
+/* サブバー */
+.sub-bar {
+  padding: 0.75rem 1.5rem;
   background: var(--color-surface, #ffffff);
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.board-header h1 {
-  font-size: 1.5rem;
-  color: #333;
+  gap: 0.75rem;
 }
 
 .controls {
@@ -319,6 +364,20 @@ useHead({
 .current-week {
   font-weight: bold;
   padding: 0 1rem;
+  font-size: 0.95rem;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filters select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
 }
 
 .btn {
@@ -335,16 +394,17 @@ useHead({
   color: white;
 }
 
+.btn-primary:hover {
+  background: #1557b0;
+}
+
 .btn-secondary {
   background: #e0e0e0;
   color: #333;
 }
 
-.filters select {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
+.btn-secondary:hover {
+  background: #d0d0d0;
 }
 
 /* メインコンテンツ */
@@ -374,5 +434,30 @@ useHead({
   border-radius: 50%;
   font-size: 1.2rem;
   cursor: pointer;
+}
+
+.exit-fullscreen:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 640px) {
+  .sub-bar {
+    padding: 0.5rem 1rem;
+  }
+
+  .controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filters {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .current-week {
+    padding: 0 0.5rem;
+  }
 }
 </style>

@@ -86,6 +86,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     const schedules = await prisma.schedule.findMany({
       where: {
         organizationId: authContext.organizationId,
+        deletedAt: null,  // ソフトデリート済みは除外
         start: {
           gte: weekStart,
           lt: weekEnd
@@ -109,6 +110,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     const users = await prisma.user.findMany({
       where: {
         organizationId: authContext.organizationId,
+        deletedAt: null,  // ソフトデリート済みは除外
         ...(departmentId && { departmentId })
       },
       include: {
@@ -204,7 +206,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     }
 
   } catch (error: any) {
-    console.error('週間ボード取得エラー:', error)
+    console.error('[weekly-board] Error:', error instanceof Error ? error.message : 'Unknown error')
 
     // 認証エラーの場合はそのまま返す
     if (error.statusCode) {

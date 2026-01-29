@@ -6,7 +6,6 @@
           <th class="employee-header">社員</th>
           <th v-for="day in weekDays" :key="day.key" class="day-header">
             <div class="day-name">{{ day.label }}</div>
-            <div class="day-date">{{ day.date }}</div>
           </th>
         </tr>
       </thead>
@@ -16,11 +15,12 @@
             <div class="name">{{ employee.name }}</div>
             <div class="department" v-if="employee.department">{{ employee.department }}</div>
           </td>
-          <td 
-            v-for="day in weekDays" 
-            :key="day.key" 
+          <td
+            v-for="day in weekDays"
+            :key="day.key"
             class="schedule-cell"
             :class="getCellClass(employee.schedules[day.key])"
+            @click="handleCellClick(employee, day)"
           >
             <div v-if="employee.schedules[day.key]" class="schedule-content">
               {{ formatCellContent(employee.schedules[day.key]) }}
@@ -76,7 +76,22 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const emit = defineEmits<{
+  cellClick: [payload: { employeeId: string; authorId: string; dayKey: string; date: string; schedule?: DaySchedule }]
+}>()
+
 const loading = computed(() => props.loading)
+
+function handleCellClick(employee: Employee, day: WeekDay) {
+  const schedule = employee.schedules[day.key]
+  emit('cellClick', {
+    employeeId: employee.id,
+    authorId: employee.id,
+    dayKey: day.key,
+    date: day.date,
+    schedule: schedule || undefined
+  })
+}
 
 function isAllDay(schedule: DaySchedule | undefined): boolean {
   if (!schedule) return false
@@ -124,6 +139,7 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
 .schedule-matrix {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   background: white;
   border-radius: 8px;
   overflow: hidden;
@@ -175,7 +191,16 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
 
 .schedule-cell {
   min-width: 120px;
+  width: 120px;
+  height: 80px;
+  max-height: 80px;
   vertical-align: top;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.schedule-cell:hover {
+  background: #f0f4ff;
 }
 
 .schedule-cell.holiday {
@@ -258,5 +283,55 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
 
 .schedule-board.fullscreen .no-schedule {
   color: #555;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .schedule-board {
+    overflow-x: auto;
+  }
+
+  .schedule-table {
+    min-width: 900px;
+  }
+
+  .schedule-table th,
+  .schedule-table td {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .schedule-cell {
+    min-width: 100px;
+  }
+
+  .employee-name .name {
+    font-size: 0.9rem;
+  }
+
+  .employee-name .department {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedule-table th,
+  .schedule-table td {
+    padding: 0.35rem;
+    font-size: 0.75rem;
+  }
+
+  .schedule-cell {
+    min-width: 80px;
+  }
+
+  .employee-name .name {
+    font-size: 0.8rem;
+  }
+
+  .schedule-content {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
 }
 </style>
