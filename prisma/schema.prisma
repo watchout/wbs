@@ -17,6 +17,7 @@ generator client {
 
 enum Role {
   ADMIN
+  LEADER     // 部署リーダー/配車担当
   MEMBER
   DEVICE     // kiosk 
 }
@@ -39,6 +40,8 @@ model Organization {
   schedules   Schedule[]
   auditLogs   AuditLog[]
   departments Department[]
+  meetingRequests MeetingRequest[]
+  calendarConnections UserCalendarConnection[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -59,6 +62,7 @@ model Department {
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?  // ソフトデリート
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -71,20 +75,30 @@ model User {
 
   email          String   @unique
   name           String?
+  passwordHash      String?
+  setupToken        String?
+  setupTokenExpiry  DateTime?
   role           Role     @default(MEMBER)
 
   // 部署
   department     Department? @relation(fields: [departmentId], references: [id])
   departmentId   String?
 
-  // OAuth2 (Google) credential reference
+  // OAuth2 (Google) credential reference (legacy - to be removed)
   calendars      CalendarOAuth[]
+  // Calendar sync connections (new - with multi-tenant support)
+  calendarConnections UserCalendarConnection[]
 
   schedulesAuthored Schedule[]   @relation("author")
   auditLogs      AuditLog[]
 
+  // 日程調整関連
+  meetingsOrganized MeetingRequest[] @relation("meetingOrganizer")
+  meetingInvitations MeetingInvitee[] @relation("meetingInvitee")
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?  // ソフトデリート
 
   @@index([organizationId, role])
   @@index([departmentId])
@@ -96,7 +110,7 @@ model CalendarOAuth {
   userId         String
 
   provider       String   @default("google")
-  accessToken    String   @db.VarChar(2048)  // 
+  accessToken    String   @db.VarChar(2048)  //
   refreshToken   String   @db.VarChar(2048)
   expiry         DateTime?
 
@@ -104,6 +118,39 @@ model CalendarOAuth {
   updatedAt      DateTime @updatedAt
 
   @@unique([userId, provider])
+}
+
+// ------------ カレンダー同期モデル ------------
+
+model UserCalendarConnection {
+  id             String   @id @default(uuid())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  provider       String   @default("google")  // "google"
+  accessToken    String   @db.Text  // 暗号化保存
+  refreshToken   String   @db.Text  // 暗号化保存
+  tokenExpiresAt DateTime
+
+  calendarId     String   @default("primary")
+  webhookChannelId  String?
+  webhookToken      String?  // Webhook検証用トークン
+  webhookExpiration DateTime?
+
+  syncRangeStart Int      @default(-7)   // 過去7日
+  syncRangeEnd   Int      @default(28)   // 未来28日
+  lastSyncedAt   DateTime?
+
+  status         String   @default("active")  // active / error / disconnected
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, provider])
+  @@index([organizationId])
+  @@index([webhookChannelId])
 }
 
 model Device {
@@ -137,12 +184,19 @@ model Schedule {
   color          String?      // Tailwind color key  e.g. "wasabi"
   source         Source       @default(INTERNAL)
 
+  // 外部カレンダー同期用フィールド
+  externalId        String?   // Googleカレンダーのevent.id
+  externalSource    String?   // "google"
+  externalUpdatedAt DateTime? // 外部での最終更新日時（無限ループ防止用）
+
   versions       ScheduleVersion[]
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?  // ソフトデリート
 
   @@index([organizationId, start])
+  @@index([externalId, externalSource])
 }
 
 model ScheduleVersion {
@@ -173,4 +227,99 @@ model AuditLog {
   createdAt      DateTime @default(now())
 
   @@index([organizationId, createdAt])
+}
+
+// ------------ AI日程調整モデル ------------
+
+enum MeetingRequestStatus {
+  DRAFT         // 下書き
+  OPEN          // 回答受付中
+  CONFIRMED     // 日程確定
+  CANCELLED     // キャンセル
+}
+
+enum InviteeResponseStatus {
+  PENDING       // 未回答
+  RESPONDED     // 回答済み
+}
+
+model MeetingRequest {
+  id             String   @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  // 作成者
+  organizer      User     @relation("meetingOrganizer", fields: [organizerId], references: [id])
+  organizerId    String
+
+  title          String
+  description    String?
+  duration       Int      // ミーティング時間（分）
+  
+  // 候補日時の範囲
+  dateRangeStart DateTime
+  dateRangeEnd   DateTime
+  
+  // 調整ステータス
+  status         MeetingRequestStatus @default(DRAFT)
+  
+  // 確定した日程（status=CONFIRMED時）
+  confirmedStart DateTime?
+  confirmedEnd   DateTime?
+  
+  // 関連データ
+  candidates     MeetingCandidate[]
+  invitees       MeetingInvitee[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId, status])
+  @@index([organizerId])
+}
+
+model MeetingCandidate {
+  id               String   @id @default(uuid())
+  meetingRequest   MeetingRequest @relation(fields: [meetingRequestId], references: [id], onDelete: Cascade)
+  meetingRequestId String
+
+  start            DateTime
+  end              DateTime
+  
+  // AI提案かユーザー追加か
+  isAiSuggested    Boolean  @default(false)
+  
+  // この候補を選択した招待者数（キャッシュ）
+  responseCount    Int      @default(0)
+
+  createdAt        DateTime @default(now())
+
+  @@index([meetingRequestId])
+}
+
+model MeetingInvitee {
+  id               String   @id @default(uuid())
+  meetingRequest   MeetingRequest @relation(fields: [meetingRequestId], references: [id], onDelete: Cascade)
+  meetingRequestId String
+
+  // 招待者（社内ユーザー）
+  user             User     @relation("meetingInvitee", fields: [userId], references: [id])
+  userId           String
+
+  // 回答状況
+  status           InviteeResponseStatus @default(PENDING)
+  
+  // 選択した候補日時のID（JSON配列）
+  selectedCandidateIds Json?  // ["uuid1", "uuid2"]
+  
+  // 回答日時
+  respondedAt      DateTime?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([meetingRequestId, userId])
+  @@index([meetingRequestId])
+  @@index([userId])
 }

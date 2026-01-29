@@ -7,8 +7,11 @@
  */
 
 import { PrismaClient, Role, Source } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
+
+const DEFAULT_PASSWORD_HASH = await bcrypt.hash('password123', 10)
 
 async function main() {
   console.log('🌱 サクシード社テストデータ投入開始...')
@@ -71,14 +74,15 @@ async function main() {
   for (const userData of usersData) {
     await prisma.user.upsert({
       where: { email: userData.email },
-      update: { name: userData.name, departmentId: userData.departmentId },
+      update: { name: userData.name, departmentId: userData.departmentId, passwordHash: DEFAULT_PASSWORD_HASH },
       create: {
         id: userData.id,
         email: userData.email,
         name: userData.name,
         role: userData.role,
         organizationId: org.id,
-        departmentId: userData.departmentId
+        departmentId: userData.departmentId,
+        passwordHash: DEFAULT_PASSWORD_HASH
       }
     })
   }
