@@ -1,0 +1,50 @@
+[
+  {
+    "name": "【MVP拡張】ソフトデリート実装（User/Schedule/Department）",
+    "description": "## 概要\nデータの論理削除機能を実装\n\n## 実装内容\n- User/Schedule/DepartmentにdeletedAtフィールド追加\n- 削除APIをソフトデリートに変更\n- 取得APIにdeletedAt: nullフィルタ追加\n\n## 関連SSOT\n- SSOT_MVP_EXTEND.md - EXT-01",
+    "priority": "high",
+    "state": "done"
+  },
+  {
+    "name": "【MVP拡張】LEADER権限実装",
+    "description": "## 概要\n部署リーダー向け中間権限を実装\n\n## 実装内容\n- RoleにLEADER追加\n- LEADERは同部署メンバーのスケジュール編集可能\n- canEditSchedule/requireScheduleEditPermission関数\n\n## 関連SSOT\n- SSOT_MVP_EXTEND.md - EXT-02",
+    "priority": "high",
+    "state": "done"
+  },
+  {
+    "name": "【MVP拡張】サイネージUI実装",
+    "description": "## 概要\n大画面常時表示向けUIを実装\n\n## 実装内容\n- /org/[slug]/signage.vue\n- 時計・天気表示\n- 自動スクロール\n- タッチ編集対応\n\n## 関連SSOT\n- SSOT_MVP_EXTEND.md - EXT-03",
+    "priority": "high",
+    "state": "done"
+  },
+  {
+    "name": "【MVP拡張】モバイルレスポンシブ対応",
+    "description": "## 概要\nスマートフォン向けレスポンシブデザインを実装\n\n## 実装内容\n- ログインページのモバイル対応\n- 週間ボードの横スクロール\n- 管理画面のモバイル対応\n\n## 関連SSOT\n- SSOT_MVP_EXTEND.md - EXT-04",
+    "priority": "medium",
+    "state": "done"
+  },
+  {
+    "name": "【MVP拡張】管理画面拡張（部署管理・ナビゲーション）",
+    "description": "## 概要\n管理画面の機能拡張\n\n## 実装内容\n- /admin/departments.vue（部署管理）\n- AdminNav.vue（共通ナビゲーション）\n- ユーザー管理にナビ追加\n\n## 関連SSOT\n- SSOT_MVP_EXTEND.md - EXT-05",
+    "priority": "medium",
+    "state": "done"
+  },
+  {
+    "name": "【AI日程調整】データモデル実装",
+    "description": "## 概要\nAI日程調整機能のデータモデルを実装\n\n## 実装内容\n- MeetingRequest/MeetingCandidate/MeetingInviteeモデル\n- MeetingRequestStatus/InviteeResponseStatus enum\n- マイグレーション作成\n\n## 関連SSOT\n- SSOT_MEETING_SCHEDULER.md - セクション2",
+    "priority": "high",
+    "state": "done"
+  },
+  {
+    "name": "【AI日程調整】空き時間検索ロジック",
+    "description": "## 概要\n参加者全員の空き時間を検索するロジックを実装\n\n## 実装内容\n- server/utils/meetingScheduler.ts\n- findAvailableSlots関数\n- POST /api/meetings/suggest-slots\n\n## 関連SSOT\n- SSOT_MEETING_SCHEDULER.md - セクション4",
+    "priority": "high",
+    "state": "done"
+  },
+  {
+    "name": "【AI日程調整】調整UI（作成/回答/確定）",
+    "description": "## 概要\n日程調整のUIを実装\n\n## 実装内容\n- /meetings/index.vue（一覧）\n- /meetings/new.vue（作成）\n- /meetings/[id].vue（詳細・回答・確定）\n- 関連API（GET/POST/respond/confirm）\n\n## 関連SSOT\n- SSOT_MEETING_SCHEDULER.md - セクション5",
+    "priority": "high",
+    "state": "done"
+  }
+]

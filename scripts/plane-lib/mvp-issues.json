@@ -1,0 +1,20 @@
+[
+  {
+    "name": "【MVP】スケジュールCRUD API",
+    "priority": "urgent",
+    "state": "Backlog",
+    "description": "スケジュールの作成・更新・削除APIを実装する。WBS-9（手動入力UI）の前提となるAPI。\n\n## 実装内容\n- POST /api/schedules - スケジュール作成\n- PATCH /api/schedules/[id] - スケジュール更新\n- DELETE /api/schedules/[id] - スケジュール削除\n- 認証・organizationIdフィルタ必須\n- テスト作成"
+  },
+  {
+    "name": "【MVP】ユーザー管理API + UI",
+    "priority": "urgent",
+    "state": "Backlog",
+    "description": "スタッフの追加・編集・削除機能を実装する。管理画面を含む。\n\n## 実装内容\n- GET /api/users - ユーザー一覧\n- POST /api/users - ユーザー作成\n- PATCH /api/users/[id] - ユーザー更新\n- DELETE /api/users/[id] - ユーザー削除\n- /admin/users - 管理画面UI\n- 管理者権限チェック"
+  },
+  {
+    "name": "【MVP】認証強化（パスワード）",
+    "priority": "urgent",
+    "state": "Backlog",
+    "description": "メールアドレスのみの認証からパスワード認証に強化する。\n\n## 実装内容\n- Prisma schema: User.passwordHash追加\n- bcryptによるハッシュ化\n- ログインAPIにパスワード検証追加\n- パスワード変更API\n- 既存ユーザーのパスワード設定フロー"
+  }
+]

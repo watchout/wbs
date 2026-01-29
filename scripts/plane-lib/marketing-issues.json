@@ -1,0 +1,32 @@
+[
+  {
+    "name": "[Marketing] テストマーケティング用LPのデプロイと公開",
+    "description": "docs/MARKETING_LP_STRUCTURE.md に基づき、簡易的なLPを実装・公開する。",
+    "priority": "high",
+    "state": "Backlog"
+  },
+  {
+    "name": "[Marketing] サクシード社：クローズドβテスト・オンボーディング実施",
+    "description": "docs/MARKETING_ONBOARDING_GUIDE.md に基づき、初期設定とレクチャーを実施する。",
+    "priority": "urgent",
+    "state": "Backlog"
+  },
+  {
+    "name": "[Marketing] テストマーケティング用アンケートの作成",
+    "description": "docs/MARKETING_FEEDBACK_SPEC.md に基づき、Day 14用のアンケートフォームを準備する。",
+    "priority": "medium",
+    "state": "Backlog"
+  },
+  {
+    "name": "[Marketing] システムログ計測の実装確認",
+    "description": "prisma/schema.prisma に追加した metadata フィールドへ、PQL判定に必要なデータが正しく記録されているか確認する。",
+    "priority": "high",
+    "state": "Backlog"
+  },
+  {
+    "name": "[Marketing] 週次フィードバック・レビュー（Week 1）",
+    "description": "テスト開始から1週間後の利用状況をヒアリングし、Plane Pages にログを残す。",
+    "priority": "medium",
+    "state": "Backlog"
+  }
+]

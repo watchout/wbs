@@ -146,11 +146,23 @@ SSOTに基づいて実装を行います。
 5. テストフェーズ
    ├─ docs/TEST_STRATEGY.md 参照
    ├─ 必須レベルのテスト作成
-   └─ Evidence（コマンド+ログ）取得
+   └─ npm run typecheck / npm run test 実行
 
-6. 完了フェーズ
+6. 自己監査フェーズ（必須）
+   ├─ SSOT整合チェック
+   │   ├─ 要件ID vs 実装コード照合
+   │   └─ 未カバー要件があれば警告
+   ├─ コード品質チェック
+   │   ├─ マルチテナント境界確認（requireAuth、organizationId）
+   │   └─ 生SQL使用チェック（$queryRaw/$executeRaw 禁止）
+   └─ UIチェック（該当する場合）
+       ├─ MCP Browser（cursor-ide-browser）でページアクセス
+       ├─ 対象画面の表示確認
+       └─ 主要操作の動作確認
+
+7. 完了フェーズ
    ├─ Plane Issue 更新（可能なら）
-   └─ ユーザーに完了報告
+   └─ ユーザーに完了報告（監査結果含む）
 ```
 
 #### 制約
@@ -166,6 +178,7 @@ SSOTに基づいて実装を行います。
 - 実装コード（`server/api/`, `components/` など）
 - テストコード（`*.test.ts`）
 - Evidence（実行ログ）
+- 自己監査レポート（SSOT整合、品質チェック、UIチェック結果）
 
 ---
 
@@ -254,12 +267,24 @@ SSOTと実装のカバレッジ・ギャップを可視化します。
    ├─ components/ 配下をスキャン
    └─ 各要件IDに対応するコードを特定
 
-3. カバレッジ分析フェーズ
+3. 品質チェックフェーズ
+   ├─ npm run typecheck 実行
+   ├─ npm run test 実行
+   ├─ マルチテナント境界確認（requireAuth、organizationId）
+   └─ 生SQL使用チェック（$queryRaw/$executeRaw 禁止）
+
+4. UIチェックフェーズ（必須）
+   ├─ MCP Browser（cursor-ide-browser）でページアクセス
+   ├─ 対象画面の表示確認
+   ├─ 主要操作の動作確認
+   └─ スクリーンショット取得
+
+5. カバレッジ分析フェーズ
    ├─ 実装済み要件をリストアップ
    ├─ 未実装要件をリストアップ
    └─ 部分実装要件をリストアップ
 
-4. レポート生成フェーズ
+6. レポート生成フェーズ
    ├─ Markdown形式でレポート作成
    ├─ カバレッジ率を計算
    └─ 次アクションを提案

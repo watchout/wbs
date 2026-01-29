@@ -19,6 +19,10 @@ docs/
 │
 ├── 1. SSOT（設計の唯一の正）
 │   ├── SSOT_GENBA_WEEK.md ⭐️ ミエルボード詳細仕様
+│   ├── SSOT_MVP_EXTEND.md 🔧 MVP拡張機能（ソフトデリート/LEADER権限/サイネージ/モバイル）
+│   ├── SSOT_MEETING_SCHEDULER.md 📅 AI日程調整機能
+│   ├── SSOT_APP_HEADER.md 🎨 共通ヘッダー・設定メニュー
+│   ├── SSOT_CALENDAR_SYNC.md 📅 Googleカレンダー連携
 │   ├── SSOT_PRICING.md 💰 統一料金体系
 │   ├── SSOT_MARKETING.md 📈 マーケティング戦略
 │   ├── SSOT_BRAND.md 🎨 ブランドガイドライン
@@ -400,6 +404,10 @@ docs/
 | ドキュメント | 状態 | 最終更新 |
 |-------------|------|---------|
 | `SSOT_GENBA_WEEK.md` | ✅ 完成 | 2024-12-07 |
+| `SSOT_MVP_EXTEND.md` | ✅ 完成 | 2026-01-28 |
+| `SSOT_MEETING_SCHEDULER.md` | ✅ 完成 | 2026-01-28 |
+| `SSOT_APP_HEADER.md` | ✅ 実装済み | 2026-01-23 |
+| `SSOT_CALENDAR_SYNC.md` | ✅ 実装済み | 2026-01-23 |
 | `SSOT_PRICING.md` | ✅ 完成 | 2026-01-02 |
 | `SSOT_MARKETING.md` | ✅ 完成 | 2026-01-02 |
 | `SSOT_BRAND.md` | ✅ 完成 | 2026-01-02 |
