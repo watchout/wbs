@@ -19,14 +19,16 @@
             <span class="product-check">✓</span>
             ミエルボード
           </NuxtLink>
-          <a href="/" class="product-item" @click="closeProductMenu">
+          <div class="product-item product-item-disabled">
             <span class="product-check"></span>
             ミエルストック
-          </a>
-          <a href="/" class="product-item" @click="closeProductMenu">
+            <span class="product-badge">準備中</span>
+          </div>
+          <div class="product-item product-item-disabled">
             <span class="product-check"></span>
             ミエルドライブ
-          </a>
+            <span class="product-badge">準備中</span>
+          </div>
         </div>
       </Transition>
     </div>
@@ -76,6 +78,10 @@
                 <NuxtLink to="/settings/password" class="menu-item" @click="closeMenu">
                   <span class="menu-icon">🔑</span>
                   パスワード変更
+                </NuxtLink>
+                <NuxtLink to="/settings/calendar" class="menu-item" @click="closeMenu">
+                  <span class="menu-icon">📅</span>
+                  カレンダー連携
                 </NuxtLink>
               </div>
 
@@ -377,6 +383,24 @@ watch(() => route.fullPath, () => {
   width: 1rem;
   text-align: center;
   font-size: 0.85rem;
+}
+
+.product-item-disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.product-item-disabled:hover {
+  background: transparent;
+}
+
+.product-badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  background: #f0f0f0;
+  color: #888;
+  border-radius: 3px;
 }
 
 /* Center: Main Navigation */
