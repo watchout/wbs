@@ -88,6 +88,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+definePageMeta({
+  layout: 'default',
+  middleware: 'auth'
+})
+
 interface Meeting {
   id: string
   title: string

@@ -64,7 +64,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 interface UserInfo {

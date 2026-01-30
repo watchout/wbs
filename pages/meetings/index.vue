@@ -41,6 +41,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
+definePageMeta({
+  layout: 'default',
+  middleware: 'auth'
+})
+
 interface Meeting {
   id: string
   title: string

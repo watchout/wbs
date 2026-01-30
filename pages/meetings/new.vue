@@ -75,6 +75,11 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
+definePageMeta({
+  layout: 'default',
+  middleware: 'auth'
+})
+
 interface User {
   id: string
   email: string

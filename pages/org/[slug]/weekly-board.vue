@@ -54,9 +54,10 @@ import { useRoute, useRouter } from 'vue-router'
 import WeeklyScheduleBoard from '~/components/genba/WeeklyScheduleBoard.vue'
 import ScheduleFormModal from '~/components/ScheduleFormModal.vue'
 
-// defaultレイアウトを適用
+// defaultレイアウトを適用、認証必須
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 // Socket.IOプラグイン
