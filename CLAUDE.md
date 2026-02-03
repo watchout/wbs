@@ -53,16 +53,21 @@
 ```
 1. PRD（プロダクト要件）   → docs/ssot/SSOT-0_PRD.md
 2. 機能台帳               → docs/ssot/SSOT-1_FEATURE_CATALOG.md
-3. 個別機能仕様           → docs/SSOT_*.md（既存形式）
+3. コア定義（横断ルール） → docs/core/
+   - UI/画面・状態遷移    → docs/core/SSOT-2_UI_STATE.md
+   - API契約              → docs/core/SSOT-3_API_CONTRACT.md
+   - データモデル規約      → docs/core/SSOT-4_DATA_MODEL.md
+   - 横断的関心事          → docs/core/SSOT-5_CROSS_CUTTING.md
+4. 個別機能仕様           → docs/SSOT_*.md（既存形式）
    - スケジュールボード   → docs/SSOT_GENBA_WEEK.md
    - カレンダー連携       → docs/SSOT_CALENDAR_SYNC.md
    - AI日程調整           → docs/SSOT_MEETING_SCHEDULER.md
    - 共通ヘッダー・設定   → docs/SSOT_APP_HEADER.md
    - MVP拡張              → docs/SSOT_MVP_EXTEND.md
    - UIナビゲーション     → docs/SSOT_UI_NAVIGATION.md
-4. API仕様               → openapi.yaml
-5. データモデル           → prisma/schema.prisma
-6. 品質・運用             → docs/DONE_DEFINITION.md
+5. API仕様               → openapi.yaml
+6. データモデル           → prisma/schema.prisma
+7. 品質・運用             → docs/DONE_DEFINITION.md
                            → docs/TEST_STRATEGY.md
                            → docs/BRANCH_AND_RELEASE.md
 ```
@@ -72,7 +77,10 @@
 ```
 1. SSOT-1_FEATURE_CATALOG.md で対象機能IDと受入条件を確認
 2. 対応する SSOT_*.md を最後まで読む
-3. 関連するAPI仕様（openapi.yaml）とデータモデル（schema.prisma）を確認
+3. コア定義を確認
+   - API設計 → SSOT-3_API_CONTRACT.md
+   - DB設計 → SSOT-4_DATA_MODEL.md
+   - 認証/エラー/ログ → SSOT-5_CROSS_CUTTING.md
 4. 実装
    - .cursorrules のガードレールに従う
    - organizationId スコープ必須
@@ -100,6 +108,11 @@
 │   ├── ssot/                  ← SSOT階層（ai-dev-framework v3.0 準拠）
 │   │   ├── SSOT-0_PRD.md
 │   │   └── SSOT-1_FEATURE_CATALOG.md
+│   ├── core/                  ← コア定義（横断ルール）
+│   │   ├── SSOT-2_UI_STATE.md
+│   │   ├── SSOT-3_API_CONTRACT.md
+│   │   ├── SSOT-4_DATA_MODEL.md
+│   │   └── SSOT-5_CROSS_CUTTING.md
 │   ├── SSOT_*.md              ← 個別機能仕様（既存形式・維持）
 │   ├── PRODUCT_VISION.md      ← プロダクトビジョン
 │   ├── DONE_DEFINITION.md     ← 完了の定義
