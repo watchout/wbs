@@ -85,7 +85,7 @@
                 </NuxtLink>
               </div>
 
-              <!-- Admin Section (ADMIN/SUPER_ADMIN only) -->
+              <!-- Admin Section (ADMIN only) -->
               <div v-if="isAdmin" class="menu-section">
                 <div class="menu-section-header">管理</div>
                 <NuxtLink to="/admin/users" class="menu-item" @click="closeMenu">
@@ -163,13 +163,12 @@ const userInitial = computed(() => {
 
 const isAdmin = computed(() => {
   const role = user.value?.role
-  return role === 'ADMIN' || role === 'SUPER_ADMIN'
+  return role === 'ADMIN'
 })
 
 const roleClass = computed(() => {
   const role = user.value?.role
   return {
-    'role-super-admin': role === 'SUPER_ADMIN',
     'role-admin': role === 'ADMIN',
     'role-leader': role === 'LEADER',
     'role-member': role === 'MEMBER'
@@ -178,7 +177,6 @@ const roleClass = computed(() => {
 
 const roleLabel = computed(() => {
   const roleMap: Record<string, string> = {
-    SUPER_ADMIN: '最高管理者',
     ADMIN: '管理者',
     LEADER: 'リーダー',
     MEMBER: '一般'
@@ -487,10 +485,6 @@ watch(() => route.fullPath, () => {
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
   background: #444;
-}
-
-.role-super-admin {
-  background: #d32f2f;
 }
 
 .role-admin {

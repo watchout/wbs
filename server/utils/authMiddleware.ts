@@ -84,10 +84,10 @@ export async function optionalAuth(event: H3Event): Promise<AuthContext | null> 
 }
 
 /**
- * 管理者権限チェック（レベル5）
+ * 管理者権限チェック
  */
 export function requireAdmin(authContext: AuthContext): void {
-  if (authContext.role !== 'ADMIN' && authContext.role !== 'SUPER_ADMIN') {
+  if (authContext.role !== 'ADMIN') {
     throw createError({
       statusCode: 403,
       statusMessage: '管理者権限が必要です'
@@ -96,10 +96,10 @@ export function requireAdmin(authContext: AuthContext): void {
 }
 
 /**
- * リーダー以上権限チェック（レベル3+）
+ * リーダー以上権限チェック
  */
 export function requireLeader(authContext: AuthContext): void {
-  const allowedRoles = ['LEADER', 'MANAGER', 'ADMIN', 'SUPER_ADMIN']
+  const allowedRoles = ['LEADER', 'ADMIN']
   if (!authContext.role || !allowedRoles.includes(authContext.role)) {
     throw createError({
       statusCode: 403,
@@ -126,8 +126,8 @@ export interface ScheduleEditCheckParams {
 export function canEditSchedule(params: ScheduleEditCheckParams): boolean {
   const { authContext, scheduleAuthorId, scheduleAuthorDepartmentId, userDepartmentId } = params
   
-  // ADMIN/SUPER_ADMIN は全員のスケジュールを編集可能
-  if (authContext.role === 'ADMIN' || authContext.role === 'SUPER_ADMIN') {
+  // ADMIN は全員のスケジュールを編集可能
+  if (authContext.role === 'ADMIN') {
     return true
   }
   

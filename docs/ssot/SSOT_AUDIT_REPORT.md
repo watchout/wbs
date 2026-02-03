@@ -452,18 +452,16 @@ SSOT-2〜5 の記載内容を実際の実装（pages/, server/api/, prisma/schem
 | 画面存在（SSOT-2 vs pages/） | OK | 19画面全てが実装済み |
 | APIエンドポイント（SSOT-3 vs server/api/） | OK | 34+エンドポイント全て存在 |
 | データモデル（SSOT-4 vs schema.prisma） | OK | 12モデル全て一致（CalendarOAuth追加後） |
-| 認証ルール（SSOT-5 vs server/utils/） | 注意 | requireAuth()使用は準拠。SUPER_ADMIN/MANAGER参照が残存 |
+| 認証ルール（SSOT-5 vs server/utils/） | OK | requireAuth()使用は準拠。SUPER_ADMIN/MANAGER参照を削除済み |
 | マルチテナント（SSOT-5 vs クエリ） | OK | organizationIdスコープが全クエリに適用 |
 
-### 既知の実装乖離
+### 実装乖離と対応状況
 
-| # | 重大度 | 箇所 | 内容 | 影響 |
+| # | 重大度 | 箇所 | 内容 | 状態 |
 |---|--------|------|------|------|
-| 1 | Major | server/utils/authMiddleware.ts | SUPER_ADMIN ロールを参照（Prisma Roleに未定義） | 実行時にはマッチしないが不要コード |
-| 2 | Major | server/utils/authMiddleware.ts | MANAGER ロールを requireLeader() で許可（Prisma Roleに未定義） | 実行時にはマッチしないが不要コード |
-| 3 | Minor | openapi.yaml | カレンダー・会議関連エンドポイントが未反映 | API仕様書の更新漏れ |
-
-> **対応方針**: 上記はコード側の修正タスク。SSOT文書はPrismaスキーマ（権威ソース）に準拠しており正確。
+| 1 | ~~Major~~ | server/utils/authMiddleware.ts | SUPER_ADMIN 参照 | **解決済み**（2026-02-03 削除） |
+| 2 | ~~Major~~ | server/utils/authMiddleware.ts | MANAGER 参照 | **解決済み**（2026-02-03 削除） |
+| 3 | Minor | openapi.yaml | カレンダー・会議関連エンドポイントが未反映 | 未対応（P1） |
 
 ---
 
@@ -507,12 +505,12 @@ SSOT-2〜5 の記載内容を実際の実装（pages/, server/api/, prisma/schem
 
 ### アクションアイテム
 
-| # | 優先度 | 内容 | 対象 |
-|---|--------|------|------|
-| 1 | P0 | SUPER_ADMIN/MANAGER ロール参照を authMiddleware.ts から除去するか、Prisma スキーマに追加するかPO判断 | コード + 既存SSOT |
-| 2 | P1 | 既存SSOT_*.md の SUPER_ADMIN 参照を更新 | SSOT_UI_NAVIGATION.md, SSOT_APP_HEADER.md, SSOT_MVP_EXTEND.md |
-| 3 | P1 | openapi.yaml にカレンダー・会議エンドポイントを反映 | openapi.yaml |
-| 4 | P2 | 個別機能SSOTの12セクション形式への段階的移行 | Phase C |
+| # | 優先度 | 内容 | 対象 | 状態 |
+|---|--------|------|------|------|
+| 1 | ~~P0~~ | ~~SUPER_ADMIN/MANAGER ロール参照の整理（PO判断: 4ロール維持=A案）~~ | ~~コード + 既存SSOT~~ | **完了** |
+| 2 | ~~P1~~ | ~~既存SSOT_*.md の SUPER_ADMIN 参照を削除~~ | ~~SSOT_UI_NAVIGATION.md, SSOT_APP_HEADER.md, SSOT_MVP_EXTEND.md~~ | **完了** |
+| 3 | P1 | openapi.yaml にカレンダー・会議エンドポイントを反映 | openapi.yaml | 未対応 |
+| 4 | P2 | 個別機能SSOTの12セクション形式への段階的移行 | Phase C | 未対応 |
 
 ---
 

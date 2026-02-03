@@ -106,7 +106,6 @@ components/
 
 | Role | 表示名 |
 |------|--------|
-| SUPER_ADMIN | 最高管理者 |
 | ADMIN | 管理者 |
 | LEADER | リーダー |
 | MEMBER | 一般 |
@@ -147,7 +146,7 @@ components/
 
 | 要件ID | 内容 | ステータス |
 |--------|------|----------|
-| HDR-04-001 | ADMIN/SUPER_ADMINのみ「管理」セクション表示 | ✅ 実装済み |
+| HDR-04-001 | ADMINのみ「管理」セクション表示 | ✅ 実装済み |
 | HDR-04-002 | ユーザー管理リンク（/admin/users） | ✅ 実装済み |
 | HDR-04-003 | 部署管理リンク（/admin/departments） | ✅ 実装済み |
 

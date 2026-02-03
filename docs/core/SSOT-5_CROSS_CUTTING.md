@@ -296,18 +296,22 @@ MUST NOT: .env ファイルをコミット
 
 ---
 
-## 10. 既知の乖離事項
+## 10. ロール整理履歴
 
-### 10.1 SUPER_ADMIN ロールの不整合
+### 10.1 SUPER_ADMIN / MANAGER ロールの削除（2026-02-03 解決済み）
 
-| 項目 | 状態 |
+PO判断により、4ロール体系（ADMIN, LEADER, MEMBER, DEVICE）に統一。
+
+| 項目 | 対応 |
 |------|------|
-| Prisma スキーマ | SUPER_ADMIN **未定義**（Role enum: ADMIN, LEADER, MEMBER, DEVICE） |
-| 既存コード | `server/utils/authMiddleware.ts` で SUPER_ADMIN を参照 |
-| 既存 SSOT | SSOT_UI_NAVIGATION.md, SSOT_APP_HEADER.md, SSOT_MVP_EXTEND.md で SUPER_ADMIN を記載 |
-| 本文書（SSOT-5） | Prisma スキーマに準拠し 4ロール体系で記載（正） |
+| Prisma スキーマ | 変更なし（元から4ロール） |
+| server/utils/authMiddleware.ts | SUPER_ADMIN / MANAGER 参照を削除 |
+| SSOT_UI_NAVIGATION.md | SUPER_ADMIN 行を削除 |
+| SSOT_APP_HEADER.md | SUPER_ADMIN 行を削除 |
+| SSOT_MVP_EXTEND.md | SUPER_ADMIN 記述を ADMIN に統一 |
+| コンポーネント / ページ | SUPER_ADMIN 参照を ADMIN に統一 |
 
-**対応方針**: 既存 SSOT_*.md および server/utils/authMiddleware.ts から SUPER_ADMIN / MANAGER 参照を削除するか、Prisma スキーマに SUPER_ADMIN を追加するかをPO判断で決定。本文書は Prisma スキーマ（実装の権威ソース）に準拠する。
+**根拠**: YAGNI原則。SaaSマルチテナント管理者ロールは Phase 0 で不要。将来必要になった場合は Prisma スキーマへの追加 + マイグレーションで対応可能（削除より追加の方が安全）。
 
 ---
 
@@ -332,3 +336,4 @@ MUST NOT: .env ファイルをコミット
 |------|---------|-------|
 | 2026-02-03 | ai-dev-framework v3.0 準拠で新規作成。.cursorrules + DONE_DEFINITION.md + server/utils/ から統合 | AI（Claude Code） |
 | 2026-02-03 | 監査指摘修正: ログ出力ルール追加、ファイル行数をSHOULDに修正、SUPER_ADMIN乖離事項記載、検証方法追加 | AI（Claude Code） |
+| 2026-02-03 | SUPER_ADMIN/MANAGER削除完了。§10を「ロール整理履歴」に更新 | AI（Claude Code） |
