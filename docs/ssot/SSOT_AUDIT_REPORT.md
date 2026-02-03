@@ -461,7 +461,7 @@ SSOT-2〜5 の記載内容を実際の実装（pages/, server/api/, prisma/schem
 |---|--------|------|------|------|
 | 1 | ~~Major~~ | server/utils/authMiddleware.ts | SUPER_ADMIN 参照 | **解決済み**（2026-02-03 削除） |
 | 2 | ~~Major~~ | server/utils/authMiddleware.ts | MANAGER 参照 | **解決済み**（2026-02-03 削除） |
-| 3 | Minor | openapi.yaml | カレンダー・会議関連エンドポイントが未反映 | 未対応（P1） |
+| 3 | ~~Minor~~ | openapi.yaml | カレンダー・会議関連エンドポイントが未反映 | **解決済み**（2026-02-03 v0.2.0 全面更新） |
 
 ---
 
@@ -509,7 +509,7 @@ SSOT-2〜5 の記載内容を実際の実装（pages/, server/api/, prisma/schem
 |---|--------|------|------|------|
 | 1 | ~~P0~~ | ~~SUPER_ADMIN/MANAGER ロール参照の整理（PO判断: 4ロール維持=A案）~~ | ~~コード + 既存SSOT~~ | **完了** |
 | 2 | ~~P1~~ | ~~既存SSOT_*.md の SUPER_ADMIN 参照を削除~~ | ~~SSOT_UI_NAVIGATION.md, SSOT_APP_HEADER.md, SSOT_MVP_EXTEND.md~~ | **完了** |
-| 3 | P1 | openapi.yaml にカレンダー・会議エンドポイントを反映 | openapi.yaml | 未対応 |
+| 3 | ~~P1~~ | ~~openapi.yaml にカレンダー・会議エンドポイントを反映~~ | ~~openapi.yaml~~ | **完了** |
 | 4 | P2 | 個別機能SSOTの12セクション形式への段階的移行 | Phase C | 未対応 |
 
 ---

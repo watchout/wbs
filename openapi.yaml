@@ -1,87 +1,162 @@
-~openapi: 3.1.0
+openapi: 3.1.0
 info:
-  title: Whiteboard Signage API
-  version: 0.1.0
+  title: MielBoard for Jobsites API
+  version: 0.2.0
   description: |
-    REST interface for Whiteboard Signage System (Nuxt + ConoHa VPS).
-    * Auth via Google OAuth2 or MagicLink.
-    * All responses JSON unless noted.
+    弱電・電気工事会社向け現場業務DXプラットフォーム REST API。
+    * 認証: JWT + Session Cookie
+    * 全レスポンス JSON
+    * マルチテナント: organizationId スコープ必須
+    * Nuxt 3 auto-routing: /api/ プレフィックス
+
 servers:
-  - url: https://api.example.com
+  - url: https://wbs.example.com/api
     description: Production
-  - url: http://localhost:3010
+  - url: http://localhost:3010/api
     description: Local dev
+
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+
   schemas:
     Error:
       type: object
       properties:
-        message:
-          type: string
-      required: [message]
+        statusCode: { type: integer }
+        statusMessage: { type: string }
+      required: [statusCode, statusMessage]
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organizationId: { type: string, format: uuid }
+        email: { type: string, format: email }
+        name: { type: string, nullable: true }
+        role: { type: string, enum: [ADMIN, LEADER, MEMBER, DEVICE] }
+        departmentId: { type: string, format: uuid, nullable: true }
+        department:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string, format: uuid }
+            name: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, organizationId, email, role]
+
+    Department:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organizationId: { type: string, format: uuid }
+        name: { type: string }
+        color: { type: string, nullable: true }
+        sortOrder: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, organizationId, name]
+
     Schedule:
       type: object
       properties:
         id: { type: string, format: uuid }
-        organizationId: { type: string }
-        authorId: { type: string }
+        organizationId: { type: string, format: uuid }
+        authorId: { type: string, format: uuid, nullable: true }
         title: { type: string }
         description: { type: string, nullable: true }
         start: { type: string, format: date-time }
         end: { type: string, format: date-time }
         color: { type: string, nullable: true }
         source: { type: string, enum: [INTERNAL, GOOGLE, CSV] }
+        createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
-      required: [id, title, start, end]
+      required: [id, organizationId, title, start, end]
+
     ScheduleCreate:
-      allOf:
-        - $ref: '#/components/schemas/Schedule'
-        - required: [title, start, end]
-    ScheduleUpdate:
       type: object
-      description: Partial update; at least one field required.
       properties:
         title: { type: string }
         description: { type: string }
         start: { type: string, format: date-time }
         end: { type: string, format: date-time }
         color: { type: string }
-    DeviceHeartbeat:
+        authorId: { type: string, format: uuid }
+      required: [title, start, end]
+
+    ScheduleUpdate:
+      type: object
+      description: 部分更新。1つ以上のフィールドが必須。
+      properties:
+        title: { type: string }
+        description: { type: string }
+        start: { type: string, format: date-time }
+        end: { type: string, format: date-time }
+        color: { type: string }
+
+    MeetingRequest:
       type: object
       properties:
-        deviceId: { type: string }
-        kioskSecret: { type: string }
-        timestamp: { type: string, format: date-time }
-      required: [deviceId, kioskSecret]
+        id: { type: string, format: uuid }
+        organizationId: { type: string, format: uuid }
+        organizerId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        duration: { type: integer, description: ミーティング時間（分） }
+        dateRangeStart: { type: string, format: date-time }
+        dateRangeEnd: { type: string, format: date-time }
+        status: { type: string, enum: [DRAFT, OPEN, CONFIRMED, CANCELLED] }
+        confirmedStart: { type: string, format: date-time, nullable: true }
+        confirmedEnd: { type: string, format: date-time, nullable: true }
+        candidates:
+          type: array
+          items: { $ref: '#/components/schemas/MeetingCandidate' }
+        invitees:
+          type: array
+          items: { $ref: '#/components/schemas/MeetingInvitee' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, organizationId, organizerId, title, duration, status]
+
+    MeetingCandidate:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        start: { type: string, format: date-time }
+        end: { type: string, format: date-time }
+        isAiSuggested: { type: boolean }
+        responseCount: { type: integer }
+      required: [id, start, end]
+
+    MeetingInvitee:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        status: { type: string, enum: [PENDING, RESPONDED] }
+        selectedCandidateIds: { type: array, items: { type: string }, nullable: true }
+        respondedAt: { type: string, format: date-time, nullable: true }
+      required: [id, userId, status]
+
+    CalendarStatus:
+      type: object
+      properties:
+        connected: { type: boolean }
+        provider: { type: string }
+        lastSyncedAt: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [active, error, disconnected] }
+
 paths:
-  /auth/google:
-    get:
-      summary: Google OAuth2 redirect
-      operationId: authGoogle
-      responses:
-        '302':
-          description: Redirect to Google consent screen.
-  /auth/google/callback:
-    get:
-      summary: OAuth2 callback
-      operationId: authGoogleCallback
-      parameters:
-        - name: code
-          in: query
-          required: true
-          schema: { type: string }
-      responses:
-        '302':
-          description: Redirect with session cookie set.
-  /auth/magic-link:
+  # ── AUTH ──
+  /auth/login:
     post:
-      summary: Send magiclink login email
-      operationId: authMagicLink
+      summary: ログイン
+      operationId: authLogin
+      tags: [認証]
       requestBody:
         required: true
         content:
@@ -90,19 +165,236 @@ paths:
               type: object
               properties:
                 email: { type: string, format: email }
+                password: { type: string }
+              required: [email, password]
+      responses:
+        '200':
+          description: ログイン成功。session_id Cookie設定。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  user: { $ref: '#/components/schemas/User' }
+        '401':
+          description: 認証失敗
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/logout:
+    post:
+      summary: ログアウト
+      operationId: authLogout
+      tags: [認証]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: ログアウト成功。Cookie削除。
+
+  /auth/me:
+    get:
+      summary: 現在のユーザー情報取得
+      operationId: authMe
+      tags: [認証]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 認証済みユーザー情報
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  isAuthenticated: { type: boolean }
+                  user: { $ref: '#/components/schemas/User' }
+
+  /auth/device-login:
+    post:
+      summary: デバイスログイン
+      operationId: authDeviceLogin
+      tags: [認証]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kioskSecret: { type: string }
+              required: [kioskSecret]
+      responses:
+        '200':
+          description: デバイスセッション開始
+        '401':
+          description: 不正なkioskSecret
+
+  /auth/set-password:
+    post:
+      summary: 初回パスワード設定
+      operationId: authSetPassword
+      tags: [認証]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token: { type: string }
+                password: { type: string }
+              required: [token, password]
+      responses:
+        '200':
+          description: パスワード設定完了
+
+  /auth/change-password:
+    post:
+      summary: パスワード変更
+      operationId: authChangePassword
+      tags: [認証]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string }
+              required: [currentPassword, newPassword]
+      responses:
+        '200':
+          description: パスワード変更完了
+        '400':
+          description: 現在のパスワードが不正
+
+  /auth/create-setup-token:
+    post:
+      summary: セットアップトークン発行（ADMIN専用）
+      operationId: authCreateSetupToken
+      tags: [認証]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId: { type: string, format: uuid }
+              required: [userId]
+      responses:
+        '200':
+          description: トークン発行成功
+        '403':
+          description: 管理者権限が必要
+
+  # ── USERS ──
+  /users:
+    get:
+      summary: ユーザー一覧（ADMIN専用）
+      operationId: listUsers
+      tags: [ユーザー]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: ユーザー一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  users:
+                    type: array
+                    items: { $ref: '#/components/schemas/User' }
+    post:
+      summary: ユーザー作成（ADMIN専用）
+      operationId: createUser
+      tags: [ユーザー]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                name: { type: string }
+                role: { type: string, enum: [ADMIN, LEADER, MEMBER] }
+                departmentId: { type: string, format: uuid }
               required: [email]
       responses:
-        '204': { description: Email sent }
-  /schedules:
+        '201':
+          description: ユーザー作成成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: ユーザー更新（ADMIN専用）
+      operationId: updateUser
+      tags: [ユーザー]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                role: { type: string, enum: [ADMIN, LEADER, MEMBER] }
+                departmentId: { type: string, format: uuid, nullable: true }
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      summary: ユーザー削除（ソフトデリート、ADMIN専用）
+      operationId: deleteUser
+      tags: [ユーザー]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 削除成功
+
+  /users/me:
+    patch:
+      summary: 自分のプロフィール更新
+      operationId: updateMe
+      tags: [ユーザー]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+      responses:
+        '200':
+          description: プロフィール更新成功
+
+  # ── SCHEDULES ──
+  /schedules/weekly-board:
     get:
-      summary: List schedules in range
-      operationId: listSchedules
-      security: [ { bearerAuth: [] } ]
+      summary: 週間ボードデータ取得
+      operationId: getWeeklyBoard
+      tags: [スケジュール]
+      security: [{ cookieAuth: [] }]
       parameters:
-        - name: orgId
-          in: query
-          required: true
-          schema: { type: string }
         - name: from
           in: query
           schema: { type: string, format: date-time }
@@ -111,16 +403,23 @@ paths:
           schema: { type: string, format: date-time }
       responses:
         '200':
-          description: Array of Schedule
+          description: 週間スケジュールデータ
           content:
             application/json:
               schema:
-                type: array
-                items: { $ref: '#/components/schemas/Schedule' }
+                type: object
+                properties:
+                  success: { type: boolean }
+                  schedules:
+                    type: array
+                    items: { $ref: '#/components/schemas/Schedule' }
+
+  /schedules:
     post:
-      summary: Create schedule
+      summary: スケジュール作成（LEADER以上）
       operationId: createSchedule
-      security: [ { bearerAuth: [] } ]
+      tags: [スケジュール]
+      security: [{ cookieAuth: [] }]
       requestBody:
         required: true
         content:
@@ -128,30 +427,22 @@ paths:
             schema: { $ref: '#/components/schemas/ScheduleCreate' }
       responses:
         '201':
-          description: Created
+          description: 作成成功
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Schedule' }
+
   /schedules/{id}:
     parameters:
       - name: id
         in: path
         required: true
-        schema: { type: string }
-    get:
-      summary: Get schedule by id
-      operationId: getSchedule
-      security: [ { bearerAuth: [] } ]
-      responses:
-        '200':
-          description: Schedule
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Schedule' }
+        schema: { type: string, format: uuid }
     patch:
-      summary: Update schedule
+      summary: スケジュール更新（LEADER以上 + 編集権限）
       operationId: updateSchedule
-      security: [ { bearerAuth: [] } ]
+      tags: [スケジュール]
+      security: [{ cookieAuth: [] }]
       requestBody:
         required: true
         content:
@@ -159,49 +450,344 @@ paths:
             schema: { $ref: '#/components/schemas/ScheduleUpdate' }
       responses:
         '200':
-          description: Updated schedule
+          description: 更新成功
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Schedule' }
     delete:
-      summary: Delete schedule
+      summary: スケジュール削除（ソフトデリート、LEADER以上）
       operationId: deleteSchedule
-      security: [ { bearerAuth: [] } ]
+      tags: [スケジュール]
+      security: [{ cookieAuth: [] }]
       responses:
-        '204': { description: Deleted }
-  /devices/heartbeat:
+        '200':
+          description: 削除成功
+
+  # ── DEPARTMENTS ──
+  /departments:
+    get:
+      summary: 部門一覧
+      operationId: listDepartments
+      tags: [部門]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 部門一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  departments:
+                    type: array
+                    items: { $ref: '#/components/schemas/Department' }
     post:
-      summary: Device heartbeat ping
-      operationId: deviceHeartbeat
+      summary: 部門作成（ADMIN専用）
+      operationId: createDepartment
+      tags: [部門]
+      security: [{ cookieAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/DeviceHeartbeat' }
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                color: { type: string }
+                sortOrder: { type: integer }
+              required: [name]
       responses:
-        '204': { description: Accepted }
-  /devices:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Department' }
+
+  /departments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: 部門更新（ADMIN専用）
+      operationId: updateDepartment
+      tags: [部門]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                color: { type: string }
+                sortOrder: { type: integer }
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      summary: 部門削除（ソフトデリート、ADMIN専用）
+      operationId: deleteDepartment
+      tags: [部門]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 削除成功
+
+  # ── MEETINGS ──
+  /meetings:
     get:
-      summary: List devices in org
-      operationId: listDevices
-      security: [ { bearerAuth: [] } ]
+      summary: 会議一覧
+      operationId: listMeetings
+      tags: [会議・日程調整]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 会議一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  meetings:
+                    type: array
+                    items: { $ref: '#/components/schemas/MeetingRequest' }
+    post:
+      summary: 会議作成（LEADER以上）
+      operationId: createMeeting
+      tags: [会議・日程調整]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                duration: { type: integer }
+                dateRangeStart: { type: string, format: date-time }
+                dateRangeEnd: { type: string, format: date-time }
+                inviteeIds:
+                  type: array
+                  items: { type: string, format: uuid }
+              required: [title, duration, dateRangeStart, dateRangeEnd, inviteeIds]
+      responses:
+        '201':
+          description: 会議作成成功
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MeetingRequest' }
+
+  /meetings/suggest-slots:
+    post:
+      summary: AIスロット提案（LEADER以上）
+      operationId: suggestSlots
+      tags: [会議・日程調整]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                meetingRequestId: { type: string, format: uuid }
+                duration: { type: integer }
+                dateRangeStart: { type: string, format: date-time }
+                dateRangeEnd: { type: string, format: date-time }
+              required: [meetingRequestId, duration, dateRangeStart, dateRangeEnd]
+      responses:
+        '200':
+          description: AI提案候補スロット
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  candidates:
+                    type: array
+                    items: { $ref: '#/components/schemas/MeetingCandidate' }
+
+  /meetings/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: 会議詳細
+      operationId: getMeeting
+      tags: [会議・日程調整]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 会議詳細
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MeetingRequest' }
+
+  /meetings/{id}/respond:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: 招待者回答
+      operationId: respondToMeeting
+      tags: [会議・日程調整]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selectedCandidateIds:
+                  type: array
+                  items: { type: string, format: uuid }
+              required: [selectedCandidateIds]
+      responses:
+        '200':
+          description: 回答受付成功
+
+  /meetings/{id}/confirm:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      summary: 日程確定（LEADER以上）
+      operationId: confirmMeeting
+      tags: [会議・日程調整]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                candidateId: { type: string, format: uuid }
+              required: [candidateId]
+      responses:
+        '200':
+          description: 日程確定成功
+
+  # ── CALENDAR ──
+  /calendar/status:
+    get:
+      summary: カレンダー接続状態確認
+      operationId: getCalendarStatus
+      tags: [カレンダー連携]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 接続状態
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CalendarStatus' }
+
+  /calendar/sync:
+    post:
+      summary: 手動同期実行
+      operationId: syncCalendar
+      tags: [カレンダー連携]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 同期完了
+
+  /calendar/connection:
+    delete:
+      summary: カレンダー接続解除
+      operationId: disconnectCalendar
+      tags: [カレンダー連携]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: 接続解除完了
+
+  /calendar/google/connect:
+    get:
+      summary: Google OAuth2認証開始
+      operationId: calendarGoogleConnect
+      tags: [カレンダー連携]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '302':
+          description: Google同意画面へリダイレクト
+
+  /calendar/google/callback:
+    get:
+      summary: Google OAuth2コールバック
+      operationId: calendarGoogleCallback
+      tags: [カレンダー連携]
       parameters:
-        - name: orgId
+        - name: code
+          in: query
+          required: true
+          schema: { type: string }
+        - name: state
           in: query
           required: true
           schema: { type: string }
       responses:
+        '302':
+          description: カレンダー設定画面へリダイレクト
+
+  /calendar/webhook:
+    post:
+      summary: Googleカレンダー Webhook受信
+      operationId: calendarWebhook
+      tags: [カレンダー連携]
+      responses:
         '200':
-          description: Array of devices
+          description: Webhook処理完了
+
+  # ── OPS ──
+  /health:
+    get:
+      summary: ヘルスチェック
+      operationId: healthCheck
+      tags: [運用]
+      responses:
+        '200':
+          description: サーバー稼働中
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id: { type: string }
-                    name: { type: string }
-                    language: { type: string }
-                    lastHeartbeat: { type: string, format: date-time, nullable: true }
-~
+                type: object
+                properties:
+                  status: { type: string, enum: [ok] }
+                  timestamp: { type: string, format: date-time }
+
+  /contact:
+    post:
+      summary: 問い合わせ送信
+      operationId: submitContact
+      tags: [運用]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                message: { type: string }
+              required: [name, email, message]
+      responses:
+        '200':
+          description: 送信成功
