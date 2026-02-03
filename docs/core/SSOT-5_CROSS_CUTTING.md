@@ -141,12 +141,13 @@ MUST NOT: console.log をプロダクションコードに残す
 
 ### 4.1 監査ログ方針
 
-| 項目 | 方針 |
-|------|------|
-| 対象操作 | SCHEDULE_CREATE, SCHEDULE_UPDATE, SCHEDULE_DELETE, USER_CREATE, USER_UPDATE 等 |
-| 保存先 | AuditLog テーブル |
-| テナント分離 | organizationId でスコープ |
-| 保持期間 | 無期限（Phase 0） |
+| 項目 | 方針 | レベル |
+|------|------|--------|
+| 対象操作 | SCHEDULE_CREATE, SCHEDULE_UPDATE, SCHEDULE_DELETE, USER_CREATE, USER_UPDATE 等 | MUST |
+| 保存先 | AuditLog テーブル（SSOT-4 §3.12） | MUST |
+| テナント分離 | organizationId でスコープ | MUST |
+| 保持期間 | 無期限（Phase 0） | MUST |
+| 書き込み | データ変更操作時に AuditLog レコードを作成 | SHOULD |
 
 ### 4.2 記録内容
 
@@ -156,6 +157,16 @@ MUST: organizationId（テナント）
 SHOULD: userId（操作者）
 SHOULD: targetId（対象エンティティ）
 MAY: meta（追加情報、JSON）
+```
+
+### 4.3 ログ出力ルール
+
+```
+MUST: 500エラー発生時はサーバーログに詳細を記録
+MUST: 認証失敗時はログに記録（ブルートフォース検出用）
+MUST NOT: console.log をプロダクションコードに残す
+SHOULD: ERROR 以上のイベントを構造化ログとして出力
+MAY: DEBUG レベルのログは開発環境でのみ有効化
 ```
 
 ---
@@ -191,7 +202,7 @@ MUST NOT: .env ファイルをコミット
 ```
 MUST: strict モード有効
 MUST NOT: any 型の使用
-MUST: 1ファイル 200行以内（目安）
+SHOULD: 1ファイル 200行以内
 MUST: マジックナンバー禁止（定数化）
 ```
 
@@ -285,8 +296,39 @@ MUST NOT: .env ファイルをコミット
 
 ---
 
+## 10. 既知の乖離事項
+
+### 10.1 SUPER_ADMIN ロールの不整合
+
+| 項目 | 状態 |
+|------|------|
+| Prisma スキーマ | SUPER_ADMIN **未定義**（Role enum: ADMIN, LEADER, MEMBER, DEVICE） |
+| 既存コード | `server/utils/authMiddleware.ts` で SUPER_ADMIN を参照 |
+| 既存 SSOT | SSOT_UI_NAVIGATION.md, SSOT_APP_HEADER.md, SSOT_MVP_EXTEND.md で SUPER_ADMIN を記載 |
+| 本文書（SSOT-5） | Prisma スキーマに準拠し 4ロール体系で記載（正） |
+
+**対応方針**: 既存 SSOT_*.md および server/utils/authMiddleware.ts から SUPER_ADMIN / MANAGER 参照を削除するか、Prisma スキーマに SUPER_ADMIN を追加するかをPO判断で決定。本文書は Prisma スキーマ（実装の権威ソース）に準拠する。
+
+---
+
+## 11. 検証方法
+
+本文書の検証は以下で実施:
+
+| 対象 | 検証方法 |
+|------|---------|
+| 認証ルール | 全 API ハンドラで `requireAuth()` が呼ばれていることを grep で確認 |
+| マルチテナント | 全クエリに `organizationId` 条件が含まれることを grep で確認 |
+| エラー形式 | API エラーレスポンスが §3.1 形式に従うことを確認 |
+| セキュリティ | `$queryRaw` / `$executeRaw` がコードベースに存在しないことを CI で検出 |
+| コーディング規約 | `any` 型が使用されていないことを TypeScript strict でチェック |
+| CI/CD | GitHub Actions チェックが §8.1 の項目を全て実行していることを確認 |
+
+---
+
 ## 変更履歴
 
 | 日付 | 変更内容 | 変更者 |
 |------|---------|-------|
 | 2026-02-03 | ai-dev-framework v3.0 準拠で新規作成。.cursorrules + DONE_DEFINITION.md + server/utils/ から統合 | AI（Claude Code） |
+| 2026-02-03 | 監査指摘修正: ログ出力ルール追加、ファイル行数をSHOULDに修正、SUPER_ADMIN乖離事項記載、検証方法追加 | AI（Claude Code） |

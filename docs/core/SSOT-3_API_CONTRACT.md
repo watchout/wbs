@@ -39,6 +39,24 @@ server/api/
 | PATCH | リソース部分更新 | No |
 | DELETE | リソース削除（ソフトデリート） | Yes |
 
+### 1.4 ロール表記の定義
+
+| 表記 | 対象ロール |
+|------|----------|
+| LEADER+ | ADMIN, LEADER |
+| Any | 認証済み全ロール（ADMIN, LEADER, MEMBER, DEVICE） |
+
+### 1.5 APIハンドラ必須ルール
+
+```
+MUST: 全APIハンドラの先頭で requireAuth() または requireLeader()/requireAdmin() を呼び出す
+MUST: データクエリに user.organizationId を WHERE 条件として含める
+MUST: 入力値のバリデーションを実施（必須項目、型、文字列長）
+MUST NOT: 認証不要エンドポイント以外で requireAuth() を省略する
+MUST NOT: organizationId をリクエストパラメータから受け取る（常に JWT から取得）
+SHOULD: 成功レスポンスに不要な内部情報（passwordHash 等）を含めない
+```
+
 ---
 
 ## 2. 認証ミドルウェア
@@ -69,72 +87,72 @@ server/api/
 
 ### 3.1 認証（AUTH）
 
-| メソッド | パス | 説明 | 認証 | ロール |
-|---------|------|------|------|-------|
-| POST | /api/auth/login | ログイン | No | - |
-| POST | /api/auth/logout | ログアウト | Yes | Any |
-| GET | /api/auth/me | 現在のユーザー情報 | Yes | Any |
-| POST | /api/auth/device-login | デバイスログイン | No | - |
-| POST | /api/auth/change-password | パスワード変更 | Yes | Any |
-| POST | /api/auth/set-password | 初回パスワード設定 | No | - |
-| POST | /api/auth/create-setup-token | セットアップトークン発行 | Yes | ADMIN |
+| メソッド | パス | 説明 | 認証 | ロール | 機能ID |
+|---------|------|------|------|-------|--------|
+| POST | /api/auth/login | ログイン | No | - | AUTH-001 |
+| POST | /api/auth/logout | ログアウト | Yes | Any | AUTH-002 |
+| GET | /api/auth/me | 現在のユーザー情報 | Yes | Any | AUTH-001 |
+| POST | /api/auth/device-login | デバイスログイン | No | - | AUTH-004 |
+| POST | /api/auth/change-password | パスワード変更 | Yes | Any | ACCT-005 |
+| POST | /api/auth/set-password | 初回パスワード設定 | No | - | AUTH-005 |
+| POST | /api/auth/create-setup-token | セットアップトークン発行 | Yes | ADMIN | AUTH-005 |
 
 ### 3.2 ユーザー（USERS）
 
-| メソッド | パス | 説明 | 認証 | ロール |
-|---------|------|------|------|-------|
-| GET | /api/users | ユーザー一覧 | Yes | ADMIN |
-| POST | /api/users | ユーザー作成 | Yes | ADMIN |
-| PATCH | /api/users/[id] | ユーザー更新 | Yes | ADMIN |
-| DELETE | /api/users/[id] | ユーザー削除（ソフト） | Yes | ADMIN |
-| PATCH | /api/users/me | 自分のプロフィール更新 | Yes | Any |
+| メソッド | パス | 説明 | 認証 | ロール | 機能ID |
+|---------|------|------|------|-------|--------|
+| GET | /api/users | ユーザー一覧 | Yes | ADMIN | ACCT-001 |
+| POST | /api/users | ユーザー作成 | Yes | ADMIN | ACCT-001 |
+| PATCH | /api/users/[id] | ユーザー更新 | Yes | ADMIN | ACCT-001 |
+| DELETE | /api/users/[id] | ユーザー削除（ソフト） | Yes | ADMIN | ACCT-001 |
+| PATCH | /api/users/me | 自分のプロフィール更新 | Yes | Any | ACCT-002 |
 
 ### 3.3 スケジュール（SCHEDULES）
 
-| メソッド | パス | 説明 | 認証 | ロール |
-|---------|------|------|------|-------|
-| GET | /api/schedules/weekly-board | 週間ボードデータ取得 | Yes | Any |
-| POST | /api/schedules | スケジュール作成 | Yes | LEADER+ |
-| PATCH | /api/schedules/[id] | スケジュール更新 | Yes | LEADER+ |
-| DELETE | /api/schedules/[id] | スケジュール削除（ソフト） | Yes | LEADER+ |
+| メソッド | パス | 説明 | 認証 | ロール | 機能ID |
+|---------|------|------|------|-------|--------|
+| GET | /api/schedules/weekly-board | 週間ボードデータ取得 | Yes | Any | WBS-001 |
+| POST | /api/schedules | スケジュール作成 | Yes | LEADER+ | WBS-001 |
+| PATCH | /api/schedules/[id] | スケジュール更新 | Yes | LEADER+ | WBS-001 |
+| DELETE | /api/schedules/[id] | スケジュール削除（ソフト） | Yes | LEADER+ | WBS-001 |
 
 ### 3.4 部門（DEPARTMENTS）
 
-| メソッド | パス | 説明 | 認証 | ロール |
-|---------|------|------|------|-------|
-| GET | /api/departments | 部門一覧 | Yes | Any |
-| POST | /api/departments | 部門作成 | Yes | ADMIN |
-| PATCH | /api/departments/[id] | 部門更新 | Yes | ADMIN |
-| DELETE | /api/departments/[id] | 部門削除（ソフト） | Yes | ADMIN |
+| メソッド | パス | 説明 | 認証 | ロール | 機能ID |
+|---------|------|------|------|-------|--------|
+| GET | /api/departments | 部門一覧 | Yes | Any | WBS-005 |
+| POST | /api/departments | 部門作成 | Yes | ADMIN | WBS-005 |
+| PATCH | /api/departments/[id] | 部門更新 | Yes | ADMIN | WBS-005 |
+| DELETE | /api/departments/[id] | 部門削除（ソフト） | Yes | ADMIN | WBS-005 |
 
 ### 3.5 会議（MEETINGS）
 
-| メソッド | パス | 説明 | 認証 | ロール |
-|---------|------|------|------|-------|
-| GET | /api/meetings | 会議一覧 | Yes | Any |
-| POST | /api/meetings | 会議作成 | Yes | LEADER+ |
-| GET | /api/meetings/[id] | 会議詳細 | Yes | Any |
-| POST | /api/meetings/suggest-slots | AIスロット提案 | Yes | LEADER+ |
-| POST | /api/meetings/[id]/respond | 招待者回答 | Yes | Any |
-| POST | /api/meetings/[id]/confirm | 日程確定 | Yes | LEADER+ |
+| メソッド | パス | 説明 | 認証 | ロール | 機能ID |
+|---------|------|------|------|-------|--------|
+| GET | /api/meetings | 会議一覧 | Yes | Any | WBS-004 |
+| POST | /api/meetings | 会議作成 | Yes | LEADER+ | WBS-004 |
+| GET | /api/meetings/[id] | 会議詳細 | Yes | Any | WBS-004 |
+| POST | /api/meetings/suggest-slots | AIスロット提案 | Yes | LEADER+ | AI-001 |
+| POST | /api/meetings/[id]/respond | 招待者回答 | Yes | Any | WBS-004 |
+| POST | /api/meetings/[id]/confirm | 日程確定 | Yes | LEADER+ | WBS-004 |
 
 ### 3.6 カレンダー（CALENDAR）
 
-| メソッド | パス | 説明 | 認証 | ロール |
-|---------|------|------|------|-------|
-| GET | /api/calendar/status | 接続状態確認 | Yes | Any |
-| POST | /api/calendar/sync | 手動同期実行 | Yes | Any |
-| DELETE | /api/calendar/connection | 接続解除 | Yes | Any |
-| GET | /api/calendar/google/connect | OAuth2認証開始 | Yes | Any |
-| GET | /api/calendar/google/callback | OAuth2コールバック | No | - |
-| POST | /api/calendar/webhook | Webhook受信 | No | - |
+| メソッド | パス | 説明 | 認証 | ロール | 機能ID |
+|---------|------|------|------|-------|--------|
+| GET | /api/calendar/status | 接続状態確認 | Yes | Any | WBS-003 |
+| POST | /api/calendar/sync | 手動同期実行 | Yes | Any | WBS-003 |
+| DELETE | /api/calendar/connection | 接続解除 | Yes | Any | WBS-003 |
+| GET | /api/calendar/google/connect | OAuth2認証開始 | Yes | Any | WBS-003 |
+| GET | /api/calendar/google/callback | OAuth2コールバック | No | - | WBS-003 |
+| POST | /api/calendar/webhook | Webhook受信 | No | - | WBS-003 |
 
 ### 3.7 運用（OPS）
 
-| メソッド | パス | 説明 | 認証 | ロール |
-|---------|------|------|------|-------|
-| GET | /api/health | ヘルスチェック | No | - |
-| POST | /api/contact | 問い合わせ送信 | No | - |
+| メソッド | パス | 説明 | 認証 | ロール | 機能ID |
+|---------|------|------|------|-------|--------|
+| GET | /api/health | ヘルスチェック | No | - | OPS-001 |
+| POST | /api/contact | 問い合わせ送信 | No | - | OPS-003 |
 
 ---
 
@@ -211,8 +229,24 @@ MUST NOT: 他テナントのデータを返却
 
 ---
 
+## 7. 検証方法
+
+本文書の検証は以下で実施:
+
+| 対象 | 検証方法 |
+|------|---------|
+| エンドポイント存在 | `ls server/api/` でファイル名がNuxt 3規約と一致することを確認 |
+| 認証チェック | 未認証状態で Protected API を呼び出し 401 が返ることを確認 |
+| ロールチェック | MEMBER ロールで ADMIN API を呼び出し 403 が返ることを確認 |
+| マルチテナント | API レスポンスに他テナントのデータが含まれないことを確認 |
+| レスポンス形式 | 各API の成功/エラーレスポンスが §4 の形式に従うことを確認 |
+| Socket.IO | schedule:created/updated/deleted イベントが org:{id} Room 内でのみ配信されることを確認 |
+
+---
+
 ## 変更履歴
 
 | 日付 | 変更内容 | 変更者 |
 |------|---------|-------|
 | 2026-02-03 | ai-dev-framework v3.0 準拠で新規作成。openapi.yaml + server/api/ から統合 | AI（Claude Code） |
+| 2026-02-03 | 監査指摘修正: ロール表記定義、APIルール（RFC 2119）、機能IDマッピング、検証方法追加 | AI（Claude Code） |

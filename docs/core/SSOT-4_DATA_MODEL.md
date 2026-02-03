@@ -9,15 +9,23 @@
 
 ### 1.1 基本ルール
 
-| 項目 | 方針 |
-|------|------|
-| DBMS | PostgreSQL |
-| ORM | Prisma ORM v6.0.0（rawSQL 禁止） |
-| 主キー | UUID（`@default(uuid())`） |
-| 命名規則 | camelCase（Prisma標準） |
-| タイムスタンプ | UTC、`@default(now())` / `@updatedAt` |
-| 論理削除 | `deletedAt DateTime?` カラム |
-| マルチテナント | 全データテーブルに `organizationId` 必須 |
+| 項目 | 方針 | レベル |
+|------|------|--------|
+| DBMS | PostgreSQL | MUST |
+| ORM | Prisma ORM v6.0.0（rawSQL 禁止） | MUST |
+| 主キー | UUID（`@default(uuid())`） | MUST |
+| 命名規則 | camelCase（Prisma標準） | MUST |
+| タイムスタンプ | UTC、`@default(now())` / `@updatedAt` | MUST |
+| 論理削除 | `deletedAt DateTime?` カラム（対象テーブルのみ） | MUST |
+| マルチテナント | Organization以外の全データテーブルに `organizationId` 必須 | MUST |
+
+```
+MUST: 全テーブルの主キーは UUID を使用
+MUST: 新規テーブル作成時は organizationId FK を含める（Organization 自体を除く）
+MUST NOT: $queryRaw / $executeRaw でのDDL/DML実行
+MUST NOT: 既存マイグレーションファイルの手動編集
+SHOULD: 論理削除対象テーブルのクエリに deletedAt: null 条件を含める
+```
 
 ### 1.2 共通カラム
 
@@ -50,14 +58,15 @@ Organization 以外の全テーブル:
 ## 2. ER図（概要）
 
 ```
-Organization ─┬── User ─────── CalendarOAuth
+Organization ─┬── User ─────── CalendarOAuth（レガシー）
               │    │             UserCalendarConnection
               │    ├── Schedule ── ScheduleVersion
               │    ├── MeetingRequest ── MeetingCandidate
               │    │       └── MeetingInvitee
               │    └── AuditLog
               ├── Department ── User
-              └── Device
+              ├── Device
+              └── UserCalendarConnection
 ```
 
 ---
@@ -179,7 +188,28 @@ Organization ─┬── User ─────── CalendarOAuth
 
 ---
 
-### 3.7 UserCalendarConnection（カレンダー接続）
+### 3.7 CalendarOAuth（レガシーOAuth認証情報）
+
+> **注**: このモデルはレガシーであり、UserCalendarConnection への移行が推奨される。
+
+| カラム | 型 | NULL | デフォルト | 説明 |
+|--------|-----|------|----------|------|
+| id | String (UUID) | NO | uuid() | 主キー |
+| userId | String | NO | - | FK → User (CASCADE) |
+| provider | String | NO | "google" | プロバイダ |
+| accessToken | String (VarChar 2048) | NO | - | アクセストークン |
+| refreshToken | String (VarChar 2048) | NO | - | リフレッシュトークン |
+| expiry | DateTime? | YES | - | トークン有効期限 |
+| createdAt | DateTime | NO | now() | 作成日時 |
+| updatedAt | DateTime | NO | auto | 更新日時 |
+
+**制約**: UNIQUE(userId, provider)
+**関連**: User (CASCADE delete)
+**状態**: レガシー（UserCalendarConnection に置換予定）
+
+---
+
+### 3.8 UserCalendarConnection（カレンダー接続）
 
 | カラム | 型 | NULL | デフォルト | 説明 |
 |--------|-----|------|----------|------|
@@ -231,7 +261,7 @@ Organization ─┬── User ─────── CalendarOAuth
 
 ---
 
-### 3.9 MeetingCandidate（候補日時）
+### 3.10 MeetingCandidate（候補日時）
 
 | カラム | 型 | NULL | デフォルト | 説明 |
 |--------|-----|------|----------|------|
@@ -247,7 +277,7 @@ Organization ─┬── User ─────── CalendarOAuth
 
 ---
 
-### 3.10 MeetingInvitee（招待者）
+### 3.11 MeetingInvitee（招待者）
 
 | カラム | 型 | NULL | デフォルト | 説明 |
 |--------|-----|------|----------|------|
@@ -265,7 +295,7 @@ Organization ─┬── User ─────── CalendarOAuth
 
 ---
 
-### 3.11 AuditLog（監査ログ）
+### 3.12 AuditLog（監査ログ）
 
 | カラム | 型 | NULL | デフォルト | 説明 |
 |--------|-----|------|----------|------|
@@ -318,8 +348,23 @@ MUST NOT: $queryRaw / $executeRaw でDDL/DML実行
 
 ---
 
+## 7. 検証方法
+
+本文書の検証は以下で実施:
+
+| 対象 | 検証方法 |
+|------|---------|
+| スキーマ一致 | `prisma/schema.prisma` の全モデルが本文書に記載されていることを確認 |
+| カラム型一致 | 各エンティティのカラム定義が Prisma スキーマと一致することを確認 |
+| 制約一致 | UNIQUE 制約・インデックスが Prisma スキーマと一致することを確認 |
+| マイグレーション | `prisma/migrations/` の履歴が §5 と一致することを確認 |
+| マルチテナント | Organization 以外の全モデルに organizationId FK が存在することを確認 |
+
+---
+
 ## 変更履歴
 
 | 日付 | 変更内容 | 変更者 |
 |------|---------|-------|
 | 2026-02-03 | ai-dev-framework v3.0 準拠で新規作成。prisma/schema.prisma から構造化 | AI（Claude Code） |
+| 2026-02-03 | 監査指摘修正: CalendarOAuth エンティティ追加、RFC 2119ルール追加、検証方法追加 | AI（Claude Code） |

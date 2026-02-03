@@ -121,9 +121,58 @@
 
 凡例: `o`=アクセス可, `x`=リダイレクト, `-`=非対象
 
+**ロール表記の定義:**
+
+| 表記 | 対象ロール |
+|------|----------|
+| MEMBER+ | ADMIN, LEADER, MEMBER |
+| LEADER+ | ADMIN, LEADER |
+| ADMIN | ADMIN のみ |
+| DEVICE | DEVICE のみ |
+| Any | 認証済み全ロール（ADMIN, LEADER, MEMBER, DEVICE） |
+
 ---
 
-## 4. コンポーネント構造
+## 4. 画面アクセスルール
+
+```
+MUST: 全 Protected 画面はサーバー側 auth middleware で認証チェック
+MUST: ロール不足時は /login へリダイレクト（redirect query 付き）
+MUST: DEVICE ロールは SCR-SIGNAGE / SCR-DISPLAY 以外にアクセス不可
+MUST NOT: Protected 画面をクライアント側チェックのみで保護
+SHOULD: セッション切れ時のリダイレクト先は元URL（redirect query保持）
+```
+
+---
+
+## 5. 状態遷移ルール
+
+```
+MUST: S0→S1 遷移は JWT Cookie 設定を伴う
+MUST: S1→S0 遷移は Cookie 削除を伴う
+MUST: S2（セッション切れ）検出時は /login?redirect={currentPath} へ遷移
+MUST NOT: S4（DEVICE）から S1（LOGGED_IN）へ直接遷移
+SHOULD: S1→S2 遷移時にユーザーへ視覚的フィードバックを表示
+```
+
+---
+
+## 6. 検証方法
+
+本文書の検証は以下で実施:
+
+| 対象 | 検証方法 |
+|------|---------|
+| 画面存在 | `ls pages/` で全 Screen ID のパスが存在することを確認 |
+| 認証チェック | 未認証状態で Protected 画面にアクセスし、/login へリダイレクトされることを確認 |
+| ロール制御 | MEMBER ロールで ADMIN 画面にアクセスし、リダイレクトされることを確認 |
+| 状態遷移 S0→S1 | ログイン成功後に JWT Cookie が設定されることを確認 |
+| 状態遷移 S1→S2 | JWT 期限切れ後に /login へリダイレクトされることを確認 |
+| 状態遷移 S0→S4 | デバイスログイン後にサイネージ画面のみアクセス可能であることを確認 |
+
+---
+
+## 7. コンポーネント構造
 
 ### 4.1 共通レイアウト
 
@@ -154,3 +203,4 @@ layouts/default.vue
 | 日付 | 変更内容 | 変更者 |
 |------|---------|-------|
 | 2026-02-03 | ai-dev-framework v3.0 準拠で新規作成。SSOT_UI_NAVIGATION.md + UI_ROUTING_MAP.md + pages/ から統合 | AI（Claude Code） |
+| 2026-02-03 | 監査指摘修正: RFC 2119準拠（§4,§5追加）、ロール表記定義、検証方法追加 | AI（Claude Code） |
