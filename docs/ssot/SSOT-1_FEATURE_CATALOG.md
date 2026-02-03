@@ -37,20 +37,22 @@
 
 ## 1. 認証・認可（AUTH）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| AUTH-001 | メール/パスワードログイン | Yes | P0 | Done | server/api/auth/login.post.ts |
-| AUTH-002 | OAuth（Google） | Yes | P1 | Out of Scope | Phase 0ではパスワード認証のみ |
-| AUTH-003 | OAuth（GitHub） | No | - | Out of Scope | 不要 |
-| AUTH-004 | デバイスログイン | Yes | P0 | Done | server/api/auth/device-login.post.ts |
-| AUTH-005 | ログアウト | Yes | P0 | Done | server/api/auth/logout.post.ts |
-| AUTH-006 | パスワードリセット | Yes | P1 | Backlog | セットアップトークン方式で代替中 |
-| AUTH-007 | セットアップトークン | Yes | P0 | Done | 初回パスワード設定用 |
-| AUTH-008 | 多要素認証（MFA/2FA） | No | - | Out of Scope | Phase 2以降検討 |
-| AUTH-009 | セッション管理（有効期限） | Yes | P0 | Done | JWT + Cookie |
-| AUTH-010 | セッション自動更新 | Yes | P1 | Backlog | リフレッシュトークン未実装 |
-| AUTH-011 | 同時ログイン制御 | No | - | Out of Scope | 不要 |
-| AUTH-012 | ログイン履歴 | No | - | Out of Scope | Phase 2以降検討 |
+> SSOT参照: [SSOT_APP_HEADER.md](../SSOT_APP_HEADER.md)（ログイン/ログアウト/パスワード変更UI）
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| AUTH-001 | メール/パスワードログイン | MUST | P0 | Done | server/api/auth/login.post.ts |
+| AUTH-002 | OAuth（Google） | MAY | P1 | Out of Scope | Phase 0ではパスワード認証のみ |
+| AUTH-003 | OAuth（GitHub） | - | - | Out of Scope | 不要 |
+| AUTH-004 | デバイスログイン | MUST | P0 | Done | server/api/auth/device-login.post.ts |
+| AUTH-005 | ログアウト | MUST | P0 | Done | server/api/auth/logout.post.ts |
+| AUTH-006 | パスワードリセット | SHOULD | P1 | Backlog | セットアップトークン方式で代替中 |
+| AUTH-007 | セットアップトークン | MUST | P0 | Done | 初回パスワード設定用 |
+| AUTH-008 | 多要素認証（MFA/2FA） | MAY | - | Out of Scope | Phase 2以降検討 |
+| AUTH-009 | セッション管理（有効期限） | MUST | P0 | Done | JWT + Cookie |
+| AUTH-010 | セッション自動更新 | SHOULD | P1 | Backlog | リフレッシュトークン未実装 |
+| AUTH-011 | 同時ログイン制御 | MAY | - | Out of Scope | 不要 |
+| AUTH-012 | ログイン履歴 | MAY | - | Out of Scope | Phase 2以降検討 |
 
 ### AUTH-001: メール/パスワードログイン 受入条件
 
@@ -75,158 +77,219 @@
 
 ## 2. アカウント（ACCT）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| ACCT-001 | ユーザー登録（管理者による招待） | Yes | P0 | Done | 管理者がユーザー作成 + セットアップトークン発行 |
-| ACCT-002 | プロフィール表示 | Yes | P0 | Done | settings/profile.vue |
-| ACCT-003 | プロフィール編集 | Yes | P0 | Done | server/api/users/me.patch.ts |
-| ACCT-004 | メールアドレス変更 | No | - | Out of Scope | Phase 2以降 |
-| ACCT-005 | パスワード変更 | Yes | P0 | Done | settings/password.vue |
-| ACCT-006 | アカウント削除 | No | - | Out of Scope | ソフトデリートによる無効化で代替 |
+> SSOT参照: [SSOT_APP_HEADER.md](../SSOT_APP_HEADER.md)（プロフィール/パスワード変更UI）
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| ACCT-001 | ユーザー登録（管理者による招待） | MUST | P0 | Done | 管理者がユーザー作成 + セットアップトークン発行 |
+| ACCT-002 | プロフィール表示 | MUST | P0 | Done | settings/profile.vue |
+| ACCT-003 | プロフィール編集 | MUST | P0 | Done | server/api/users/me.patch.ts |
+| ACCT-004 | メールアドレス変更 | MAY | - | Out of Scope | Phase 2以降 |
+| ACCT-005 | パスワード変更 | MUST | P0 | Done | settings/password.vue |
+| ACCT-006 | アカウント削除 | MAY | - | Out of Scope | ソフトデリートによる無効化で代替 |
 
 ---
 
 ## 3. 権限・ロール（ROLE）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| ROLE-001 | ロール定義（ADMIN/LEADER/MEMBER/DEVICE） | Yes | P0 | Done | prisma/schema.prisma enum Role |
-| ROLE-002 | ロールベースアクセス制御（RBAC） | Yes | P0 | Done | middleware/auth.ts + admin.ts |
-| ROLE-003 | 権限チェック（フロントエンド） | Yes | P0 | Done | middleware/auth.ts（route middleware） |
-| ROLE-004 | 権限チェック（バックエンド） | Yes | P0 | Done | server/utils/authMiddleware.ts |
-| ROLE-005 | 管理者によるロール変更 | Yes | P0 | Done | admin/users.vue |
+> SSOT参照: [SSOT_MVP_EXTEND.md](../SSOT_MVP_EXTEND.md)（LEADERロール定義）
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| ROLE-001 | ロール定義（ADMIN/LEADER/MEMBER/DEVICE） | MUST | P0 | Done | prisma/schema.prisma enum Role |
+| ROLE-002 | ロールベースアクセス制御（RBAC） | MUST | P0 | Done | middleware/auth.ts + admin.ts |
+| ROLE-003 | 権限チェック（フロントエンド） | MUST | P0 | Done | middleware/auth.ts（route middleware） |
+| ROLE-004 | 権限チェック（バックエンド） | MUST | P0 | Done | server/utils/authMiddleware.ts |
+| ROLE-005 | 管理者によるロール変更 | MUST | P0 | Done | admin/users.vue |
 
 ---
 
 ## 4. ナビゲーション（NAV）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| NAV-001 | 共通ヘッダー | Yes | P0 | Done | components/common/AppHeader.vue |
-| NAV-002 | ユーザーメニュー | Yes | P0 | Done | SSOT_APP_HEADER.md 準拠 |
-| NAV-003 | 管理者メニュー | Yes | P0 | Done | components/admin/AdminNav.vue |
-| NAV-004 | パンくずリスト | No | - | Out of Scope | SPA構造で不要 |
-| NAV-005 | モバイルナビゲーション | Yes | P1 | Done | レスポンシブ対応済み |
-| NAV-006 | ディープリンク対応 | No | - | Out of Scope | Phase 2以降 |
+> SSOT参照: [SSOT_APP_HEADER.md](../SSOT_APP_HEADER.md), [SSOT_UI_NAVIGATION.md](../SSOT_UI_NAVIGATION.md)
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| NAV-001 | 共通ヘッダー | MUST | P0 | Done | components/common/AppHeader.vue |
+| NAV-002 | ユーザーメニュー | MUST | P0 | Done | SSOT_APP_HEADER.md 準拠 |
+| NAV-003 | 管理者メニュー | MUST | P0 | Done | components/admin/AdminNav.vue |
+| NAV-004 | パンくずリスト | MAY | - | Out of Scope | SPA構造で不要 |
+| NAV-005 | モバイルナビゲーション | SHOULD | P1 | Done | レスポンシブ対応済み |
+| NAV-006 | ディープリンク対応 | MAY | - | Out of Scope | Phase 2以降 |
 
 ---
 
 ## 5. 検索・一覧（LIST）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| LIST-001 | ページネーション | No | - | Out of Scope | 週間ボードは固定期間表示 |
-| LIST-002 | ソート | No | - | Out of Scope | 時系列固定 |
-| LIST-003 | 部門フィルタ | Yes | P1 | Done | WeeklyScheduleBoard 部門カラー表示 |
-| LIST-004 | 日付範囲フィルタ | Yes | P0 | Done | schedules/weekly-board.get.ts |
-| LIST-005 | 無限スクロール | No | - | Out of Scope | 不要 |
+> SSOT参照: [SSOT_GENBA_WEEK.md](../SSOT_GENBA_WEEK.md)（週間ボードのフィルタ仕様）
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| LIST-001 | ページネーション | MAY | - | Out of Scope | 週間ボードは固定期間表示 |
+| LIST-002 | ソート | MAY | - | Out of Scope | 時系列固定 |
+| LIST-003 | 部門フィルタ | SHOULD | P1 | Done | WeeklyScheduleBoard 部門カラー表示 |
+| LIST-004 | 日付範囲フィルタ | MUST | P0 | Done | schedules/weekly-board.get.ts |
+| LIST-005 | 無限スクロール | MAY | - | Out of Scope | 不要 |
 
 ---
 
 ## 6. CRUD共通（CRUD）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| CRUD-001 | 新規作成（Create） | Yes | P0 | Done | スケジュール、ユーザー、部門、会議 |
-| CRUD-002 | 詳細表示（Read） | Yes | P0 | Done | 各エンティティ |
-| CRUD-003 | 編集（Update） | Yes | P0 | Done | PATCH エンドポイント |
-| CRUD-004 | 削除（Delete） | Yes | P0 | Done | ソフトデリート方式 |
-| CRUD-005 | 下書き保存 | No | - | Out of Scope | 会議のDRAFTステータスで代替 |
-| CRUD-006 | 一括操作（バルク） | No | - | Out of Scope | Phase 2以降 |
-| CRUD-007 | CSVインポート | No | P2 | Out of Scope | Phase 2以降（Source.CSV は定義済み） |
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| CRUD-001 | 新規作成（Create） | MUST | P0 | Done | スケジュール、ユーザー、部門、会議 |
+| CRUD-002 | 詳細表示（Read） | MUST | P0 | Done | 各エンティティ |
+| CRUD-003 | 編集（Update） | MUST | P0 | Done | PATCH エンドポイント |
+| CRUD-004 | 削除（Delete） | MUST | P0 | Done | ソフトデリート方式 |
+| CRUD-005 | 下書き保存 | MAY | - | Out of Scope | 会議のDRAFTステータスで代替 |
+| CRUD-006 | 一括操作（バルク） | MAY | - | Out of Scope | Phase 2以降 |
+| CRUD-007 | CSVインポート | MAY | P2 | Out of Scope | Phase 2以降（Source.CSV は定義済み） |
 
 ---
 
 ## 7. 通知（NOTIF）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| NOTIF-001 | メール通知 | No | P2 | Out of Scope | Phase 2 |
-| NOTIF-002 | トースト通知 | No | P2 | Out of Scope | Phase 2 |
-| NOTIF-003 | 通知センター | No | P2 | Out of Scope | Phase 2 |
-| NOTIF-004 | プッシュ通知 | No | P2 | Out of Scope | Phase 2 |
-| NOTIF-005 | 通知再送 | No | P2 | Out of Scope | Phase 2 |
+> 注: WBS-004 AC7（会議招待メール通知）は Phase 2 で NOTIF-001 と合わせて実装予定。
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| NOTIF-001 | メール通知 | SHOULD | P2 | Backlog | Phase 2。WBS-004 AC7（会議招待）で初期実装 |
+| NOTIF-002 | トースト通知 | MAY | P2 | Out of Scope | Phase 2 |
+| NOTIF-003 | 通知センター | MAY | P2 | Out of Scope | Phase 2 |
+| NOTIF-004 | プッシュ通知 | MAY | P2 | Out of Scope | Phase 2 |
+| NOTIF-005 | 通知再送 | MAY | P2 | Out of Scope | Phase 2 |
 
 ---
 
 ## 8. 監査・ログ（AUDIT）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| AUDIT-001 | 操作ログ | Yes | P0 | Done | AuditLog モデル + 主要操作で記録 |
-| AUDIT-002 | ログイン履歴 | No | P2 | Out of Scope | Phase 2 |
-| AUDIT-003 | 変更履歴（バージョン管理） | Yes | P1 | Done | ScheduleVersion モデル |
-| AUDIT-004 | ログ検索・フィルタ | No | P2 | Out of Scope | Phase 2 |
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| AUDIT-001 | 操作ログ | MUST | P0 | Done | AuditLog モデル + 主要操作で記録 |
+| AUDIT-002 | ログイン履歴 | MAY | P2 | Out of Scope | Phase 2 |
+| AUDIT-003 | 変更履歴（バージョン管理） | SHOULD | P1 | Done | ScheduleVersion モデル |
+| AUDIT-004 | ログ検索・フィルタ | MAY | P2 | Out of Scope | Phase 2 |
 
 ---
 
 ## 9. エラー・例外（ERR）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| ERR-001 | 404ページ | Yes | P1 | Backlog | |
-| ERR-002 | 403ページ（権限エラー） | Yes | P0 | Done | ログインリダイレクト実装済み |
-| ERR-003 | 500ページ | Yes | P1 | Backlog | |
-| ERR-004 | ネットワークエラー処理 | No | P2 | Out of Scope | PWA対応時に実装 |
-| ERR-005 | リトライ機構 | No | P2 | Out of Scope | Socket.IO自動再接続のみ |
-| ERR-006 | サポート導線 | No | P2 | Out of Scope | Phase 2 |
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| ERR-001 | 404ページ | SHOULD | P1 | Backlog | |
+| ERR-002 | 403ページ（権限エラー） | MUST | P0 | Done | ログインリダイレクト実装済み |
+| ERR-003 | 500ページ | SHOULD | P1 | Backlog | |
+| ERR-004 | ネットワークエラー処理 | MAY | P2 | Out of Scope | PWA対応時に実装 |
+| ERR-005 | リトライ機構 | MAY | P2 | Out of Scope | Socket.IO自動再接続のみ |
+| ERR-006 | サポート導線 | MAY | P2 | Out of Scope | Phase 2 |
+
+### ERR 受入条件
+
+```
+ERR-002:
+- [x] AC1: 未認証ユーザーが認証必須ページにアクセスすると /login へリダイレクト
+- [x] AC2: MEMBER が /admin/* にアクセスすると /login へリダイレクト
+- [x] AC3: リダイレクト後、元のURLにログイン成功時に戻る
+
+ERR-001（未実装）:
+- [ ] AC1: 存在しないURLアクセス時に専用404ページを表示
+- [ ] AC2: 404ページからトップへのリンクが機能する
+
+ERR-003（未実装）:
+- [ ] AC1: サーバーエラー発生時に専用500ページを表示
+- [ ] AC2: エラー詳細はユーザーに公開せず、内部ログにのみ記録
+```
 
 ---
 
 ## 10. セキュリティ（SEC）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| SEC-001 | CSRF対策 | Yes | P0 | Done | Cookie SameSite + Nuxt組み込み |
-| SEC-002 | CORS設定 | Yes | P0 | Done | nuxt.config.ts |
-| SEC-003 | レート制限 | Yes | P1 | Backlog | |
-| SEC-004 | 入力バリデーション | Yes | P0 | Done | サーバー側バリデーション |
-| SEC-005 | SQLインジェクション対策 | Yes | P0 | Done | Prisma ORM使用（rawSQL禁止） |
-| SEC-006 | XSS対策 | Yes | P0 | Done | Vue.js テンプレートエスケープ |
-| SEC-007 | HTTPS強制 | No | P1 | Out of Scope | Nginx側で対応（アプリ外） |
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| SEC-001 | CSRF対策 | MUST | P0 | Done | Cookie SameSite + Nuxt組み込み |
+| SEC-002 | CORS設定 | MUST | P0 | Done | nuxt.config.ts |
+| SEC-003 | レート制限 | SHOULD | P1 | Backlog | |
+| SEC-004 | 入力バリデーション | MUST | P0 | Done | サーバー側バリデーション |
+| SEC-005 | SQLインジェクション対策 | MUST | P0 | Done | Prisma ORM使用（rawSQL禁止） |
+| SEC-006 | XSS対策 | MUST | P0 | Done | Vue.js テンプレートエスケープ |
+| SEC-007 | HTTPS強制 | SHOULD | P1 | Out of Scope | Nginx側で対応（アプリ外） |
+
+### SEC 受入条件
+
+```
+SEC-001:
+- [x] AC1: POST/PATCH/DELETE リクエストに SameSite=Lax Cookie が設定される
+- [x] AC2: 異なるオリジンからのリクエストが拒否される
+
+SEC-004:
+- [x] AC1: 空文字のtitle でスケジュール作成時に 400 エラー
+- [x] AC2: 不正な日付形式で 400 エラー
+- [x] AC3: organizationId 未指定のクエリが Prisma レベルで拒否される
+
+SEC-005:
+- [x] AC1: Prisma ORM 以外のSQL実行が CI で自動検出・拒否される
+- [x] AC2: $queryRaw / $executeRaw の使用が存在しない
+```
 
 ---
 
 ## 11. 運用・管理（OPS）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| OPS-001 | 管理画面 | Yes | P0 | Done | admin/users.vue, admin/departments.vue |
-| OPS-002 | ユーザー管理 | Yes | P0 | Done | CRUD + ロール変更 |
-| OPS-003 | バックアップ/リストア | Yes | P1 | In Progress | PostgreSQL WAL + オブジェクトストレージ |
-| OPS-004 | データ移行ツール | No | P2 | Out of Scope | Phase 2 |
-| OPS-005 | ヘルスチェック | Yes | P0 | Done | server/api/health.get.ts |
-| OPS-006 | メトリクス | No | P2 | Out of Scope | Phase 2 |
+> SSOT参照: [SSOT_MVP_EXTEND.md](../SSOT_MVP_EXTEND.md)（部門管理の管理画面仕様）
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| OPS-001 | 管理画面 | MUST | P0 | Done | admin/users.vue, admin/departments.vue |
+| OPS-002 | ユーザー管理 | MUST | P0 | Done | CRUD + ロール変更 |
+| OPS-003 | バックアップ/リストア | SHOULD | P1 | In Progress | PostgreSQL WAL + オブジェクトストレージ |
+| OPS-004 | データ移行ツール | MAY | P2 | Out of Scope | Phase 2 |
+| OPS-005 | ヘルスチェック | MUST | P0 | Done | server/api/health.get.ts |
+| OPS-006 | メトリクス | MAY | P2 | Out of Scope | Phase 2 |
+
+### OPS 受入条件
+
+```
+OPS-001:
+- [x] AC1: ADMIN ロールのみ /admin/* にアクセス可能
+- [x] AC2: ユーザー一覧でロール・部門の確認と変更が可能
+- [x] AC3: 部門の追加・編集・削除（ソフトデリート）が可能
+
+OPS-005:
+- [x] AC1: GET /api/health が 200 を返す
+- [x] AC2: DBアクセス不可時に 503 を返す
+```
 
 ---
 
 ## 12. AI特有（AI）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | 備考 |
-|----|------|------|-------|------|------|
-| AI-001 | AI日程調整（スロット提案） | Yes | P1 | Done | SSOT_MEETING_SCHEDULER.md |
-| AI-002 | プロンプト管理 | No | P2 | Out of Scope | Phase 2 |
-| AI-003 | AI応答ストリーミング | No | P2 | Out of Scope | Phase 2 |
-| AI-004 | AI応答キャッシュ | No | P2 | Out of Scope | Phase 2 |
-| AI-005 | AI出力評価 | No | P2 | Out of Scope | Phase 2 |
-| AI-006 | 再現性確保 | No | - | Out of Scope | 不要 |
-| AI-007 | AIログ | No | P2 | Out of Scope | Phase 2 |
-| AI-008 | PII対策 | No | P2 | Out of Scope | Phase 2 |
+> SSOT参照: [SSOT_MEETING_SCHEDULER.md](../SSOT_MEETING_SCHEDULER.md)
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| AI-001 | AI日程調整（スロット提案） | SHOULD | P1 | Done | SSOT_MEETING_SCHEDULER.md |
+| AI-002 | プロンプト管理 | MAY | P2 | Out of Scope | Phase 2 |
+| AI-003 | AI応答ストリーミング | MAY | P2 | Out of Scope | Phase 2 |
+| AI-004 | AI応答キャッシュ | MAY | P2 | Out of Scope | Phase 2 |
+| AI-005 | AI出力評価 | MAY | P2 | Out of Scope | Phase 2 |
+| AI-006 | 再現性確保 | MAY | - | Out of Scope | 不要 |
+| AI-007 | AIログ | MAY | P2 | Out of Scope | Phase 2 |
+| AI-008 | PII対策 | MAY | P2 | Out of Scope | Phase 2 |
 
 ---
 
 ## 13. WBS固有（WBS）
 
-| ID | 機能 | 必要 | 優先度 | 状態 | SSOT参照 |
-|----|------|------|-------|------|---------|
-| WBS-001 | 週間スケジュールボード | Yes | P0 | Done | SSOT_GENBA_WEEK.md |
-| WBS-002 | サイネージ表示 | Yes | P0 | Done | SSOT_GENBA_WEEK.md |
-| WBS-003 | Googleカレンダー連携 | Yes | P0 | Done | SSOT_CALENDAR_SYNC.md |
-| WBS-004 | AI日程調整 | Yes | P1 | Done | SSOT_MEETING_SCHEDULER.md |
-| WBS-005 | 部門管理 | Yes | P0 | Done | SSOT_MVP_EXTEND.md |
-| WBS-006 | 共通ヘッダー・設定 | Yes | P0 | Done | SSOT_APP_HEADER.md |
-| WBS-007 | UI/UXナビゲーション | Yes | P0 | Done | SSOT_UI_NAVIGATION.md |
-| WBS-008 | リアルタイム同期（Socket.IO） | Yes | P0 | Done | socket_events.md |
+| ID | 機能 | レベル | 優先度 | 状態 | SSOT参照 |
+|----|------|--------|-------|------|---------|
+| WBS-001 | 週間スケジュールボード | MUST | P0 | Done | [SSOT_GENBA_WEEK.md](../SSOT_GENBA_WEEK.md) |
+| WBS-002 | サイネージ表示 | MUST | P0 | Done | [SSOT_GENBA_WEEK.md](../SSOT_GENBA_WEEK.md) |
+| WBS-003 | Googleカレンダー連携 | MUST | P0 | Done | [SSOT_CALENDAR_SYNC.md](../SSOT_CALENDAR_SYNC.md) |
+| WBS-004 | AI日程調整 | SHOULD | P1 | Done | [SSOT_MEETING_SCHEDULER.md](../SSOT_MEETING_SCHEDULER.md) |
+| WBS-005 | 部門管理 | MUST | P0 | Done | [SSOT_MVP_EXTEND.md](../SSOT_MVP_EXTEND.md) |
+| WBS-006 | 共通ヘッダー・設定 | MUST | P0 | Done | [SSOT_APP_HEADER.md](../SSOT_APP_HEADER.md) |
+| WBS-007 | UI/UXナビゲーション | MUST | P0 | Done | [SSOT_UI_NAVIGATION.md](../SSOT_UI_NAVIGATION.md) |
+| WBS-008 | リアルタイム同期（Socket.IO） | MUST | P0 | Done | [socket_events.md](../socket_events.md) |
 
 ### WBS-001: 週間スケジュールボード 受入条件
 
@@ -293,22 +356,29 @@
 
 ## 実装状態サマリー
 
-| 状態 | 件数 |
-|------|------|
-| Done | 39 |
-| In Progress | 1 |
-| Backlog | 5 |
-| Out of Scope | 36 |
-| **合計** | **81** |
+> 集計基準: 全85機能（13カテゴリ）を対象。Out of Scope を含む全件の状態を集計。
 
-**Phase 0 MVP 進捗: 39/45 機能完了（87%）**
+| 状態 | 件数 | 説明 |
+|------|------|------|
+| Done | 39 | 実装・検証完了 |
+| In Progress | 1 | 実装中（OPS-003） |
+| Backlog | 6 | 未着手（NOTIF-001 を Backlog に変更含む） |
+| Out of Scope | 39 | Phase 0 スコープ外 |
+| **合計** | **85** | |
 
-未完了の重要項目:
-- AUTH-006: パスワードリセット（P1）
-- AUTH-010: セッション自動更新（P1）
-- ERR-001: 404ページ（P1）
-- ERR-003: 500ページ（P1）
-- SEC-003: レート制限（P1）
+**Phase 0 MVP 対象機能（Out of Scope 除外）: 46件**
+**完了: 39/46（85%）**
+
+### 未完了の MUST/SHOULD 項目
+
+| ID | 機能 | レベル | 状態 |
+|----|------|--------|------|
+| AUTH-006 | パスワードリセット | SHOULD | Backlog |
+| AUTH-010 | セッション自動更新 | SHOULD | Backlog |
+| ERR-001 | 404ページ | SHOULD | Backlog |
+| ERR-003 | 500ページ | SHOULD | Backlog |
+| SEC-003 | レート制限 | SHOULD | Backlog |
+| NOTIF-001 | メール通知 | SHOULD | Backlog |
 
 ---
 
@@ -317,3 +387,4 @@
 | 日付 | 変更内容 | 変更者 |
 |------|---------|-------|
 | 2026-02-02 | ai-dev-framework v3.0 準拠で新規作成。既存12件のSSOT_*.md + 実装状態から統合 | AI（Claude Code） |
+| 2026-02-03 | 監査指摘修正: MUST/SHOULD/MAY列追加、SSOT参照リンク追加、SEC/OPS/ERR受入条件追加、NOTIF-001をBacklogに変更、サマリー集計基準明記 | AI（Claude Code） |
