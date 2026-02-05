@@ -9,7 +9,8 @@ import {
   createSession,
   getSession,
   deleteSession,
-  deleteUserSessions
+  deleteUserSessions,
+  refreshSessionIfNeeded
 } from './session'
 
 describe('session', () => {
@@ -189,6 +190,85 @@ describe('session', () => {
       // cleanup
       deleteSession(userSessionId)
       deleteSession(deviceSessionId)
+    })
+  })
+
+  describe('refreshSessionIfNeeded (AUTH-010)', () => {
+    it('should return false for non-existent session', () => {
+      const result = refreshSessionIfNeeded('non-existent-session')
+      expect(result).toBe(false)
+    })
+
+    it('should not refresh session when more than 50% remaining', () => {
+      // 新しいセッション（残り100%）は延長不要
+      const sessionId = createSession({
+        userId: 'user-refresh-test',
+        organizationId: 'org-001',
+        email: 'test@example.com',
+        role: 'MEMBER'
+      })
+
+      const sessionBefore = getSession(sessionId)
+      const expiresAtBefore = sessionBefore!.expiresAt.getTime()
+
+      const result = refreshSessionIfNeeded(sessionId)
+
+      expect(result).toBe(false)
+      const sessionAfter = getSession(sessionId)
+      expect(sessionAfter!.expiresAt.getTime()).toBe(expiresAtBefore)
+
+      // cleanup
+      deleteSession(sessionId)
+    })
+
+    it('should refresh session when less than 50% remaining', () => {
+      const sessionId = createSession({
+        userId: 'user-refresh-test-2',
+        organizationId: 'org-001',
+        email: 'test@example.com',
+        role: 'MEMBER'
+      })
+
+      // セッションの有効期限を手動で短くする（残り10%）
+      const session = getSession(sessionId)
+      const duration = 24 * 60 * 60 * 1000 // 24時間
+      const tenPercentRemaining = duration * 0.1
+      session!.expiresAt = new Date(Date.now() + tenPercentRemaining)
+
+      const result = refreshSessionIfNeeded(sessionId)
+
+      expect(result).toBe(true)
+      const sessionAfter = getSession(sessionId)
+      // 延長後は現在時刻 + 24時間に近い値
+      const expectedExpiry = Date.now() + duration
+      expect(sessionAfter!.expiresAt.getTime()).toBeGreaterThan(expectedExpiry - 1000)
+      expect(sessionAfter!.expiresAt.getTime()).toBeLessThan(expectedExpiry + 1000)
+
+      // cleanup
+      deleteSession(sessionId)
+    })
+
+    it('should not refresh exactly at 50% boundary', () => {
+      const sessionId = createSession({
+        userId: 'user-refresh-boundary',
+        organizationId: 'org-001',
+        email: 'test@example.com',
+        role: 'MEMBER'
+      })
+
+      // セッションの有効期限を50%に設定
+      const session = getSession(sessionId)
+      const duration = 24 * 60 * 60 * 1000
+      const fiftyPercentRemaining = duration * 0.5
+      session!.expiresAt = new Date(Date.now() + fiftyPercentRemaining)
+
+      const result = refreshSessionIfNeeded(sessionId)
+
+      // 50%ちょうどは延長しない（未満が条件）
+      expect(result).toBe(false)
+
+      // cleanup
+      deleteSession(sessionId)
     })
   })
 })

@@ -51,7 +51,7 @@
 | AUTH-007 | セットアップトークン | MUST | P0 | Done | 初回パスワード設定用 |
 | AUTH-008 | 多要素認証（MFA/2FA） | MAY | - | Out of Scope | Phase 2以降検討 |
 | AUTH-009 | セッション管理（有効期限） | MUST | P0 | Done | JWT + Cookie |
-| AUTH-010 | セッション自動更新 | SHOULD | P1 | Backlog | リフレッシュトークン未実装 |
+| AUTH-010 | セッション自動更新 | SHOULD | P1 | Done | Sliding Window方式（残り50%未満で延長）|
 | AUTH-011 | 同時ログイン制御 | MAY | - | Out of Scope | 不要 |
 | AUTH-012 | ログイン履歴 | MAY | - | Out of Scope | Phase 2以降検討 |
 
@@ -84,6 +84,16 @@
 ```
 **実装方式**: 管理者によるセットアップトークン再発行（forReset=true）
 **将来拡張**: NOTIF-001（メール通知）実装後にセルフリセットに移行可能
+
+### AUTH-010: セッション自動更新 受入条件
+
+```
+- [x] AC1: APIアクセス時に残り有効期限が50%未満なら自動延長
+- [x] AC2: 延長時にCookieも更新される
+- [x] AC3: 残り50%以上の場合は延長しない
+- [x] AC4: デバイスセッションも同様に動作（30日→30日延長）
+```
+**実装方式**: Sliding Window（requireAuth内で自動実行）
 
 ---
 
@@ -384,20 +394,19 @@ OPS-005:
 
 | 状態 | 件数 | 説明 |
 |------|------|------|
-| Done | 43 | 実装・検証完了 |
+| Done | 44 | 実装・検証完了 |
 | In Progress | 1 | 実装中（OPS-003） |
-| Backlog | 2 | 未着手 |
+| Backlog | 1 | 未着手 |
 | Out of Scope | 39 | Phase 0 スコープ外 |
 | **合計** | **85** | |
 
 **Phase 0 MVP 対象機能（Out of Scope 除外）: 46件**
-**完了: 43/46（93%）**
+**完了: 44/46（96%）**
 
 ### 未完了の MUST/SHOULD 項目
 
 | ID | 機能 | レベル | 状態 |
 |----|------|--------|------|
-| AUTH-010 | セッション自動更新 | SHOULD | Backlog |
 | NOTIF-001 | メール通知 | SHOULD | Backlog |
 
 ---
@@ -411,3 +420,4 @@ OPS-005:
 | 2026-02-05 | ERR-001（404ページ）、ERR-003（500ページ）を Done に更新。error.vue 実装完了。完了率 85%→89% | AI（Claude Code） |
 | 2026-02-05 | SEC-003（レート制限）を Done に更新。server/utils/rateLimit.ts 実装完了。完了率 89%→91% | AI（Claude Code） |
 | 2026-02-05 | AUTH-006（パスワードリセット）を Done に更新。管理者によるトークン再発行方式。完了率 91%→93% | AI（Claude Code） |
+| 2026-02-05 | AUTH-010（セッション自動更新）を Done に更新。Sliding Window方式実装。完了率 93%→96% | AI（Claude Code） |

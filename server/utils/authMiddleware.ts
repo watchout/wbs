@@ -1,14 +1,15 @@
 /**
  * 認証ミドルウェア
- * 
+ *
  * MVP向けシンプルなセッションCookie認証
  * - サーバー側でセッション管理
  * - ログアウト即時反映
  * - 開発モードではクエリパラメータでバイパス可能
+ * - AUTH-010: Sliding Window方式でセッション自動延長
  */
 
-import { createError, getQuery, getHeaders, getCookie, type H3Event } from 'h3'
-import { getSession } from './session'
+import { createError, getQuery, getHeaders, getCookie, setCookie, type H3Event } from 'h3'
+import { getSession, refreshSessionIfNeeded, sessionCookieOptions, deviceSessionCookieOptions } from './session'
 
 
 export interface AuthContext {
@@ -35,6 +36,16 @@ export async function requireAuth(event: H3Event): Promise<AuthContext> {
   if (sessionId) {
     const session = getSession(sessionId)
     if (session) {
+      // AUTH-010: Sliding Window方式でセッション自動延長
+      const refreshed = refreshSessionIfNeeded(sessionId)
+      if (refreshed) {
+        // セッションが延長された場合、Cookieも更新
+        const cookieOptions = session.deviceId
+          ? deviceSessionCookieOptions
+          : sessionCookieOptions
+        setCookie(event, 'session_id', sessionId, cookieOptions)
+      }
+
       return {
         organizationId: session.organizationId,
         userId: session.userId,

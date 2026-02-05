@@ -61,7 +61,7 @@ export function createSession(data: {
  */
 export function getSession(sessionId: string): SessionData | null {
   const session = sessions.get(sessionId)
-  
+
   if (!session) {
     return null
   }
@@ -73,6 +73,40 @@ export function getSession(sessionId: string): SessionData | null {
   }
 
   return session
+}
+
+/**
+ * セッションを延長（AUTH-010: Sliding Window方式）
+ * 残り有効期限が50%未満の場合のみ延長
+ * @returns 延長された場合はtrue、延長不要の場合はfalse
+ */
+export function refreshSessionIfNeeded(sessionId: string): boolean {
+  const session = sessions.get(sessionId)
+
+  if (!session) {
+    return false
+  }
+
+  const now = new Date()
+
+  // 期限切れチェック
+  if (now > session.expiresAt) {
+    sessions.delete(sessionId)
+    return false
+  }
+
+  // セッション種別に応じた期間
+  const duration = session.deviceId ? DEVICE_SESSION_DURATION : USER_SESSION_DURATION
+  const halfDuration = duration / 2
+
+  // 残り有効期限が50%未満の場合のみ延長
+  const remainingTime = session.expiresAt.getTime() - now.getTime()
+  if (remainingTime < halfDuration) {
+    session.expiresAt = new Date(now.getTime() + duration)
+    return true
+  }
+
+  return false
 }
 
 /**
