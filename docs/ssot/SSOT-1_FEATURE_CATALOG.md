@@ -275,7 +275,7 @@ SEC-005:
 |----|------|--------|-------|------|------|
 | OPS-001 | 管理画面 | MUST | P0 | Done | admin/users.vue, admin/departments.vue |
 | OPS-002 | ユーザー管理 | MUST | P0 | Done | CRUD + ロール変更 |
-| OPS-003 | バックアップ/リストア | SHOULD | P1 | In Progress | PostgreSQL WAL + オブジェクトストレージ |
+| OPS-003 | バックアップ/リストア | SHOULD | P1 | Done | scripts/backup-db.sh, restore-db.sh |
 | OPS-004 | データ移行ツール | MAY | P2 | Out of Scope | Phase 2 |
 | OPS-005 | ヘルスチェック | MUST | P0 | Done | server/api/health.get.ts |
 | OPS-006 | メトリクス | MAY | P2 | Out of Scope | Phase 2 |
@@ -287,6 +287,12 @@ OPS-001:
 - [x] AC1: ADMIN ロールのみ /admin/* にアクセス可能
 - [x] AC2: ユーザー一覧でロール・部門の確認と変更が可能
 - [x] AC3: 部門の追加・編集・削除（ソフトデリート）が可能
+
+OPS-003:
+- [x] AC1: scripts/backup-db.sh でデータベースバックアップが取得可能
+- [x] AC2: scripts/restore-db.sh でバックアップからリストア可能
+- [x] AC3: バックアップファイルは gzip 圧縮で保存
+- [x] AC4: 古いバックアップ（7日以上）は自動削除
 
 OPS-005:
 - [x] AC1: GET /api/health が 200 を返す
@@ -394,14 +400,14 @@ OPS-005:
 
 | 状態 | 件数 | 説明 |
 |------|------|------|
-| Done | 44 | 実装・検証完了 |
-| In Progress | 1 | 実装中（OPS-003） |
+| Done | 45 | 実装・検証完了 |
+| In Progress | 0 | 実装中 |
 | Backlog | 1 | 未着手 |
 | Out of Scope | 39 | Phase 0 スコープ外 |
 | **合計** | **85** | |
 
 **Phase 0 MVP 対象機能（Out of Scope 除外）: 46件**
-**完了: 44/46（96%）**
+**完了: 45/46（98%）**
 
 ### 未完了の MUST/SHOULD 項目
 
