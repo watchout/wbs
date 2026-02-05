@@ -207,6 +207,11 @@ describe('POST /api/auth/login', () => {
   })
 
   describe('アカウントロック（AUTH-001 AC5）', () => {
+    // 各テスト前にレート制限をリセット（テスト間の干渉防止）
+    beforeEach(() => {
+      clearAllRateLimits()
+    })
+
     it('should increment loginAttempts on failed login', async () => {
       // リセット
       await prisma.user.update({
