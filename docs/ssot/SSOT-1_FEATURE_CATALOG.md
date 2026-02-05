@@ -215,7 +215,7 @@ ERR-003:
 |----|------|--------|-------|------|------|
 | SEC-001 | CSRF対策 | MUST | P0 | Done | Cookie SameSite + Nuxt組み込み |
 | SEC-002 | CORS設定 | MUST | P0 | Done | nuxt.config.ts |
-| SEC-003 | レート制限 | SHOULD | P1 | Backlog | |
+| SEC-003 | レート制限 | SHOULD | P1 | Done | ログインAPI 10req/分、server/utils/rateLimit.ts |
 | SEC-004 | 入力バリデーション | MUST | P0 | Done | サーバー側バリデーション |
 | SEC-005 | SQLインジェクション対策 | MUST | P0 | Done | Prisma ORM使用（rawSQL禁止） |
 | SEC-006 | XSS対策 | MUST | P0 | Done | Vue.js テンプレートエスケープ |
@@ -232,6 +232,12 @@ SEC-004:
 - [x] AC1: 空文字のtitle でスケジュール作成時に 400 エラー
 - [x] AC2: 不正な日付形式で 400 エラー
 - [x] AC3: organizationId 未指定のクエリが Prisma レベルで拒否される
+
+SEC-003:
+- [x] AC1: 同一IPから1分間に11回目のログインリクエストで HTTP 429 を返す
+- [x] AC2: 429レスポンスに Retry-After ヘッダーが含まれる
+- [x] AC3: 1分経過後は再度リクエスト可能
+- [x] AC4: 異なるIPからは制限なしでリクエスト可能
 
 SEC-005:
 - [x] AC1: Prisma ORM 以外のSQL実行が CI で自動検出・拒否される
@@ -367,14 +373,14 @@ OPS-005:
 
 | 状態 | 件数 | 説明 |
 |------|------|------|
-| Done | 41 | 実装・検証完了 |
+| Done | 42 | 実装・検証完了 |
 | In Progress | 1 | 実装中（OPS-003） |
-| Backlog | 4 | 未着手 |
+| Backlog | 3 | 未着手 |
 | Out of Scope | 39 | Phase 0 スコープ外 |
 | **合計** | **85** | |
 
 **Phase 0 MVP 対象機能（Out of Scope 除外）: 46件**
-**完了: 41/46（89%）**
+**完了: 42/46（91%）**
 
 ### 未完了の MUST/SHOULD 項目
 
@@ -382,7 +388,6 @@ OPS-005:
 |----|------|--------|------|
 | AUTH-006 | パスワードリセット | SHOULD | Backlog |
 | AUTH-010 | セッション自動更新 | SHOULD | Backlog |
-| SEC-003 | レート制限 | SHOULD | Backlog |
 | NOTIF-001 | メール通知 | SHOULD | Backlog |
 
 ---
@@ -394,3 +399,4 @@ OPS-005:
 | 2026-02-02 | ai-dev-framework v3.0 準拠で新規作成。既存12件のSSOT_*.md + 実装状態から統合 | AI（Claude Code） |
 | 2026-02-03 | 監査指摘修正: MUST/SHOULD/MAY列追加、SSOT参照リンク追加、SEC/OPS/ERR受入条件追加、NOTIF-001をBacklogに変更、サマリー集計基準明記 | AI（Claude Code） |
 | 2026-02-05 | ERR-001（404ページ）、ERR-003（500ページ）を Done に更新。error.vue 実装完了。完了率 85%→89% | AI（Claude Code） |
+| 2026-02-05 | SEC-003（レート制限）を Done に更新。server/utils/rateLimit.ts 実装完了。完了率 89%→91% | AI（Claude Code） |

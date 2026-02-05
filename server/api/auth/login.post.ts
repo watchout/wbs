@@ -7,12 +7,14 @@
  * - passwordHash 未設定ユーザーはログイン不可（401）
  * - 初回パスワード設定は /api/auth/set-password を使用
  * - AUTH-001 AC5: ログイン失敗5回でアカウントロック（15分間）
+ * - SEC-003: IPベースのレート制限（10 req/分）
  */
 
-import { readBody, setCookie, createError } from 'h3'
+import { readBody, setCookie, createError, setHeader } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { createSession, sessionCookieOptions } from '~/server/utils/session'
 import { verifyPassword } from '~/server/utils/password'
+import { checkRateLimit, getClientIp, LOGIN_RATE_LIMIT } from '~/server/utils/rateLimit'
 
 // アカウントロック設定
 const MAX_LOGIN_ATTEMPTS = 5
@@ -47,6 +49,19 @@ function generateSlug(name: string): string {
 }
 
 export default defineEventHandler(async (event): Promise<LoginResponse> => {
+  // SEC-003: レート制限チェック（ブルートフォース対策）
+  const clientIp = getClientIp(event)
+  const rateLimitResult = checkRateLimit(clientIp, LOGIN_RATE_LIMIT)
+
+  if (!rateLimitResult.allowed) {
+    setHeader(event, 'Retry-After', String(rateLimitResult.retryAfterSeconds))
+    console.warn(`[login] Rate limit exceeded for IP: ${clientIp}`)
+    throw createError({
+      statusCode: 429,
+      statusMessage: `リクエストが多すぎます。${rateLimitResult.retryAfterSeconds}秒後に再試行してください`
+    })
+  }
+
   const body = await readBody<LoginRequest>(event)
 
   if (!body.email) {
