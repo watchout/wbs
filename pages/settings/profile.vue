@@ -110,7 +110,6 @@ const errors = ref({
 const roleClass = computed(() => {
   const role = user.value?.role
   return {
-    'role-super-admin': role === 'SUPER_ADMIN',
     'role-admin': role === 'ADMIN',
     'role-leader': role === 'LEADER',
     'role-member': role === 'MEMBER'
@@ -119,7 +118,6 @@ const roleClass = computed(() => {
 
 const roleLabel = computed(() => {
   const roleMap: Record<string, string> = {
-    SUPER_ADMIN: '最高管理者',
     ADMIN: '管理者',
     LEADER: 'リーダー',
     MEMBER: '一般'
@@ -312,10 +310,6 @@ useHead({
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
   color: #fff;
-}
-
-.role-super-admin {
-  background: #d32f2f;
 }
 
 .role-admin {

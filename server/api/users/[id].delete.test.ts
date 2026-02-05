@@ -73,8 +73,10 @@ describe('DELETE /api/users/:id', () => {
 
       expect(response.success).toBe(true)
 
+      // ソフトデリート: deletedAt が設定されていることを確認
       const deleted = await prisma.user.findUnique({ where: { id: target.id } })
-      expect(deleted).toBeNull()
+      expect(deleted).not.toBeNull()
+      expect(deleted?.deletedAt).not.toBeNull()
     })
   })
 

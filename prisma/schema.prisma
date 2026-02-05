@@ -80,6 +80,10 @@ model User {
   setupTokenExpiry  DateTime?
   role           Role     @default(MEMBER)
 
+  // アカウントロック
+  loginAttempts  Int       @default(0)
+  lockedUntil    DateTime?
+
   // 部署
   department     Department? @relation(fields: [departmentId], references: [id])
   departmentId   String?

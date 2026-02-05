@@ -1,13 +1,14 @@
 ---
 doc_id: SSOT-CALENDAR-001
-title: "Googleカレンダー連携"
+title: "Googleカレンダー連携 [DETAIL]"
 version: 1.0.0
 status: implemented
 owner: "開発チーム"
 created_at: 2026-01-23
 updated_at: 2026-01-23
 risk_level: medium
-tags: ["ssot", "calendar", "google", "integration"]
+tags: ["ssot", "calendar", "google", "integration", "detail"]
+layer: "DETAIL（Freeze 4） - 止まらないルール適用"
 
 hard_gate: true
 

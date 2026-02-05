@@ -19,16 +19,6 @@ describe('authMiddleware', () => {
       expect(() => requireAdmin(authContext)).not.toThrow()
     })
 
-    it('should pass for SUPER_ADMIN role', () => {
-      const authContext: AuthContext = {
-        organizationId: 'org-001',
-        userId: 'user-001',
-        role: 'SUPER_ADMIN'
-      }
-
-      expect(() => requireAdmin(authContext)).not.toThrow()
-    })
-
     it('should throw 403 for MEMBER role', () => {
       const authContext: AuthContext = {
         organizationId: 'org-001',
@@ -44,16 +34,6 @@ describe('authMiddleware', () => {
         organizationId: 'org-001',
         userId: 'user-001',
         role: 'LEADER'
-      }
-
-      expect(() => requireAdmin(authContext)).toThrow()
-    })
-
-    it('should throw 403 for MANAGER role', () => {
-      const authContext: AuthContext = {
-        organizationId: 'org-001',
-        userId: 'user-001',
-        role: 'MANAGER'
       }
 
       expect(() => requireAdmin(authContext)).toThrow()
@@ -80,31 +60,11 @@ describe('authMiddleware', () => {
       expect(() => requireLeader(authContext)).not.toThrow()
     })
 
-    it('should pass for MANAGER role', () => {
-      const authContext: AuthContext = {
-        organizationId: 'org-001',
-        userId: 'user-001',
-        role: 'MANAGER'
-      }
-
-      expect(() => requireLeader(authContext)).not.toThrow()
-    })
-
     it('should pass for ADMIN role', () => {
       const authContext: AuthContext = {
         organizationId: 'org-001',
         userId: 'user-001',
         role: 'ADMIN'
-      }
-
-      expect(() => requireLeader(authContext)).not.toThrow()
-    })
-
-    it('should pass for SUPER_ADMIN role', () => {
-      const authContext: AuthContext = {
-        organizationId: 'org-001',
-        userId: 'user-001',
-        role: 'SUPER_ADMIN'
       }
 
       expect(() => requireLeader(authContext)).not.toThrow()
@@ -184,15 +144,6 @@ describe('canEditSchedule - スケジュール編集権限', () => {
       expect(result).toBe(true)
     })
 
-    it('SUPER_ADMINは誰のスケジュールでも編集可能', () => {
-      const result = canEditSchedule({
-        authContext: { organizationId: 'org-001', userId: 'superadmin-001', role: 'SUPER_ADMIN' },
-        scheduleAuthorId: 'user-999',
-        scheduleAuthorDepartmentId: 'dept-999',
-        userDepartmentId: 'dept-001'
-      })
-      expect(result).toBe(true)
-    })
   })
 
   describe('LEADER権限', () => {

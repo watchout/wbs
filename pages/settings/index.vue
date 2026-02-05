@@ -80,7 +80,7 @@ const user = ref<UserInfo | null>(null)
 
 const isAdmin = computed(() => {
   const role = user.value?.role
-  return role === 'ADMIN' || role === 'SUPER_ADMIN'
+  return role === 'ADMIN'
 })
 
 async function fetchUser() {

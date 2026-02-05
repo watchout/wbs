@@ -4,6 +4,7 @@
  * POST /api/auth/create-setup-token
  *
  * ADMIN専用。指定ユーザーに初回パスワード設定用トークンを発行する。
+ * - AUTH-006: forReset=true でパスワードリセット用トークンも発行可能
  */
 
 import { readBody, createError } from 'h3'
@@ -13,12 +14,16 @@ import { randomUUID } from 'crypto'
 
 interface CreateSetupTokenRequest {
   userId: string
+  /** パスワードリセット用（既存パスワードありでも発行可能） */
+  forReset?: boolean
 }
 
 interface CreateSetupTokenResponse {
   success: boolean
   setupToken: string
   expiresAt: string
+  /** パスワードリセット用かどうか */
+  isReset: boolean
 }
 
 const TOKEN_EXPIRY_HOURS = 24
@@ -51,10 +56,11 @@ export default defineEventHandler(async (event): Promise<CreateSetupTokenRespons
     })
   }
 
-  if (user.passwordHash) {
+  // パスワードリセットモードでない場合は、既存パスワードがあればエラー
+  if (!body.forReset && user.passwordHash) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'このユーザーは既にパスワードが設定されています'
+      statusMessage: 'このユーザーは既にパスワードが設定されています。リセットする場合は forReset=true を指定してください'
     })
   }
 
@@ -72,6 +78,7 @@ export default defineEventHandler(async (event): Promise<CreateSetupTokenRespons
   return {
     success: true,
     setupToken,
-    expiresAt: expiresAt.toISOString()
+    expiresAt: expiresAt.toISOString(),
+    isReset: !!body.forReset
   }
 })

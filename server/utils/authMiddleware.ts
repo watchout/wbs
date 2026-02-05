@@ -1,14 +1,15 @@
 /**
  * 認証ミドルウェア
- * 
+ *
  * MVP向けシンプルなセッションCookie認証
  * - サーバー側でセッション管理
  * - ログアウト即時反映
  * - 開発モードではクエリパラメータでバイパス可能
+ * - AUTH-010: Sliding Window方式でセッション自動延長
  */
 
-import { createError, getQuery, getHeaders, getCookie, type H3Event } from 'h3'
-import { getSession } from './session'
+import { createError, getQuery, getHeaders, getCookie, setCookie, type H3Event } from 'h3'
+import { getSession, refreshSessionIfNeeded, sessionCookieOptions, deviceSessionCookieOptions } from './session'
 
 
 export interface AuthContext {
@@ -35,6 +36,16 @@ export async function requireAuth(event: H3Event): Promise<AuthContext> {
   if (sessionId) {
     const session = getSession(sessionId)
     if (session) {
+      // AUTH-010: Sliding Window方式でセッション自動延長
+      const refreshed = refreshSessionIfNeeded(sessionId)
+      if (refreshed) {
+        // セッションが延長された場合、Cookieも更新
+        const cookieOptions = session.deviceId
+          ? deviceSessionCookieOptions
+          : sessionCookieOptions
+        setCookie(event, 'session_id', sessionId, cookieOptions)
+      }
+
       return {
         organizationId: session.organizationId,
         userId: session.userId,
@@ -84,10 +95,10 @@ export async function optionalAuth(event: H3Event): Promise<AuthContext | null> 
 }
 
 /**
- * 管理者権限チェック（レベル5）
+ * 管理者権限チェック
  */
 export function requireAdmin(authContext: AuthContext): void {
-  if (authContext.role !== 'ADMIN' && authContext.role !== 'SUPER_ADMIN') {
+  if (authContext.role !== 'ADMIN') {
     throw createError({
       statusCode: 403,
       statusMessage: '管理者権限が必要です'
@@ -96,10 +107,10 @@ export function requireAdmin(authContext: AuthContext): void {
 }
 
 /**
- * リーダー以上権限チェック（レベル3+）
+ * リーダー以上権限チェック
  */
 export function requireLeader(authContext: AuthContext): void {
-  const allowedRoles = ['LEADER', 'MANAGER', 'ADMIN', 'SUPER_ADMIN']
+  const allowedRoles = ['LEADER', 'ADMIN']
   if (!authContext.role || !allowedRoles.includes(authContext.role)) {
     throw createError({
       statusCode: 403,
@@ -126,8 +137,8 @@ export interface ScheduleEditCheckParams {
 export function canEditSchedule(params: ScheduleEditCheckParams): boolean {
   const { authContext, scheduleAuthorId, scheduleAuthorDepartmentId, userDepartmentId } = params
   
-  // ADMIN/SUPER_ADMIN は全員のスケジュールを編集可能
-  if (authContext.role === 'ADMIN' || authContext.role === 'SUPER_ADMIN') {
+  // ADMIN は全員のスケジュールを編集可能
+  if (authContext.role === 'ADMIN') {
     return true
   }
   

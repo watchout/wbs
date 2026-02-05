@@ -30,6 +30,12 @@
           <td>{{ user.department?.name || '-' }}</td>
           <td class="actions">
             <button class="btn btn-sm" @click="openEditModal(user)">編集</button>
+            <button
+              v-if="user.hasPassword"
+              class="btn btn-sm btn-warning"
+              @click="resetPassword(user)"
+              title="パスワードリセット用URLを発行"
+            >PW再発行</button>
             <button class="btn btn-sm btn-danger" @click="confirmDelete(user)">削除</button>
           </td>
         </tr>
@@ -92,6 +98,22 @@
         </div>
       </div>
     </div>
+
+    <!-- パスワードリセットURL (AUTH-006) -->
+    <div v-if="showResetModal" class="modal-overlay" @click.self="closeResetModal">
+      <div class="modal-card">
+        <h2>パスワードリセットURL</h2>
+        <p class="reset-user-info">「{{ resetUser?.name || resetUser?.email }}」のパスワードリセットURLを発行しました。</p>
+        <div class="reset-url-container">
+          <input type="text" :value="resetUrl" readonly class="reset-url-input" />
+          <button class="btn btn-primary" @click="copyResetUrl">コピー</button>
+        </div>
+        <p class="reset-note">※ このURLは24時間有効です。ユーザーに直接お伝えください。</p>
+        <div class="modal-actions">
+          <button class="btn btn-primary" @click="closeResetModal">閉じる</button>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 </template>
@@ -108,6 +130,7 @@ interface User {
   name: string | null
   role: string
   department: { id: string; name: string } | null
+  hasPassword: boolean
   createdAt: string
 }
 
@@ -122,8 +145,11 @@ const loading = ref(false)
 const error = ref('')
 const showModal = ref(false)
 const showDeleteConfirm = ref(false)
+const showResetModal = ref(false)
 const editingUser = ref<User | null>(null)
 const deletingUser = ref<User | null>(null)
+const resetUser = ref<User | null>(null)
+const resetUrl = ref('')
 const submitting = ref(false)
 const modalError = ref('')
 
@@ -235,6 +261,41 @@ async function handleDelete() {
   }
 }
 
+// AUTH-006: パスワードリセット用トークン発行
+async function resetPassword(user: User) {
+  resetUser.value = user
+  submitting.value = true
+  error.value = ''
+  try {
+    const res = await $fetch<{ success: boolean; setupToken: string; expiresAt: string }>('/api/auth/create-setup-token', {
+      method: 'POST',
+      body: {
+        userId: user.id,
+        forReset: true
+      }
+    })
+    const baseUrl = window.location.origin
+    resetUrl.value = `${baseUrl}/setup?email=${encodeURIComponent(user.email)}&token=${res.setupToken}`
+    showResetModal.value = true
+  } catch (err: unknown) {
+    const fetchError = err as { data?: { statusMessage?: string } }
+    error.value = fetchError.data?.statusMessage || 'パスワードリセットに失敗しました'
+  } finally {
+    submitting.value = false
+  }
+}
+
+function copyResetUrl() {
+  navigator.clipboard.writeText(resetUrl.value)
+  alert('URLをコピーしました')
+}
+
+function closeResetModal() {
+  showResetModal.value = false
+  resetUser.value = null
+  resetUrl.value = ''
+}
+
 onMounted(() => {
   fetchUsers()
   fetchDepartments()
@@ -326,6 +387,14 @@ useHead({ title: 'ユーザー管理' })
 
 .btn-danger:hover:not(:disabled) { background: #b3261e; }
 
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+  border: none;
+}
+
+.btn-warning:hover:not(:disabled) { background: #d97706; }
+
 .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
 
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -401,6 +470,33 @@ useHead({ title: 'ユーザー管理' })
   text-align: center;
   color: #888;
   padding: 3rem;
+}
+
+/* パスワードリセットモーダル */
+.reset-user-info {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.reset-url-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.reset-url-input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: #f5f5f5;
+}
+
+.reset-note {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 1rem;
 }
 
 /* モバイル対応 */

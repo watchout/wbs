@@ -13,6 +13,8 @@ interface UserResponse {
   name: string | null
   role: string
   department: { id: string; name: string } | null
+  /** パスワード設定済みか（AUTH-006リセット判定用） */
+  hasPassword: boolean
   createdAt: string
 }
 
@@ -48,6 +50,7 @@ export default defineEventHandler(async (event): Promise<GetUsersResponse> => {
       name: u.name,
       role: u.role,
       department: u.department,
+      hasPassword: !!u.passwordHash,
       createdAt: u.createdAt.toISOString()
     }))
   }

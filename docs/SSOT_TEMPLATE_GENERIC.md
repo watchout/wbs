@@ -1,4 +1,4 @@
-# SSOT Template (Generic) - v1
+# SSOT Template (Generic) - v1 [DETAIL]
 
 > 目的: **設計AI / 実装AI / 人間が同じ事実を参照**し、未決事項・リスク・運用まで含めて「実装して良い状態」を機械的に判定できるSSOTテンプレ。
 >
@@ -7,12 +7,14 @@
 > - **Hard Gate**: `hard_gate: true` のとき、`hard_gate_rules.block_if` に該当が1つでもあれば実装禁止
 > - **マルチテナント最優先**: `requireAuth()` と `organizationId` フィルタは原則例外なし
 > - **Prismaガードレール**: schema変更時は `migrate dev` で新規migrationを作る（既存migration改ざん禁止 / 生SQL禁止）
+> - **層**: DETAIL（Freeze 4） - 止まらないルール適用
 
 ---
 doc_id: SSOT-GENERIC-000
 title: "<機能/仕様の名前>"
 version: 0.1.1
 status: draft  # draft | needs_decision | review | approved | implemented | deprecated
+layer: DETAIL  # CORE | CONTRACT | DETAIL
 owner: "<担当/チーム>"
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD

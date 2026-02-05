@@ -5,28 +5,35 @@
  * 認証フローテスト
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
 import { createTestContext, cleanupTestData, cleanupSession } from '../../../tests/helpers'
 import { getSession } from '../../utils/session'
 import { prisma } from '~/server/utils/prisma'
 import { hashPassword } from '~/server/utils/password'
+import { clearAllRateLimits } from '../../utils/rateLimit'
 
 // APIハンドラを直接インポート
 import loginHandler from './login.post'
 
 // H3イベントのモック作成ヘルパー
-function createMockEvent(body: Record<string, any>) {
+function createMockEvent(body: Record<string, any>, options?: { ip?: string }) {
   let setCookieCalled = false
   let cookieValue = ''
+  const headers: Record<string, string> = {
+    'content-type': 'application/json'
+  }
+  // IPアドレスを指定（レート制限テスト用）
+  if (options?.ip) {
+    headers['x-forwarded-for'] = options.ip
+  }
 
   return {
     node: {
       req: {
-        headers: {
-          'content-type': 'application/json'
-        },
+        headers,
         url: '/api/auth/login',
-        method: 'POST'
+        method: 'POST',
+        socket: { remoteAddress: options?.ip || '127.0.0.1' }
       },
       res: {
         setHeader: vi.fn((name: string, value: string) => {
@@ -58,6 +65,9 @@ vi.mock('h3', async () => {
     readBody: (event: any) => Promise.resolve(event._body),
     setCookie: (event: any, name: string, value: string, options?: any) => {
       event.node.res.setHeader('Set-Cookie', `${name}=${value}`)
+    },
+    setHeader: (event: any, name: string, value: string) => {
+      event.node.res.setHeader(name, value)
     }
   }
 })
@@ -193,6 +203,217 @@ describe('POST /api/auth/login', () => {
           expect(session?.organizationId).toBe(ctx.org.id)
         }
       }
+    })
+  })
+
+  describe('アカウントロック（AUTH-001 AC5）', () => {
+    // 各テスト前にレート制限をリセット（テスト間の干渉防止）
+    beforeEach(() => {
+      clearAllRateLimits()
+    })
+
+    it('should increment loginAttempts on failed login', async () => {
+      // リセット
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { loginAttempts: 0, lockedUntil: null }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'wrongpassword'
+      })
+
+      try {
+        await loginHandler(event)
+      } catch (error: any) {
+        expect(error.statusCode).toBe(401)
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
+      expect(user?.loginAttempts).toBe(1)
+    })
+
+    it('should lock account after 5 failed attempts', async () => {
+      // 4回失敗済みの状態を設定
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { loginAttempts: 4, lockedUntil: null }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'wrongpassword'
+      })
+
+      try {
+        await loginHandler(event)
+      } catch (error: any) {
+        expect(error.statusCode).toBe(423)
+        expect(error.statusMessage).toContain('アカウントがロックされました')
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
+      expect(user?.loginAttempts).toBe(5)
+      expect(user?.lockedUntil).not.toBeNull()
+    })
+
+    it('should return 423 for locked account', async () => {
+      // ロック状態を設定（15分後）
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: {
+          loginAttempts: 5,
+          lockedUntil: new Date(Date.now() + 15 * 60 * 1000)
+        }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'testpass123' // 正しいパスワードでも拒否
+      })
+
+      try {
+        await loginHandler(event)
+      } catch (error: any) {
+        expect(error.statusCode).toBe(423)
+        expect(error.statusMessage).toContain('アカウントがロックされています')
+      }
+    })
+
+    it('should reset loginAttempts on successful login', async () => {
+      // 失敗履歴ありだがロックされていない状態
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { loginAttempts: 3, lockedUntil: null }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'testpass123'
+      })
+
+      await loginHandler(event)
+
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
+      expect(user?.loginAttempts).toBe(0)
+      expect(user?.lockedUntil).toBeNull()
+    })
+
+    it('should allow login after lock expires', async () => {
+      // ロック期限切れを設定（過去）
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: {
+          loginAttempts: 5,
+          lockedUntil: new Date(Date.now() - 1000) // 1秒前（期限切れ）
+        }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'testpass123'
+      })
+
+      const response = await loginHandler(event)
+      expect(response.success).toBe(true)
+
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
+      expect(user?.loginAttempts).toBe(0)
+      expect(user?.lockedUntil).toBeNull()
+    })
+  })
+
+  describe('レート制限（SEC-003）', () => {
+    const testIp = '192.168.1.100'
+
+    beforeEach(() => {
+      // 各テストの前にレート制限をリセット
+      clearAllRateLimits()
+    })
+
+    it('should allow requests within rate limit', async () => {
+      // 10リクエストまでは許可
+      for (let i = 0; i < 10; i++) {
+        const event = createMockEvent(
+          { email: ctx.user.email, password: 'testpass123' },
+          { ip: testIp }
+        )
+        const response = await loginHandler(event)
+        expect(response.success).toBe(true)
+      }
+    })
+
+    it('should return 429 when rate limit exceeded', async () => {
+      // 10リクエストを実行
+      for (let i = 0; i < 10; i++) {
+        const event = createMockEvent(
+          { email: ctx.user.email, password: 'testpass123' },
+          { ip: testIp }
+        )
+        await loginHandler(event)
+      }
+
+      // 11回目は拒否
+      const event = createMockEvent(
+        { email: ctx.user.email, password: 'testpass123' },
+        { ip: testIp }
+      )
+
+      try {
+        await loginHandler(event)
+        expect.fail('Should have thrown error')
+      } catch (error: any) {
+        expect(error.statusCode).toBe(429)
+        expect(error.statusMessage).toContain('リクエストが多すぎます')
+      }
+    })
+
+    it('should include Retry-After header on 429', async () => {
+      // 10リクエストを実行
+      for (let i = 0; i < 10; i++) {
+        const event = createMockEvent(
+          { email: ctx.user.email, password: 'testpass123' },
+          { ip: testIp }
+        )
+        await loginHandler(event)
+      }
+
+      // 11回目でRetry-Afterヘッダーを確認
+      const event = createMockEvent(
+        { email: ctx.user.email, password: 'testpass123' },
+        { ip: testIp }
+      )
+
+      try {
+        await loginHandler(event)
+      } catch (error: any) {
+        expect(error.statusCode).toBe(429)
+        // setHeaderが呼ばれたことを確認
+        const calls = event.node.res.setHeader.mock.calls
+        const retryAfterCall = calls.find((call: string[]) => call[0] === 'Retry-After')
+        expect(retryAfterCall).toBeDefined()
+        expect(Number(retryAfterCall[1])).toBeGreaterThan(0)
+      }
+    })
+
+    it('should allow requests from different IPs', async () => {
+      // IP1から10リクエスト
+      for (let i = 0; i < 10; i++) {
+        const event = createMockEvent(
+          { email: ctx.user.email, password: 'testpass123' },
+          { ip: '10.0.0.1' }
+        )
+        await loginHandler(event)
+      }
+
+      // IP2からは問題なくリクエスト可能
+      const event = createMockEvent(
+        { email: ctx.user.email, password: 'testpass123' },
+        { ip: '10.0.0.2' }
+      )
+      const response = await loginHandler(event)
+      expect(response.success).toBe(true)
     })
   })
 })
