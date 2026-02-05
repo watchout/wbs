@@ -195,4 +195,117 @@ describe('POST /api/auth/login', () => {
       }
     })
   })
+
+  describe('アカウントロック（AUTH-001 AC5）', () => {
+    it('should increment loginAttempts on failed login', async () => {
+      // リセット
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { loginAttempts: 0, lockedUntil: null }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'wrongpassword'
+      })
+
+      try {
+        await loginHandler(event)
+      } catch (error: any) {
+        expect(error.statusCode).toBe(401)
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
+      expect(user?.loginAttempts).toBe(1)
+    })
+
+    it('should lock account after 5 failed attempts', async () => {
+      // 4回失敗済みの状態を設定
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { loginAttempts: 4, lockedUntil: null }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'wrongpassword'
+      })
+
+      try {
+        await loginHandler(event)
+      } catch (error: any) {
+        expect(error.statusCode).toBe(423)
+        expect(error.statusMessage).toContain('アカウントがロックされました')
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
+      expect(user?.loginAttempts).toBe(5)
+      expect(user?.lockedUntil).not.toBeNull()
+    })
+
+    it('should return 423 for locked account', async () => {
+      // ロック状態を設定（15分後）
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: {
+          loginAttempts: 5,
+          lockedUntil: new Date(Date.now() + 15 * 60 * 1000)
+        }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'testpass123' // 正しいパスワードでも拒否
+      })
+
+      try {
+        await loginHandler(event)
+      } catch (error: any) {
+        expect(error.statusCode).toBe(423)
+        expect(error.statusMessage).toContain('アカウントがロックされています')
+      }
+    })
+
+    it('should reset loginAttempts on successful login', async () => {
+      // 失敗履歴ありだがロックされていない状態
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: { loginAttempts: 3, lockedUntil: null }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'testpass123'
+      })
+
+      await loginHandler(event)
+
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
+      expect(user?.loginAttempts).toBe(0)
+      expect(user?.lockedUntil).toBeNull()
+    })
+
+    it('should allow login after lock expires', async () => {
+      // ロック期限切れを設定（過去）
+      await prisma.user.update({
+        where: { id: ctx.user.id },
+        data: {
+          loginAttempts: 5,
+          lockedUntil: new Date(Date.now() - 1000) // 1秒前（期限切れ）
+        }
+      })
+
+      const event = createMockEvent({
+        email: ctx.user.email,
+        password: 'testpass123'
+      })
+
+      const response = await loginHandler(event)
+      expect(response.success).toBe(true)
+
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
+      expect(user?.loginAttempts).toBe(0)
+      expect(user?.lockedUntil).toBeNull()
+    })
+  })
 })

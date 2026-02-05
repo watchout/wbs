@@ -101,6 +101,8 @@ Organization ─┬── User ─────── CalendarOAuth（レガシ�
 | setupToken | String? | YES | - | 初回設定トークン |
 | setupTokenExpiry | DateTime? | YES | - | トークン有効期限 |
 | role | Role | NO | MEMBER | ADMIN/LEADER/MEMBER/DEVICE |
+| loginAttempts | Int | NO | 0 | ログイン失敗回数 |
+| lockedUntil | DateTime? | YES | - | アカウントロック解除日時 |
 | departmentId | String? | YES | - | FK → Department |
 | deletedAt | DateTime? | YES | - | 論理削除 |
 | createdAt | DateTime | NO | now() | 作成日時 |
@@ -108,7 +110,7 @@ Organization ─┬── User ─────── CalendarOAuth（レガシ�
 
 **制約**: UNIQUE(email)
 **インデックス**: `[organizationId, role]`, `[departmentId]`
-**関連機能ID**: AUTH-001, ACCT-001〜005, ROLE-001
+**関連機能ID**: AUTH-001（AC5: アカウントロック）, ACCT-001〜005, ROLE-001
 
 ---
 

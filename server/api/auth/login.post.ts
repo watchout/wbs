@@ -6,12 +6,17 @@
  * メール + パスワード認証
  * - passwordHash 未設定ユーザーはログイン不可（401）
  * - 初回パスワード設定は /api/auth/set-password を使用
+ * - AUTH-001 AC5: ログイン失敗5回でアカウントロック（15分間）
  */
 
 import { readBody, setCookie, createError } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { createSession, sessionCookieOptions } from '~/server/utils/session'
 import { verifyPassword } from '~/server/utils/password'
+
+// アカウントロック設定
+const MAX_LOGIN_ATTEMPTS = 5
+const LOCK_DURATION_MINUTES = 15
 
 interface LoginRequest {
   email: string
@@ -72,6 +77,15 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
     })
   }
 
+  // アカウントロックチェック
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    const remainingMinutes = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000)
+    throw createError({
+      statusCode: 423,
+      statusMessage: `アカウントがロックされています。${remainingMinutes}分後に再試行してください`
+    })
+  }
+
   // パスワード検証
   if (!user.passwordHash) {
     // 内部ログのみ（本番ではログレベル調整）
@@ -91,9 +105,44 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
 
   const valid = await verifyPassword(body.password, user.passwordHash)
   if (!valid) {
+    // ログイン失敗: 試行回数をインクリメント
+    const newAttempts = user.loginAttempts + 1
+    const updateData: { loginAttempts: number; lockedUntil?: Date } = {
+      loginAttempts: newAttempts
+    }
+
+    // 5回目の失敗でアカウントロック
+    if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+      updateData.lockedUntil = new Date(Date.now() + LOCK_DURATION_MINUTES * 60 * 1000)
+      console.warn(`[login] Account locked: ${user.email} after ${newAttempts} failed attempts`)
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: updateData
+    })
+
+    if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+      throw createError({
+        statusCode: 423,
+        statusMessage: `アカウントがロックされました。${LOCK_DURATION_MINUTES}分後に再試行してください`
+      })
+    }
+
     throw createError({
       statusCode: 401,
       statusMessage: '認証に失敗しました'
+    })
+  }
+
+  // ログイン成功: 試行回数をリセット
+  if (user.loginAttempts > 0 || user.lockedUntil) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        loginAttempts: 0,
+        lockedUntil: null
+      }
     })
   }
 
