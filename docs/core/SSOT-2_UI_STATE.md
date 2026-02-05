@@ -50,8 +50,8 @@
 
 | Screen ID | 画面名 | パス | 説明 | 関連機能ID |
 |-----------|-------|------|------|-----------|
-| SCR-404 | Not Found | (未実装) | 存在しないページ | ERR-001 |
-| SCR-500 | Server Error | (未実装) | サーバーエラー | ERR-003 |
+| SCR-404 | Not Found | `error.vue` | 存在しないページ | ERR-001 |
+| SCR-500 | Server Error | `error.vue` | サーバーエラー | ERR-003 |
 
 ---
 

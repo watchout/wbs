@@ -175,11 +175,13 @@
 
 ## 9. エラー・例外（ERR）
 
+> SSOT参照: [SSOT_ERROR_PAGES.md](../SSOT_ERROR_PAGES.md)
+
 | ID | 機能 | レベル | 優先度 | 状態 | 備考 |
 |----|------|--------|-------|------|------|
-| ERR-001 | 404ページ | SHOULD | P1 | Backlog | |
+| ERR-001 | 404ページ | SHOULD | P1 | Done | error.vue |
 | ERR-002 | 403ページ（権限エラー） | MUST | P0 | Done | ログインリダイレクト実装済み |
-| ERR-003 | 500ページ | SHOULD | P1 | Backlog | |
+| ERR-003 | 500ページ | SHOULD | P1 | Done | error.vue |
 | ERR-004 | ネットワークエラー処理 | MAY | P2 | Out of Scope | PWA対応時に実装 |
 | ERR-005 | リトライ機構 | MAY | P2 | Out of Scope | Socket.IO自動再接続のみ |
 | ERR-006 | サポート導線 | MAY | P2 | Out of Scope | Phase 2 |
@@ -187,18 +189,22 @@
 ### ERR 受入条件
 
 ```
+ERR-001:
+- [x] AC1: 存在しないURLアクセス時に専用404ページを表示
+- [x] AC2: 404ページからトップへのリンクが機能する
+- [x] AC3: エラーコード（404）が明示される
+- [x] AC4: モバイルでも適切に表示される
+
 ERR-002:
 - [x] AC1: 未認証ユーザーが認証必須ページにアクセスすると /login へリダイレクト
 - [x] AC2: MEMBER が /admin/* にアクセスすると /login へリダイレクト
 - [x] AC3: リダイレクト後、元のURLにログイン成功時に戻る
 
-ERR-001（未実装）:
-- [ ] AC1: 存在しないURLアクセス時に専用404ページを表示
-- [ ] AC2: 404ページからトップへのリンクが機能する
-
-ERR-003（未実装）:
-- [ ] AC1: サーバーエラー発生時に専用500ページを表示
-- [ ] AC2: エラー詳細はユーザーに公開せず、内部ログにのみ記録
+ERR-003:
+- [x] AC1: サーバーエラー発生時に専用500ページを表示
+- [x] AC2: エラー詳細はユーザーに公開せず、内部ログにのみ記録
+- [x] AC3: 「再試行」ボタンが機能する
+- [x] AC4: モバイルでも適切に表示される
 ```
 
 ---
@@ -361,14 +367,14 @@ OPS-005:
 
 | 状態 | 件数 | 説明 |
 |------|------|------|
-| Done | 39 | 実装・検証完了 |
+| Done | 41 | 実装・検証完了 |
 | In Progress | 1 | 実装中（OPS-003） |
-| Backlog | 6 | 未着手（NOTIF-001 を Backlog に変更含む） |
+| Backlog | 4 | 未着手 |
 | Out of Scope | 39 | Phase 0 スコープ外 |
 | **合計** | **85** | |
 
 **Phase 0 MVP 対象機能（Out of Scope 除外）: 46件**
-**完了: 39/46（85%）**
+**完了: 41/46（89%）**
 
 ### 未完了の MUST/SHOULD 項目
 
@@ -376,8 +382,6 @@ OPS-005:
 |----|------|--------|------|
 | AUTH-006 | パスワードリセット | SHOULD | Backlog |
 | AUTH-010 | セッション自動更新 | SHOULD | Backlog |
-| ERR-001 | 404ページ | SHOULD | Backlog |
-| ERR-003 | 500ページ | SHOULD | Backlog |
 | SEC-003 | レート制限 | SHOULD | Backlog |
 | NOTIF-001 | メール通知 | SHOULD | Backlog |
 
@@ -389,3 +393,4 @@ OPS-005:
 |------|---------|-------|
 | 2026-02-02 | ai-dev-framework v3.0 準拠で新規作成。既存12件のSSOT_*.md + 実装状態から統合 | AI（Claude Code） |
 | 2026-02-03 | 監査指摘修正: MUST/SHOULD/MAY列追加、SSOT参照リンク追加、SEC/OPS/ERR受入条件追加、NOTIF-001をBacklogに変更、サマリー集計基準明記 | AI（Claude Code） |
+| 2026-02-05 | ERR-001（404ページ）、ERR-003（500ページ）を Done に更新。error.vue 実装完了。完了率 85%→89% | AI（Claude Code） |
