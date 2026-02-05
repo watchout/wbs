@@ -1,7 +1,8 @@
-# SSOT-1: 機能台帳（Feature Catalog）
+# SSOT-1: 機能台帳（Feature Catalog） [CORE]
 
 > 全機能の母艦 - ai-dev-framework v3.0 準拠
 > 対象: ミエルボード for 現場（Phase 0 MVP）
+> 層: CORE（Freeze 1-2） - 変更には PO 承認必須
 
 ---
 

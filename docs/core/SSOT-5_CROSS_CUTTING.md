@@ -1,7 +1,8 @@
-# SSOT-5: 横断的関心事（Cross-Cutting Concerns）
+# SSOT-5: 横断的関心事（Cross-Cutting Concerns） [CONTRACT]
 
 > 全機能で共通する技術的ルール・方針を定義
 > ソース: .cursorrules, DONE_DEFINITION.md, server/utils/
+> 層: CONTRACT（Freeze 3） - 変更にはテックリード承認必須
 
 ---
 

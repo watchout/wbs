@@ -1,7 +1,8 @@
-# SSOT-4: データ台帳（Data Model）
+# SSOT-4: データ台帳（Data Model） [CONTRACT]
 
 > wbs プロジェクトのエンティティ、制約、参照整合性、論理削除方針を定義
 > ソース: prisma/schema.prisma
+> 層: CONTRACT（Freeze 3） - 変更にはテックリード承認必須
 
 ---
 

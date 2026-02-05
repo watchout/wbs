@@ -1,7 +1,8 @@
-# SSOT-3: 契約台帳（API Contract）
+# SSOT-3: 契約台帳（API Contract） [CONTRACT]
 
 > wbs プロジェクトの API 設計方針・エラーコード・認証ルールを定義
 > ソース: openapi.yaml, server/api/, server/utils/
+> 層: CONTRACT（Freeze 3） - 変更にはテックリード承認必須
 
 ---
 

@@ -1,7 +1,8 @@
-# SSOT-0: プロダクト台帳（PRD）
+# SSOT-0: プロダクト台帳（PRD） [CORE]
 
 > Product Requirements Document - ミエルボード for 現場
 > ai-dev-framework v3.0 準拠
+> 層: CORE（Freeze 1-2） - 変更には PO 承認必須
 
 ---
 

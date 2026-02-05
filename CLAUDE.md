@@ -51,14 +51,18 @@
 ### 実装前に必ず確認するドキュメント（優先順）
 
 ```
-1. PRD（プロダクト要件）   → docs/ssot/SSOT-0_PRD.md
-2. 機能台帳               → docs/ssot/SSOT-1_FEATURE_CATALOG.md
-3. コア定義（横断ルール） → docs/core/
+0. フレームワーク標準     → docs/standards/
+   - マスターガイド       → docs/standards/00_MASTER_GUIDE.md
+   - SSOT 12セクション形式 → docs/standards/12_SSOT_FORMAT.md
+   - AIエスカレーション    → docs/standards/21_AI_ESCALATION.md
+1. PRD（プロダクト要件）   → docs/ssot/SSOT-0_PRD.md [CORE]
+2. 機能台帳               → docs/ssot/SSOT-1_FEATURE_CATALOG.md [CORE]
+3. コア定義（横断ルール） → docs/core/ [CONTRACT]
    - UI/画面・状態遷移    → docs/core/SSOT-2_UI_STATE.md
    - API契約              → docs/core/SSOT-3_API_CONTRACT.md
    - データモデル規約      → docs/core/SSOT-4_DATA_MODEL.md
    - 横断的関心事          → docs/core/SSOT-5_CROSS_CUTTING.md
-4. 個別機能仕様           → docs/SSOT_*.md（既存形式）
+4. 個別機能仕様           → docs/SSOT_*.md [DETAIL]
    - スケジュールボード   → docs/SSOT_GENBA_WEEK.md
    - カレンダー連携       → docs/SSOT_CALENDAR_SYNC.md
    - AI日程調整           → docs/SSOT_MEETING_SCHEDULER.md

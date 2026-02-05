@@ -1,7 +1,8 @@
-# SSOT-2: 画面・状態台帳（UI Flow + State Machine）
+# SSOT-2: 画面・状態台帳（UI Flow + State Machine） [CONTRACT]
 
 > wbs プロジェクト固有の画面一覧・認証状態・遷移を定義
 > ソース: SSOT_UI_NAVIGATION.md, UI_ROUTING_MAP.md, pages/
+> 層: CONTRACT（Freeze 3） - 変更にはテックリード承認必須
 
 ---
 
