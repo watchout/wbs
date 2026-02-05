@@ -54,7 +54,7 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
   const rateLimitResult = checkRateLimit(clientIp, LOGIN_RATE_LIMIT)
 
   if (!rateLimitResult.allowed) {
-    setHeader(event, 'Retry-After', String(rateLimitResult.retryAfterSeconds))
+    setHeader(event, 'Retry-After', rateLimitResult.retryAfterSeconds)
     console.warn(`[login] Rate limit exceeded for IP: ${clientIp}`)
     throw createError({
       statusCode: 429,
