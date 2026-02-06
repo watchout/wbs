@@ -940,25 +940,22 @@ const selectedProducts = ref({
 const selectedUserTier = ref<'starter' | 'business' | 'professional' | 'enterprise'>('business')
 
 // ================================================================
-// 📌 製品料金マスター（変更禁止 - 2024年確定版）
+// 📌 製品料金マスター（SSOT_PRICING.md 準拠 - 2026-01-02 確定版）
 // ================================================================
-// BOARD / STOCK: 同一料金
-//   - スターター（〜10名）: ¥9,800/月
-//   - ビジネス（〜30名）: ¥19,800/月
-//   - プロフェッショナル（〜100名）: ¥39,800/月
-//   - エンタープライズ: 要相談
+// ミエルボード（3プラン制）:
+//   - スターター（〜10名）: ¥9,800/月（年¥98,000）
+//   - ビジネス（〜30名）: ¥29,800/月（年¥298,000）★推奨
+//   - エンタープライズ（〜100名）: ¥59,800〜/月
 //
-// DRIVE: 半額
-//   - スターター（〜10名）: ¥4,900/月
-//   - ビジネス（〜30名）: ¥9,900/月
-//   - プロフェッショナル（〜100名）: ¥19,900/月
-//   - エンタープライズ: 要相談
-//
-// AIクレジット:
-//   - スターター: 100回/月
-//   - ビジネス: 500回/月
-//   - プロフェッショナル: 2,000回/月
+// AIクレジット（音声入力）:
+//   - スターター: なし
+//   - ビジネス: 50回/月
 //   - エンタープライズ: 無制限
+//
+// 追加パック:
+//   - ライト: ¥2,000/月（+50回）
+//   - スタンダード: ¥5,000/月（+150回）
+//   - プロ: ¥10,000/月（+400回）
 // ================================================================
 
 // 製品詳細データ
@@ -984,9 +981,9 @@ const productDetails = {
       '外出先から予定が確認できない'
     ],
     plans: [
-      { name: 'スターター', users: '〜10名', price: 9800, features: ['サイネージ1台', 'Googleカレンダー連携', 'AI 100回/月', 'メールサポート'] },
-      { name: 'ビジネス', users: '〜30名', price: 19800, recommended: true, features: ['サイネージ3台', '全カレンダー連携', '部門管理', 'AI 500回/月', 'チャットサポート'] },
-      { name: 'プロフェッショナル', users: '〜100名', price: 39800, features: ['サイネージ無制限', 'API連携', '高度な権限管理', 'AI 2,000回/月', '優先電話サポート'] }
+      { name: 'スターター', users: '〜10名', price: 9800, features: ['週間ボード', '部門フィルタ', 'リアルタイム更新', 'メールサポート'] },
+      { name: 'ビジネス', users: '〜30名', price: 29800, recommended: true, features: ['全機能', 'カレンダー連携', 'サイネージモード', 'AI音声入力 50回/月', '電話・メールサポート'] },
+      { name: 'エンタープライズ', users: '〜100名', price: 59800, features: ['全モジュール', 'AI無制限', 'API連携', 'SSO/SAML', '専任サポート'] }
     ]
   },
   stock: {
@@ -1074,7 +1071,7 @@ function selectProduct(product: 'board' | 'stock' | 'drive' | 'file') {
 }
 
 // ================================================================
-// 📌 組み合わせ計算用料金マスター（変更禁止 - 2024年確定版）
+// 📌 組み合わせ計算用料金マスター（SSOT_PRICING.md 準拠 - 2026-01-02 確定版）
 // ================================================================
 const userTiers = {
   starter: { label: 'スターター（〜10名）', users: 10 },
@@ -1083,18 +1080,19 @@ const userTiers = {
   enterprise: { label: 'エンタープライズ（100名以上）', users: 999 }
 }
 
-// BOARD / STOCK: 同一料金、DRIVE: 半額
+// ミエルボード: SSOT_PRICING.md 準拠（3プラン制）
+// 他製品: Coming Soon（将来的に個別 SSOT で確定）
 const productPrices = {
-  board: { starter: 9800, business: 19800, professional: 39800, enterprise: null },
+  board: { starter: 9800, business: 29800, professional: 59800, enterprise: null },
   stock: { starter: 9800, business: 19800, professional: 39800, enterprise: null },
   drive: { starter: 4900, business: 9900, professional: 19900, enterprise: null },
   file: { starter: 9800, business: 19800, professional: 39800, enterprise: null }
 }
 
-const aiCredits = {
-  starter: 100,
-  business: 500,
-  professional: 2000,
+const aiCredits: Record<string, number | string> = {
+  starter: 0,
+  business: 50,
+  professional: 50,
   enterprise: '無制限'
 }
 

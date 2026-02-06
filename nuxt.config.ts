@@ -24,11 +24,14 @@ export default defineNuxtConfig({
     // サーバーサイドのみ
     jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
     databaseUrl: process.env.DATABASE_URL,
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
 
     // クライアントにも公開される設定
     public: {
       appName: 'ミエルボード for 現場',
-      appVersion: '0.1.0'
+      appVersion: '0.1.0',
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
     }
   },
 

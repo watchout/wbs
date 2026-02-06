@@ -28,12 +28,39 @@ enum Source {
   CSV
 }
 
+// ------------ 課金関連 ENUMS ------------
+
+enum SubscriptionStatus {
+  TRIALING      // 14日間トライアル
+  ACTIVE        // 有効
+  PAST_DUE      // 支払い遅延
+  CANCELED      // 解約済み
+  UNPAID        // 未払い
+}
+
+enum PlanType {
+  STARTER
+  BUSINESS
+  ENTERPRISE
+}
+
+enum CreditTransactionType {
+  MONTHLY_GRANT   // 月次付与
+  USAGE           // 使用（消費）
+  PACK_PURCHASE   // 追加パック購入
+  ADJUSTMENT      // 手動調整
+  EXPIRE          // 月末失効
+}
+
 // ------------ MODELS ------------
 
 model Organization {
   id          String   @id @default(uuid())
   name        String
   timezone    String   @default("Asia/Tokyo")
+
+  // Stripe 連携
+  stripeCustomerId    String?   @unique
 
   users       User[]
   devices     Device[]
@@ -42,6 +69,11 @@ model Organization {
   departments Department[]
   meetingRequests MeetingRequest[]
   calendarConnections UserCalendarConnection[]
+
+  // 課金関連
+  subscription         Subscription?
+  aiCreditBalance      AiCreditBalance?
+  aiCreditTransactions AiCreditTransaction[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -326,4 +358,67 @@ model MeetingInvitee {
   @@unique([meetingRequestId, userId])
   @@index([meetingRequestId])
   @@index([userId])
+}
+
+// ------------ 課金モデル ------------
+
+model Subscription {
+  id                   String   @id @default(uuid())
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  organizationId       String   @unique
+
+  stripeSubscriptionId String   @unique
+  stripePriceId        String              // 現在の Price ID
+
+  planType             PlanType
+  status               SubscriptionStatus  @default(TRIALING)
+
+  // 制限値（Stripe Product metadata から同期）
+  maxUsers             Int                 // 10 / 30 / 100
+  monthlyAiCredits     Int                 // 0 / 50 / -1(unlimited)
+
+  // 期間
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  trialEndsAt          DateTime?
+  canceledAt           DateTime?
+
+  // 年払い/月払い
+  billingInterval      String   @default("month") // "month" | "year"
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([status])
+}
+
+model AiCreditBalance {
+  id              String   @id @default(uuid())
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  organizationId  String   @unique
+
+  balance         Int      @default(0)    // 現在の残高
+  monthlyGrant    Int      @default(0)    // 月次付与量（プラン付属分）
+  packCredits     Int      @default(0)    // 追加パック分（別管理）
+
+  lastResetAt     DateTime @default(now()) // 最後のリセット日時
+
+  updatedAt       DateTime @updatedAt
+}
+
+model AiCreditTransaction {
+  id              String   @id @default(uuid())
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  organizationId  String
+
+  type            CreditTransactionType
+  amount          Int       // 正=付与、負=消費
+  balanceAfter    Int       // 取引後残高
+
+  description     String?   // "AI音声入力" / "追加パック購入: スタンダード" 等
+  relatedId       String?   // 関連するStripe Invoice ID 等
+
+  createdAt       DateTime  @default(now())
+
+  @@index([organizationId, createdAt])
 }
