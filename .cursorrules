@@ -5,6 +5,71 @@
 
 ---
 
+## 🔀 ツール境界ルール（Cursor / Claude Code）
+
+本プロジェクトでは **Cursor** と **Claude Code** を併用します。
+**Claude Code で実行できる操作は Claude Code で実行する**ことを基本原則とします。
+
+### Claude Code の責務（ターミナル・システム操作）
+
+以下は **Claude Code で実行**してください。Cursor から直接実行しないこと。
+
+| カテゴリ | 操作例 |
+|---------|--------|
+| **Git 操作** | `git commit`, `git merge`, `git push`, ブランチ操作全般 |
+| **パッケージ管理** | `npm ci`, `npm install`, `npm audit` |
+| **DB 操作** | `prisma migrate dev`, `prisma migrate reset`, `prisma db seed`, `prisma generate` |
+| **ビルド・検証** | `npm run typecheck`, `npm run test`, `npm run build` |
+| **スクリプト実行** | `./scripts/backup-db.sh`, Plane API スクリプト等 |
+| **CI/CD 確認** | `gh run list`, `gh pr status` |
+| **ファイル操作（大量）** | ディレクトリ構造変更、ファイル移動・リネーム |
+| **環境構築** | Docker 操作、サーバー起動、環境変数設定 |
+
+### Cursor の責務（IDE・コード編集）
+
+以下は **Cursor で実行**してください。
+
+| カテゴリ | 操作例 |
+|---------|--------|
+| **コード編集** | 新規実装、バグ修正、リファクタリング |
+| **コードレビュー** | diff の確認、変更のレビュー |
+| **SSOT / ドキュメント編集** | 仕様書の作成・更新 |
+| **設計・相談** | アーキテクチャ設計、技術選定の議論 |
+| **UI 開発** | コンポーネント実装、スタイル調整 |
+| **テストコード作成** | テストファイルの作成・編集（実行は Claude Code） |
+| **ブラウザ確認** | 画面の動作確認、UI 検証 |
+| **Lint / 型エラー確認** | エディタ上でのリアルタイム確認 |
+
+### 判断基準（迷った場合）
+
+```
+Q: ターミナルコマンドの実行が必要？ → Claude Code
+Q: ファイルの中身を編集する？       → Cursor
+Q: 外部サービスとの通信が必要？     → Claude Code
+Q: コードの設計・構造を考える？     → Cursor
+Q: 実行結果の確認が必要？           → Claude Code
+Q: エラーの原因をコードから調査？   → Cursor（→ 修正後の検証は Claude Code）
+```
+
+### 連携フロー（典型パターン）
+
+```
+1. Cursor: SSOT を読み、実装方針を決定
+2. Cursor: コード実装・テストコード作成
+3. Claude Code: npm run typecheck && npm run test
+4. Cursor: テスト失敗時のコード修正
+5. Claude Code: 再テスト → git commit → git push
+```
+
+### 禁止事項
+
+- **Cursor でのシェルコマンド直接実行**を避ける
+  - 例外: 軽量な確認コマンド（`ls`, `git status` 等）は許可
+- **Claude Code でのコード設計判断**を避ける
+  - Claude Code は「実行」に徹し、「判断」は Cursor 側で行う
+
+---
+
 ## 📍 現在のPhase: Phase 0
 
 ### Phase 0 運用ルール
