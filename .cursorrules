@@ -82,18 +82,18 @@ Q: エラーの原因をコードから調査？     → Cursor or Claude Code C
 
 ---
 
-## 📍 現在のPhase: Phase 0
+## 📍 現在のPhase: Phase 1
 
-### Phase 0 運用ルール
-- main直接push: ✅ 許可
-- PR/レビュー: 任意
-- スピード優先、MVP検証に集中
+### Phase 1 運用ルール
+- main直接push: ❌ 禁止（PR必須）
+- PR/レビュー: 必須
+- CI通過必須（typecheck, test, build）
+- ブランチ保護: 有効
 
-### ⚠️ Phase 1 移行時の作業
-Phase 1 開始時は以下を実行:
-1. GitHub main保護を厳格化
-2. この「現在のPhase」を更新
-3. PHASE1_MIGRATION 移行手順を確認
+### ✅ Phase 1 移行完了チェックリスト
+- [x] GitHub main ブランチ保護を設定
+- [x] この「現在のPhase」を更新
+- [ ] CI/CD が正常動作することを確認
 
 ---
 
