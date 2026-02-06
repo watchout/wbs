@@ -299,9 +299,10 @@ type: feat | fix | docs | style | refactor | test | chore
 scope: 機能ID or モジュール名
 ```
 
-### 現在のPhase: Phase 0 → Phase 1 移行準備中
-- Claude Code Web のタスク → 自動PR作成 → レビュー → マージ
-- Claude Code CLI の直接 push も許可（Phase 0 互換）
+### 現在のPhase: Phase 1
+- main への直接 push: ❌ 禁止
+- 全ての変更は PR 経由で実施
+- CI 通過必須（typecheck, test, build）
 
 ---
 
