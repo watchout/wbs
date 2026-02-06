@@ -351,15 +351,15 @@ Year 1 (2026)             Year 2 (2027)             Year 3 (2028)
 1. 新しい設計AIチャットを開始
 2. **このプロンプト**（`AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md`）を読み込み
 3. 対象のSSOT（例: `SSOT_GENBA_WEEK.md`）を読み込み
-4. `.cursorrules` / `docs/TAG_COMMANDS.md`（必要に応じて）を読み込み
-5. `>> write` または `>> impl` タグで作業開始
+4. `.cursorrules` を読み込み
+5. 作業開始（Claude Code Web: 非同期タスク / Claude Code CLI: 対話型実装）
 
 ### 管理AIの場合
 
 1. 新しい管理AIチャットを開始
 2. **このプロンプト**（`AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md`）を読み込み
 3. `docs/QUALITY_MANAGEMENT_OVERVIEW.md` / `docs/DONE_DEFINITION.md`（必要に応じて）を読み込み
-4. `>> next`（※Plane API連携が未実装の場合は手動運用）または PR レビュー開始
+4. PR レビュー開始、またはタスク選定
 
 ---
 

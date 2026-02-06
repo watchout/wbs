@@ -1,53 +1,80 @@
-# CLAUDE.md - プロジェクト指示書（Claude Code用）
+# CLAUDE.md - プロジェクト指示書（v3.3）
 
-> Claude Code はこのファイルを自動で読み込みます。
+> Claude Code CLI / Web が自動で読み込むプロジェクト指示書です。
 > プロジェクトの全仕様書は docs/ にあります。
-> Cursor 用のガードレールは .cursorrules を参照してください。
+> 開発ツールチェーン定義: docs/standards/09_TOOLCHAIN.md
 
 ---
 
-## ツール境界ルール（Claude Code / Cursor）
+## ツール体制（4ツール）
 
-本プロジェクトでは **Claude Code** と **Cursor** を併用する。
-Cursor と Claude Code は**別のシェルプロセス**で動作するため、
-**「編集した側が commit + push まで完了する」**ことが基本原則。
+本プロジェクトでは以下の4ツールを併用する。
+「Claude Code」単独表記は禁止し、必ず修飾子をつけること。
 
-### Claude Code の責務（自分がやること）
+| ツール | 用途 | 制約 |
+|--------|------|------|
+| **Claude.ai** | 思考・設計・壁打ち。コード実行不可 | claude.ai |
+| **Claude Code CLI** | 対話型の実装・デバッグ・環境構築 | ターミナル閉じると停止 |
+| **Claude Code Web** | 仕様確定済みタスクの非同期実行 | PCを閉じても継続、完了時に自動PR作成 |
+| **Cursor** | IDE補助（コード編集、Lint確認、ブラウザ確認） | エディタ上の操作 |
 
-- **ビルド・検証**: npm run typecheck, npm run test, npm run build
-- **DB 操作**: prisma migrate dev/deploy/reset, prisma db seed, prisma generate
-- **パッケージ管理**: npm ci, npm install, npm audit
-- **Git 操作（高度）**: merge, rebase, tag, ブランチ戦略
-- **スクリプト実行**: backup/restore, Plane API スクリプト
-- **CI/CD 確認**: gh run list, gh pr status
-- **環境構築**: Docker, サーバー起動
-- **同期確認**: `git pull origin main` で Cursor の変更を取得
+### セッション移動
 
-### Cursor の責務（Cursor に任せること）
+```
+CLI → Web: & タスク内容  または  claude --remote "タスク内容"
+Web → CLI: /teleport  または  claude --teleport
+```
 
-- **コード編集**: 実装、修正、リファクタリング
-- **ドキュメント編集**: SSOT・仕様書の作成・更新
-- **設計・相談**: アーキテクチャ、技術選定
-- **UI 開発**: コンポーネント、スタイル
-- **変更の確定**: 編集した変更の git commit + git push
+### ツール使い分け
+
+| 場面 | Claude.ai | Claude Code CLI | Claude Code Web | Cursor |
+|------|-----------|----------------|----------------|--------|
+| アイデア壁打ち・設計相談 | **メイン** | | | |
+| 仕様書の対話的作成 | **メイン** | | | |
+| 仕様書のファイル生成 | | **メイン** | | |
+| 対話型のコーディング | | **メイン** | | |
+| デバッグ（原因調査） | | **メイン** | | サブ |
+| 環境構築・CI/CD設定 | | **メイン** | | |
+| DB マイグレーション | | **メイン** | | |
+| 機能実装（仕様確定済） | | サブ | **メイン** | |
+| テスト生成 | | | **メイン** | |
+| 一括リファクタリング | | | **メイン** | |
+| コードレビュー | | | **メイン** | サブ |
+| バグ修正（原因明確） | | | **メイン** | |
+| 複数タスク並列実行 | | | **メイン** | |
+| コード編集・Lint確認 | | | | **メイン** |
+| ブラウザUI確認 | | | | **メイン** |
 
 ### 連携フロー
 
 ```
-1. Cursor: SSOT を読み、実装方針を決定
-2. Cursor: コード実装・テストコード作成 → git commit + git push
-3. Claude Code: git pull → npm run typecheck && npm run test
-4. テスト失敗時:
-   4a. Cursor: コード修正 → git commit + git push
-   4b. Claude Code: git pull → 再テスト
-5. Claude Code: 追加の Git 操作（merge, tag 等）があれば実行
+1. Claude.ai: 仕様の壁打ち・設計判断
+2. Claude Code CLI: プロジェクト初期構築、対話的な実装
+3. Claude Code Web: 仕様確定済みタスクを並列送信
+   & "SSOT_*.md を読んでXXX機能を実装して"
+   → クラウドで非同期実行 → 完了後に自動PR作成
+4. Cursor: IDE上でのコード編集、Lint確認、ブラウザ確認
+5. レビュー → マージ
+```
+
+### 並列実行のルール
+
+```
+並列OK:
+  - 異なるSSOTの機能を実装する場合
+  - 異なるファイルを変更する場合
+
+直列必須:
+  - 同じファイルを変更する可能性がある場合
+  - DB マイグレーションを含む場合
+  - 依存関係がある機能同士
 ```
 
 ### 禁止事項
 
 - ローカルコミットのまま引き継がない（push → pull で同期必須）
-- Claude Code がコードの設計判断をしない（実行に徹する）
-- Cursor が重いシェルコマンド（migrate reset, npm ci 等）を実行しない
+- Claude Code CLI / Web がコードの設計判断をしない（実行に徹する）
+- Cursor で重いシェルコマンド（migrate reset, npm ci 等）を実行しない
 
 ---
 
@@ -98,7 +125,9 @@ Cursor と Claude Code は**別のシェルプロセス**で動作するため�
 ```
 0. フレームワーク標準     → docs/standards/
    - マスターガイド       → docs/standards/00_MASTER_GUIDE.md
+   - ツールチェーン定義   → docs/standards/09_TOOLCHAIN.md
    - SSOT 12セクション形式 → docs/standards/12_SSOT_FORMAT.md
+   - ビジュアルテスト     → docs/standards/20_VISUAL_TEST.md
    - AIエスカレーション    → docs/standards/21_AI_ESCALATION.md
 1. PRD（プロダクト要件）   → docs/ssot/SSOT-0_PRD.md [CORE]
 2. 機能台帳               → docs/ssot/SSOT-1_FEATURE_CATALOG.md [CORE]
@@ -142,19 +171,55 @@ Cursor と Claude Code は**別のシェルプロセス**で動作するため�
 
 ---
 
+## 機能実装の実行方法
+
+### 仕様確定済みのタスク → Claude Code Web
+
+```bash
+# CLIから & プレフィックスで Web セッションを作成
+& "docs/SSOT_GENBA_WEEK.md を読んでスケジュール機能を実装して"
+& "docs/SSOT_CALENDAR_SYNC.md を読んでカレンダー連携を実装して"
+
+# 進捗確認
+/tasks
+
+# 完了したセッションをローカルに取り込む
+/teleport
+```
+
+### 対話が必要な作業 → Claude Code CLI
+
+```bash
+claude "認証基盤の設計について相談しながら実装したい"
+claude "デバッグ: ログインAPIが500エラーを返す原因を調査して"
+```
+
+### Git 運用（PR 駆動レビューフロー）
+
+```
+Claude Code Web のタスク完了
+  → 自動PR作成
+  → CI通過確認（typecheck, test, forbidden-operations）
+  → コードレビュー
+  → マージ
+```
+
+---
+
 ## ディレクトリ構造
 
 ```
 /                              ← Nuxt 3 ルート
-├── CLAUDE.md                  ← 本ファイル（Claude Code 用）
+├── CLAUDE.md                  ← 本ファイル（Claude Code CLI / Web 用）
 ├── .cursorrules               ← ガードレール（Cursor 用）
+├── .mcp.json                  ← MCP サーバー設定（Claude Code 用）
 ├── openapi.yaml               ← API仕様
 ├── prisma/
 │   ├── schema.prisma          ← データモデル定義
 │   ├── seed.ts                ← シードデータ
 │   └── migrations/            ← マイグレーション履歴
 ├── docs/
-│   ├── ssot/                  ← SSOT階層（ai-dev-framework v3.0 準拠）
+│   ├── ssot/                  ← SSOT階層（ai-dev-framework v3.3 準拠）
 │   │   ├── SSOT-0_PRD.md
 │   │   └── SSOT-1_FEATURE_CATALOG.md
 │   ├── core/                  ← コア定義（横断ルール）
@@ -162,6 +227,12 @@ Cursor と Claude Code は**別のシェルプロセス**で動作するため�
 │   │   ├── SSOT-3_API_CONTRACT.md
 │   │   ├── SSOT-4_DATA_MODEL.md
 │   │   └── SSOT-5_CROSS_CUTTING.md
+│   ├── standards/             ← フレームワーク標準
+│   │   ├── 00_MASTER_GUIDE.md
+│   │   ├── 09_TOOLCHAIN.md
+│   │   ├── 12_SSOT_FORMAT.md
+│   │   ├── 20_VISUAL_TEST.md
+│   │   └── 21_AI_ESCALATION.md
 │   ├── SSOT_*.md              ← 個別機能仕様（既存形式・維持）
 │   ├── PRODUCT_VISION.md      ← プロダクトビジョン
 │   ├── DONE_DEFINITION.md     ← 完了の定義
@@ -175,7 +246,12 @@ Cursor と Claude Code は**別のシェルプロセス**で動作するため�
 │   └── plugins/               ← Socket.IO 等
 ├── middleware/                ← ルートミドルウェア
 ├── plugins/                   ← クライアントプラグイン
-└── tests/                     ← テスト
+└── tests/
+    ├── *.test.ts              ← ユニット/統合テスト
+    └── visual/                ← ビジュアルテスト（20_VISUAL_TEST.md 準拠）
+        ├── baseline/          ← 基準画像
+        ├── current/           ← 最新スクリーンショット
+        └── reports/           ← テストレポート
 ```
 
 ---
@@ -192,6 +268,7 @@ Cursor と Claude Code は**別のシェルプロセス**で動作するため�
 | ホスティング | ConoHa VPS + Docker + Nginx |
 | CSS | Tailwind CSS |
 | テスト | Vitest 2.1.0 |
+| ビジュアルテスト | Playwright MCP |
 | CI/CD | GitHub Actions |
 
 ---
@@ -222,10 +299,9 @@ type: feat | fix | docs | style | refactor | test | chore
 scope: 機能ID or モジュール名
 ```
 
-### 現在のPhase: Phase 0
-- main 直接 push: 許可
-- PR/レビュー: 任意
-- スピード優先、MVP検証に集中
+### 現在のPhase: Phase 0 → Phase 1 移行準備中
+- Claude Code Web のタスク → 自動PR作成 → レビュー → マージ
+- Claude Code CLI の直接 push も許可（Phase 0 互換）
 
 ---
 
@@ -263,8 +339,11 @@ scope: 機能ID or モジュール名
 ## よくあるタスクの例
 
 ```bash
-# 機能実装
-# → まず SSOT_*.md を読んでから実装
+# 機能実装（仕様確定済み → Claude Code Web）
+& "SSOT_*.md を読んでXXX機能を実装して"
+
+# 機能実装（対話必要 → Claude Code CLI）
+claude "認証基盤の設計について相談しながら実装したい"
 
 # テスト実行
 npm run typecheck && npm run test
@@ -277,4 +356,7 @@ npx prisma db seed
 
 # 開発サーバー起動
 npm run dev
+
+# 品質監査
+framework audit all
 ```

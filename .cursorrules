@@ -5,11 +5,18 @@
 
 ---
 
-## 🔀 ツール境界ルール（Cursor / Claude Code）
+## 🔀 ツール境界ルール（4ツール体制 v3.3）
 
-本プロジェクトでは **Cursor** と **Claude Code** を併用します。
-Cursor と Claude Code は**別のシェルプロセス**で動作するため、
+本プロジェクトでは以下の4ツールを併用します。
+各ツールは**別のシェルプロセス**で動作するため、
 **「編集した側が commit + push まで完了する」**ことを基本原則とします。
+
+| ツール | 用途 | 制約 |
+|--------|------|------|
+| **Claude.ai** | 思考・設計・壁打ち | コード実行不可 |
+| **Claude Code CLI** | 対話型の実装・デバッグ・環境構築 | ターミナル閉じると停止 |
+| **Claude Code Web** | 仕様確定済みタスクの非同期実行 | PCを閉じても継続、完了時に自動PR作成 |
+| **Cursor** | IDE補助（コード編集、Lint確認、ブラウザ確認） | エディタ上の操作 |
 
 ### Cursor の責務
 
@@ -21,51 +28,55 @@ Cursor と Claude Code は**別のシェルプロセス**で動作するため�
 | **UI 開発** | コンポーネント実装、スタイル調整 |
 | **テストコード作成** | テストファイルの作成・編集 |
 | **コードレビュー** | diff の確認、変更のレビュー |
-| **ブラウザ確認** | 画面の動作確認、UI 検証 |
+| **ブラウザ確認** | 画面の動作確認、UI 検証（Playwright MCP） |
 | **Lint / 型エラー確認** | エディタ上でのリアルタイム確認 |
 | **変更の確定** | 編集した変更の `git add` + `git commit` + `git push` |
 
-### Claude Code の責務
+### Claude Code CLI / Web の責務
 
-| カテゴリ | 操作例 |
-|---------|--------|
-| **ビルド・検証** | `npm run typecheck`, `npm run test`, `npm run build` |
-| **DB 操作** | `prisma migrate dev`, `prisma migrate reset`, `prisma db seed`, `prisma generate` |
-| **パッケージ管理** | `npm ci`, `npm install`, `npm audit` |
-| **Git 操作（高度）** | `git merge`, `git rebase`, `git tag`, ブランチ戦略 |
-| **スクリプト実行** | `./scripts/backup-db.sh`, Plane API スクリプト等 |
-| **CI/CD 確認** | `gh run list`, `gh pr status` |
-| **環境構築** | Docker 操作、サーバー起動、環境変数設定 |
-| **同期確認** | `git pull origin main` で Cursor の変更を取得 |
+| カテゴリ | CLI | Web |
+|---------|-----|-----|
+| **ビルド・検証** | `typecheck`, `test`, `build` | 同左 |
+| **DB 操作** | `prisma migrate dev/reset/seed` | 同左 |
+| **パッケージ管理** | `npm ci`, `npm install` | 同左 |
+| **Git 操作（高度）** | `merge`, `rebase`, `tag` | 自動PR作成 |
+| **スクリプト実行** | `./scripts/backup-db.sh` 等 | 同左 |
+| **CI/CD 確認** | `gh run list`, `gh pr status` | 同左 |
+| **環境構築** | Docker, サーバー起動 | 同左 |
+| **機能実装（非同期）** | 対話型 | **仕様確定済み → 非同期実行** |
+| **テスト生成** | 対話型 | **一括生成** |
+| **複数タスク並列** | 不可 | **並列実行OK** |
 
 ### 連携フロー（典型パターン）
 
 ```
-1. Cursor: SSOT を読み、実装方針を決定
-2. Cursor: コード実装・テストコード作成
-3. Cursor: git commit + git push
-4. Claude Code: git pull → npm run typecheck && npm run test
-5. テスト失敗時:
-   5a. Cursor: コード修正 → git commit + git push
-   5b. Claude Code: git pull → 再テスト
-6. Claude Code: 追加の Git 操作（merge, tag 等）があれば実行
+1. Claude.ai: 仕様の壁打ち・設計判断
+2. Cursor: コード実装・テストコード作成 → git commit + git push
+3. Claude Code CLI: git pull → typecheck && test
+4. テスト失敗時:
+   4a. Cursor: コード修正 → git commit + git push
+   4b. Claude Code CLI: git pull → 再テスト
+5. 仕様確定済みタスク → Claude Code Web に並列送信
+   & "SSOT_*.md を読んでXXX機能を実装して"
+   → 完了後に自動PR → レビュー → マージ
 ```
 
 ### 判断基準（迷った場合）
 
 ```
-Q: ファイルの中身を編集する？       → Cursor（commit + push まで完了）
-Q: コードの設計・構造を考える？     → Cursor
-Q: ビルド・テスト実行が必要？       → Claude Code
-Q: DB マイグレーションが必要？      → Claude Code
-Q: ブランチ操作・マージが必要？     → Claude Code
-Q: エラーの原因をコードから調査？   → Cursor
+Q: ファイルの中身を編集する？         → Cursor（commit + push まで完了）
+Q: コードの設計・構造を考える？       → Claude.ai or Cursor
+Q: ビルド・テスト実行が必要？         → Claude Code CLI
+Q: DB マイグレーションが必要？        → Claude Code CLI
+Q: 仕様確定済みの実装タスク？         → Claude Code Web（非同期）
+Q: 複数タスクを並列に進めたい？       → Claude Code Web
+Q: エラーの原因をコードから調査？     → Cursor or Claude Code CLI
 ```
 
 ### 禁止事項
 
 - **ローカルコミットのまま相手に引き継ぐ**ことを禁止（必ず push → pull で同期）
-- **Claude Code でのコード設計判断**を避ける（実行に徹し、判断は Cursor 側）
+- **Claude Code CLI / Web でのコード設計判断**を避ける（実行に徹し、判断は Claude.ai / Cursor 側）
 - **Cursor での重いシェルコマンド実行**を避ける（migrate reset, npm ci 等）
   - 例外: `git commit`, `git push`, 軽量な確認コマンド（`git status` 等）は許可
 
@@ -82,7 +93,7 @@ Q: エラーの原因をコードから調査？   → Cursor
 Phase 1 開始時は以下を実行:
 1. GitHub main保護を厳格化
 2. この「現在のPhase」を更新
-3. `>> write PHASE1_MIGRATION` で移行手順を確認
+3. PHASE1_MIGRATION 移行手順を確認
 
 ---
 
@@ -197,7 +208,7 @@ schema.prisma を変更して、migration.sql を作成しない
 #### ✅ 必須
 - 変更は「定義 → 実装」の順
 - 型変更時は影響範囲を確認
-- SSOT変更時は `>> rfv` で検証
+- SSOT変更時は実装検証を実施
 
 ---
 
@@ -258,200 +269,9 @@ schema.prisma を変更して、migration.sql を作成しない
 
 ---
 
-## 🏷️ タグ方式コマンド（ワークフロー起動）
+## 📖 参照ドキュメント
 
-このプロジェクトでは、**会話ベースの開発フローに「軽量コマンド」を埋め込む**ことで、一貫したインターフェースで作業を進めます。
-
-### 基本コンセプト
-
-- **先頭に `>>` を付けたタグコマンド**で、AIの挙動モード（仕様作成／実装／修正など）を明示
-- タグなし = 通常の設計ディスカッション・質問
-- タグあり = 機械的ワークフローを起動
-
----
-
-### `>> write` - SSOT新規作成
-
-**用途**: 新しいSSOTドキュメントを作成
-
-**入力例**:
-```
->> write SSOT_GENBA_STOCK
-```
-
-**振る舞い**:
-1. 既存SSOT（`docs/SSOT_GENBA_WEEK.md`）と実装コードを調査
-2. SSOTテンプレートに沿って新規ドキュメントを作成
-3. 品質チェックリスト（必要なら参照）でセルフレビュー
-4. 作成後、`docs/INDEX_WEAK_CURRENT.md` に追記
-
-**制約**:
-- マルチテナント原則を前提
-- 既存SSOTとの整合性を必ず確認
-
----
-
-### `>> impl` - SSOT実装
-
-**用途**: SSOTに基づいて実装を行う
-
-**入力例**:
-```
->> impl SSOT_GENBA_WEEK
-```
-
-**振る舞い**:
-1. 該当SSOTを読み込み、要件IDを抽出
-2. 既存実装の有無をスキャン（`server/api/`, `components/` など）
-3. 実装プラン（Item/Step）を提示 → **ユーザー承認必須**
-4. 承認後、SSOT準拠の実装を行う
-5. テスト作成・実行（`docs/TEST_STRATEGY.md` 参照）
-   - `npm run typecheck` **必須**
-   - `npm run test` **必須**（Phase 0: 認証・マルチテナント境界のユニットテスト）
-6. Evidence提出
-   - テスト結果の出力（またはスクリーンショット）を報告に含める
-7. Plane Issue を更新（可能なら）
-
-**制約**:
-- 実装前に必ずSSOTを**最後まで読む**
-- `requireAuth()` / `organizationId` フィルタ必須
-- 生SQL禁止
-- 実装完了までユーザー承認なしに進めない
-
----
-
-### `>> fix` - バグ修正
-
-**用途**: SSOT準拠の観点からバグを修正
-
-**入力例**:
-```
->> fix SSOT_GENBA_WEEK スケジュール削除エラー
-```
-
-**振る舞い**:
-1. 該当SSOTと現行実装を突き合わせ
-2. 「どこがSSOTと矛盾しているか」を整理
-3. 原因調査（15分以内に特定できない場合は停止して報告）
-4. 修正方針を提案 → **ユーザー承認必須**
-5. 承認後、修正実施
-6. テスト実行・Evidence提出
-
-**制約**:
-- Implementation Halt Protocol を前提
-- 「闇雲に直す」のを防ぐため、必ず原因特定してから修正
-
----
-
-### `>> rfv` - SSOT実装検証（Review）
-
-**用途**: SSOTと実装のカバレッジ・ギャップを可視化
-
-**入力例**:
-```
->> rfv SSOT_GENBA_WEEK
-```
-
-**振る舞い**:
-1. SSOTに定義された要件IDとコード・挙動を突き合わせ
-2. **カバレッジ**（どこまで実装済み）と**ギャップ**（どこが未実装）を可視化
-3. レポートを生成（`reports/` または チャット内）
-
-**重要**:
-- このタグは「仕様 vs 実装の差分」確認用
-- **進捗の正はあくまで Plane**（このタグの結果を進捗根拠にしない）
-
----
-
-### `>> next` - 次タスク選定
-
-**用途**: Planeから次に着手すべきIssueを選定
-
-**入力例**:
-```
->> next
-```
-
-**振る舞い**:
-1. `scripts/plane-lib/list-issues.cjs` 実行（Plane API経由）
-2. 依存関係・Phase・優先度を分析
-3. 「今着手すべき Issue」を提案
-4. **ユーザー承認後**、Issueを "In Progress" に更新
-
-**制約**:
-- AIが勝手にタスクを選ばない
-- Planeの状態に沿ったロードマップ運用を強制
-
----
-
-### `>> prmt` - プロンプト生成
-
-**用途**: 実装AI向けの詳細プロンプトを生成
-
-**入力例**:
-```
->> prmt WBS-12
-```
-
-**振る舞い**:
-1. Plane から対象 Issue の詳細を取得
-2. 関連するSSOT / ガードレール / 標準テンプレートを読み込み
-3. 実装AI用の詳細プロンプト（Item/Step構造・Evidence要件・停止トリガーなどを含む）を**チャット内にだけ**生成
-4. **プロンプトはファイル保存せず**、コピペ運用
-
-**制約**:
-- プロンプトを `docs/` に保存しない（Docs化禁止）
-- 一時的な作業指示であり、SSOTとは別レイヤー
-
----
-
-## 🔄 タグ方式の運用ルール
-
-### 1. タグは「フェーズ切り替えスイッチ」
-
-- **仕様作成フェーズ** → `>> write`
-- **仕様実装フェーズ** → `>> impl`
-- **バグ修正フェーズ** → `>> fix`
-- **検証フェーズ** → `>> rfv`
-- **タスク選定フェーズ** → `>> next`
-- **プロンプト生成フェーズ** → `>> prmt`
-
-### 2. タグごとに「標準フロー」が決まっている
-
-- `>> write`: 調査 → SSOTドラフト → 品質チェック
-- `>> impl`: SSOT読了 → 既存実装スキャン → 実装プラン → 承認 → 実装 → テスト
-- `>> fix`: SSOT照合 → 原因調査 → 修正方針 → 承認 → 修正 → テスト
-- `>> rfv`: SSOT読了 → コードスキャン → カバレッジレポート
-- `>> next`: Plane問い合わせ → 候補提示 → ユーザー合意 → Issue更新
-- `>> prmt`: Plane取得 → SSOT読了 → プロンプト生成
-
-### 3. 進捗の正は Plane
-
-- `>> next` / `>> prmt` / `>> impl` など、進捗やスコープ判断が必要なタグは、必ず Plane API 経由で Issue 状態を取得
-- **SSOT内の「実装状況」テキストは進捗根拠に使わない**
-
-### 4. 通常会話との分離
-
-- **タグなし**: 自由なディスカッション、設計相談、質問
-- **`>>` 付き**: 機械的ワークフローを起動する合図
-
----
-
-### 5. 自然言語からタグへの変換
-
-ユーザーが以下のように言った場合、**対象SSOTを自動特定してタグを返す**：
-
-| ユーザー発言 | AI応答 |
-|-------------|--------|
-| 「監査して」「厳しくチェックして」 | 直近で実装したSSOTを特定し `>> rfv SSOT_XXX` を提示 |
-| 「次のタスクは？」 | `>> next` を提示 |
-| 「バグを直して」 | 関連するSSOTを特定し `>> fix SSOT_XXX <問題概要>` を提示 |
-
-**対象SSOT特定の優先順位**:
-1. 直前の会話で言及されたSSSOT
-2. 直近で `>> impl` されたSSSOT（INDEX_WEAK_CURRENT.md の更新日時）
-3. 不明な場合は候補を列挙してユーザーに確認
-
----
-
-詳細は `docs/TAG_COMMANDS.md` を参照してください。
+- フレームワーク標準: `docs/standards/`
+- ツールチェーン定義: `docs/standards/09_TOOLCHAIN.md`
+- ビジュアルテスト: `docs/standards/20_VISUAL_TEST.md`
+- 品質管理概要: `docs/QUALITY_MANAGEMENT_OVERVIEW.md`

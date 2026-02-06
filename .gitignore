@@ -16,3 +16,7 @@ yarn-error.log*
 
 # Claude Code prompts
 .claude/
+
+# Visual test generated files (baseline is tracked)
+tests/visual/current/
+tests/visual/diff/

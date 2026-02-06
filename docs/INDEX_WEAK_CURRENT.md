@@ -40,7 +40,6 @@ docs/
 │   ├── BRANCH_AND_RELEASE.md
 │   ├── DONE_DEFINITION.md
 │   ├── GITHUB_SETUP_GUIDE.md
-│   └── TAG_COMMANDS.md 🏷️ タグ方式コマンド（NEW）
 │
 ├── 4. AI役割分担システム 🤖 （NEW）
 │   └── AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md - 戦略コンテキスト（初回共有）
@@ -214,26 +213,6 @@ docs/
 
 ---
 
-#### 🏷️ `TAG_COMMANDS.md` - タグ方式コマンド（NEW）
-
-**対象**: 設計AI、実装AI、開発者全員
-
-**内容**:
-- タグ方式とは何か
-- 全6タグの詳細仕様
-  - `>> write` - SSOT新規作成
-  - `>> impl` - SSOT実装
-  - `>> fix` - バグ修正
-  - `>> rfv` - SSOT実装検証
-  - `>> next` - 次タスク選定
-  - `>> prmt` - プロンプト生成
-- 運用ルール
-- フェーズ別使用例
-
-**読むタイミング**: AI駆動開発を始める前
-
----
-
 ### 4️⃣ AI役割分担システム 🤖
 
 #### 🚀 `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md` - 戦略コンテキスト（NEW）
@@ -291,12 +270,11 @@ docs/
 ### 🔰 新規参加者（開発者）
 
 1. `SSOT_GENBA_WEEK.md` - **必読**
-2. `TAG_COMMANDS.md` - **タグ方式の理解**
-3. `QUALITY_MANAGEMENT_OVERVIEW.md`
-4. `DONE_DEFINITION.md`
-5. `TEST_STRATEGY.md`
-6. `BRANCH_AND_RELEASE.md`
-7. `phase0_weak_current_spec.md`（実装開始時）
+2. `QUALITY_MANAGEMENT_OVERVIEW.md`
+3. `DONE_DEFINITION.md`
+4. `TEST_STRATEGY.md`
+5. `BRANCH_AND_RELEASE.md`
+6. `phase0_weak_current_spec.md`（実装開始時）
 
 ---
 
@@ -323,10 +301,9 @@ docs/
 1. `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md` - **戦略コンテキスト**
 2. `SSOT_GENBA_WEEK.md` - **メインSSOT**
 3. `.cursorrules` - **開発ルール**
-4. `TAG_COMMANDS.md` - **タグ方式の詳細**
-5. `QUALITY_MANAGEMENT_OVERVIEW.md`
-6. `DONE_DEFINITION.md`
-7. `TEST_STRATEGY.md`
+4. `QUALITY_MANAGEMENT_OVERVIEW.md`
+5. `DONE_DEFINITION.md`
+6. `TEST_STRATEGY.md`
 
 ---
 
@@ -420,7 +397,6 @@ docs/
 | `DONE_DEFINITION.md` | ✅ 完成 | 2025-12-07 |
 | `GITHUB_SETUP_GUIDE.md` | ✅ 完成 | 2025-12-07 |
 | `DEVELOPMENT_RULES_PACK_COMPLETE.md` | ✅ 完成 | 2025-12-07 |
-| `TAG_COMMANDS.md` | ✅ 完成 | 2025-12-07 |
 | `GITHUB_OPERATIONS_GUIDE.md` | ✅ 完成 | 2025-01-10 |
 | `AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md` | ✅ 完成 | 2026-01-03 |
 | `phase0_weak_current_spec.md` | ✅ 完成 | 2025-12-07 |
