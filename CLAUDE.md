@@ -9,41 +9,45 @@
 ## ツール境界ルール（Claude Code / Cursor）
 
 本プロジェクトでは **Claude Code** と **Cursor** を併用する。
-**Claude Code で実行できる操作は Claude Code で実行する**ことが基本原則。
+Cursor と Claude Code は**別のシェルプロセス**で動作するため、
+**「編集した側が commit + push まで完了する」**ことが基本原則。
 
 ### Claude Code の責務（自分がやること）
 
-- **Git 操作**: commit, merge, push, branch, rebase, tag
-- **パッケージ管理**: npm ci, npm install, npm audit
-- **DB 操作**: prisma migrate dev/deploy/reset, prisma db seed, prisma generate
 - **ビルド・検証**: npm run typecheck, npm run test, npm run build
+- **DB 操作**: prisma migrate dev/deploy/reset, prisma db seed, prisma generate
+- **パッケージ管理**: npm ci, npm install, npm audit
+- **Git 操作（高度）**: merge, rebase, tag, ブランチ戦略
 - **スクリプト実行**: backup/restore, Plane API スクリプト
 - **CI/CD 確認**: gh run list, gh pr status
 - **環境構築**: Docker, サーバー起動
+- **同期確認**: `git pull origin main` で Cursor の変更を取得
 
 ### Cursor の責務（Cursor に任せること）
 
 - **コード編集**: 実装、修正、リファクタリング
-- **SSOT / ドキュメント編集**: 仕様書の作成・更新
+- **ドキュメント編集**: SSOT・仕様書の作成・更新
 - **設計・相談**: アーキテクチャ、技術選定
 - **UI 開発**: コンポーネント、スタイル
-- **ブラウザ確認**: 画面動作確認
-- **Lint 確認**: エディタ上のリアルタイム確認
+- **変更の確定**: 編集した変更の git commit + git push
 
 ### 連携フロー
 
 ```
 1. Cursor: SSOT を読み、実装方針を決定
-2. Cursor: コード実装・テストコード作成
-3. Claude Code: npm run typecheck && npm run test
-4. Cursor: テスト失敗時のコード修正
-5. Claude Code: 再テスト → git commit → git push
+2. Cursor: コード実装・テストコード作成 → git commit + git push
+3. Claude Code: git pull → npm run typecheck && npm run test
+4. テスト失敗時:
+   4a. Cursor: コード修正 → git commit + git push
+   4b. Claude Code: git pull → 再テスト
+5. Claude Code: 追加の Git 操作（merge, tag 等）があれば実行
 ```
 
 ### 禁止事項
 
+- ローカルコミットのまま引き継がない（push → pull で同期必須）
 - Claude Code がコードの設計判断をしない（実行に徹する）
-- Cursor が重いシェルコマンド（migrate reset, npm ci 等）を直接実行しない
+- Cursor が重いシェルコマンド（migrate reset, npm ci 等）を実行しない
 
 ---
 

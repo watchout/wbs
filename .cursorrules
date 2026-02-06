@@ -8,65 +8,66 @@
 ## 🔀 ツール境界ルール（Cursor / Claude Code）
 
 本プロジェクトでは **Cursor** と **Claude Code** を併用します。
-**Claude Code で実行できる操作は Claude Code で実行する**ことを基本原則とします。
+Cursor と Claude Code は**別のシェルプロセス**で動作するため、
+**「編集した側が commit + push まで完了する」**ことを基本原則とします。
 
-### Claude Code の責務（ターミナル・システム操作）
-
-以下は **Claude Code で実行**してください。Cursor から直接実行しないこと。
-
-| カテゴリ | 操作例 |
-|---------|--------|
-| **Git 操作** | `git commit`, `git merge`, `git push`, ブランチ操作全般 |
-| **パッケージ管理** | `npm ci`, `npm install`, `npm audit` |
-| **DB 操作** | `prisma migrate dev`, `prisma migrate reset`, `prisma db seed`, `prisma generate` |
-| **ビルド・検証** | `npm run typecheck`, `npm run test`, `npm run build` |
-| **スクリプト実行** | `./scripts/backup-db.sh`, Plane API スクリプト等 |
-| **CI/CD 確認** | `gh run list`, `gh pr status` |
-| **ファイル操作（大量）** | ディレクトリ構造変更、ファイル移動・リネーム |
-| **環境構築** | Docker 操作、サーバー起動、環境変数設定 |
-
-### Cursor の責務（IDE・コード編集）
-
-以下は **Cursor で実行**してください。
+### Cursor の責務
 
 | カテゴリ | 操作例 |
 |---------|--------|
 | **コード編集** | 新規実装、バグ修正、リファクタリング |
-| **コードレビュー** | diff の確認、変更のレビュー |
-| **SSOT / ドキュメント編集** | 仕様書の作成・更新 |
+| **ドキュメント編集** | SSOT・仕様書の作成・更新 |
 | **設計・相談** | アーキテクチャ設計、技術選定の議論 |
 | **UI 開発** | コンポーネント実装、スタイル調整 |
-| **テストコード作成** | テストファイルの作成・編集（実行は Claude Code） |
+| **テストコード作成** | テストファイルの作成・編集 |
+| **コードレビュー** | diff の確認、変更のレビュー |
 | **ブラウザ確認** | 画面の動作確認、UI 検証 |
 | **Lint / 型エラー確認** | エディタ上でのリアルタイム確認 |
+| **変更の確定** | 編集した変更の `git add` + `git commit` + `git push` |
 
-### 判断基準（迷った場合）
+### Claude Code の責務
 
-```
-Q: ターミナルコマンドの実行が必要？ → Claude Code
-Q: ファイルの中身を編集する？       → Cursor
-Q: 外部サービスとの通信が必要？     → Claude Code
-Q: コードの設計・構造を考える？     → Cursor
-Q: 実行結果の確認が必要？           → Claude Code
-Q: エラーの原因をコードから調査？   → Cursor（→ 修正後の検証は Claude Code）
-```
+| カテゴリ | 操作例 |
+|---------|--------|
+| **ビルド・検証** | `npm run typecheck`, `npm run test`, `npm run build` |
+| **DB 操作** | `prisma migrate dev`, `prisma migrate reset`, `prisma db seed`, `prisma generate` |
+| **パッケージ管理** | `npm ci`, `npm install`, `npm audit` |
+| **Git 操作（高度）** | `git merge`, `git rebase`, `git tag`, ブランチ戦略 |
+| **スクリプト実行** | `./scripts/backup-db.sh`, Plane API スクリプト等 |
+| **CI/CD 確認** | `gh run list`, `gh pr status` |
+| **環境構築** | Docker 操作、サーバー起動、環境変数設定 |
+| **同期確認** | `git pull origin main` で Cursor の変更を取得 |
 
 ### 連携フロー（典型パターン）
 
 ```
 1. Cursor: SSOT を読み、実装方針を決定
 2. Cursor: コード実装・テストコード作成
-3. Claude Code: npm run typecheck && npm run test
-4. Cursor: テスト失敗時のコード修正
-5. Claude Code: 再テスト → git commit → git push
+3. Cursor: git commit + git push
+4. Claude Code: git pull → npm run typecheck && npm run test
+5. テスト失敗時:
+   5a. Cursor: コード修正 → git commit + git push
+   5b. Claude Code: git pull → 再テスト
+6. Claude Code: 追加の Git 操作（merge, tag 等）があれば実行
+```
+
+### 判断基準（迷った場合）
+
+```
+Q: ファイルの中身を編集する？       → Cursor（commit + push まで完了）
+Q: コードの設計・構造を考える？     → Cursor
+Q: ビルド・テスト実行が必要？       → Claude Code
+Q: DB マイグレーションが必要？      → Claude Code
+Q: ブランチ操作・マージが必要？     → Claude Code
+Q: エラーの原因をコードから調査？   → Cursor
 ```
 
 ### 禁止事項
 
-- **Cursor でのシェルコマンド直接実行**を避ける
-  - 例外: 軽量な確認コマンド（`ls`, `git status` 等）は許可
-- **Claude Code でのコード設計判断**を避ける
-  - Claude Code は「実行」に徹し、「判断」は Cursor 側で行う
+- **ローカルコミットのまま相手に引き継ぐ**ことを禁止（必ず push → pull で同期）
+- **Claude Code でのコード設計判断**を避ける（実行に徹し、判断は Cursor 側）
+- **Cursor での重いシェルコマンド実行**を避ける（migrate reset, npm ci 等）
+  - 例外: `git commit`, `git push`, 軽量な確認コマンド（`git status` 等）は許可
 
 ---
 
