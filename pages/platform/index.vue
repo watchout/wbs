@@ -1,9 +1,5 @@
 <template>
   <div class="platform-dashboard">
-    <template #header-title>
-      ダッシュボード
-    </template>
-
     <div v-if="loading" class="loading">読み込み中...</div>
 
     <div v-else class="dashboard-content">

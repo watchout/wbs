@@ -143,6 +143,8 @@ Web → CLI: /teleport  または  claude --teleport
    - 共通ヘッダー・設定   → docs/SSOT_APP_HEADER.md
    - MVP拡張              → docs/SSOT_MVP_EXTEND.md
    - UIナビゲーション     → docs/SSOT_UI_NAVIGATION.md
+   - Stripe決済統合       → docs/SSOT_BILLING.md
+   - 料金体系             → docs/SSOT_PRICING.md
 5. API仕様               → openapi.yaml
 6. データモデル           → prisma/schema.prisma
 7. 品質・運用             → docs/DONE_DEFINITION.md
@@ -163,10 +165,21 @@ Web → CLI: /teleport  または  claude --teleport
    - .cursorrules のガードレールに従う
    - organizationId スコープ必須
    - requireAuth() 使用必須
-5. テスト
-   - npm run typecheck 必須
-   - npm run test 必須
-6. 仕様書のテストケース / 受入条件で検証
+5. テスト（★ 省略禁止 ★）
+   - npm run typecheck → 必ず実行、エラー0で通過
+   - npm run test → 必ず実行、全テスト通過
+   - 新規 API には統合テストを追加（TEST_STRATEGY.md 参照）
+6. ブラウザ確認（★ 省略禁止 ★）
+   - 実装した画面を実際にブラウザで開いて動作確認
+   - コンソールエラーがないことを確認
+   - 20_VISUAL_TEST.md の Level 1 を満たすこと
+7. 仕様書のテストケース / 受入条件で検証
+
+### ★ テスト省略時の処理 ★
+
+Step 5-6 を省略した場合、その実装は「未完了」とみなす。
+DoD（docs/DONE_DEFINITION.md）の Level 2 基準を満たさない PR は
+マージ禁止とする。
 ```
 
 ---
@@ -300,9 +313,27 @@ scope: 機能ID or モジュール名
 ```
 
 ### 現在のPhase: Phase 1
-- main への直接 push: ❌ 禁止
-- 全ての変更は PR 経由で実施
-- CI 通過必須（typecheck, test, build）
+- main への直接 push: ❌ **絶対禁止**（admin 権限でもバイパス不可）
+- 全ての変更は **PR 経由** で実施（例外なし）
+- CI 通過必須（typecheck, test, build, forbidden-operations）
+- PR マージ前に最低1名のレビュー必須
+
+### Git フロー（必須）
+
+```
+1. feature ブランチ作成: git checkout -b feat/<機能名>
+2. 実装・コミット（小さく頻繁に）
+3. push: git push -u origin HEAD
+4. PR 作成: gh pr create --base main
+5. CI 通過を確認
+6. レビュー・承認
+7. マージ（Squash and merge 推奨）
+```
+
+**違反チェック**: 以下のコミットパターンは Phase 1 違反
+- `git push origin main` → ❌ 禁止
+- PR なしのマージコミット → ❌ 禁止
+- CI 未通過の PR マージ → ❌ 禁止
 
 ---
 

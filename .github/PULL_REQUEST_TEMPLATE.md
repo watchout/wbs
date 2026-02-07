@@ -1,88 +1,85 @@
 # Pull Request
 
-## 📋 概要
+## 概要
 
 <!-- このPRで何を実現するか、1-2文で簡潔に説明 -->
 
 ---
 
-## 🎯 参照SSOT
+## 参照 SSOT
 
 <!-- 必須: このPRがどのSSOTに基づくかを明記 -->
 
-**SSOT**: `docs/SSOT_GENBA_WEEK.md` または該当ドキュメント
-
-**要件ID**: <!-- 例: P0-1.2 週間ボード表示機能 -->
-
----
-
-## 🔗 Plane Issue
-
-<!-- 必須: 対応するPlane IssueのURL -->
-
-**Issue**: https://plane.arrowsworks.com/co/projects/WBS/issues/WBS-XX
+**SSOT**: <!-- 例: docs/SSOT_BILLING.md -->
+**要件ID**: <!-- 例: BILLING-001 US-1 -->
 
 ---
 
-## 🧪 テスト・証跡
+## Plane / GitHub Issue
 
-<!-- 必須: 実行したコマンドと結果を貼り付け -->
+<!-- 必須: 対応するIssueのURL -->
 
-### 実行コマンド
+**Issue**: <!-- 例: https://plane.arrowsworks.com/co/projects/WBS/issues/WBS-XX -->
+
+---
+
+## テスト証跡（省略禁止）
+
+### 1. typecheck 結果
 
 ```bash
-# 開発サーバー起動
-npm run dev
+npm run typecheck
+# ここに出力を貼り付け（エラー 0 であること）
 ```
 
-### 実行結果
+### 2. test 結果
 
+```bash
+npm run test
+# ここに出力を貼り付け（全テスト通過であること）
 ```
-✔ Nuxt 3 server started
-```
+
+### 3. ブラウザ確認（UI変更がある場合）
+
+<!-- スクリーンショットまたは動作確認の記録 -->
+<!-- コンソールエラーがないことを確認 -->
 
 ---
 
-## 🚨 禁止パターンチェック
+## DoD チェックリスト（Phase 1 - Level 2）
 
-- [ ] ✅ DBスキーマ変更なし（`prisma/schema.prisma` 未変更）
-- [ ] ✅ マイグレーションファイル作成なし
-- [ ] ✅ `organizationId` によるテナント分離を徹底
-- [ ] ✅ `requireAuth()` を使用（直接JWTデコード禁止）
-- [ ] ✅ 生SQLクエリなし（Prisma ORM使用）
+### 必須（全項目チェック必須。未チェックの PR はマージ禁止）
 
----
-
-## 📝 チェックリスト
-
-### コード品質
-
-- [ ] TypeScript型エラーなし
-- [ ] Lintエラーなし
-- [ ] ビルド成功
-
-### テスト
-
-- [ ] ブラウザでの動作確認
-- [ ] エラーケースのテスト
-
----
-
-## ✅ DoD（完了の定義）
-
-<!-- 詳細は docs/DONE_DEFINITION.md を参照 -->
-
-- [ ] Issue・タスクと紐付け
-- [ ] SSOT との整合性確認
+- [ ] Issue・タスクと紐付け済み
+- [ ] SSOT との整合性を確認済み
 - [ ] .cursorrules 準拠
-- [ ] CI 全グリーン
-- [ ] テスト追加・実行済み
-- [ ] ドキュメント更新済み
-- [ ] 証跡（コマンド + ログ）添付
-- [ ] レビュー依頼済み
+  - [ ] 生 SQL なし（Prisma ORM のみ）
+  - [ ] `organizationId` スコープ適用
+  - [ ] `requireAuth()` 使用
+  - [ ] `any` 型なし
+  - [ ] `console.log` なし（構造化ロガー使用）
+- [ ] `npm run typecheck` 通過（エラー 0）
+- [ ] `npm run test` 通過（全テスト通過）
+- [ ] ブラウザ動作確認済み（UI 変更がある場合）
+- [ ] ドキュメント更新済み（仕様変更がある場合）
+- [ ] テスト証跡を上記に貼り付け済み
 
-**参考**: [完了の定義（DoD）](../docs/DONE_DEFINITION.md)
+### スキーマ変更がある場合（追加チェック）
+
+- [ ] `prisma/schema.prisma` を編集済み
+- [ ] `npx prisma migrate dev --name <変更内容>` でマイグレーション作成済み
+- [ ] マイグレーションファイルをコミット済み
+- [ ] `prisma/seed.ts` を必要に応じて更新済み
 
 ---
 
-**このPRテンプレートは、AI駆動開発における品質保証のために作成されました。**
+## 禁止パターンチェック
+
+- [ ] `$queryRaw` / `$executeRaw` なし
+- [ ] 既存マイグレーションファイルの変更なし
+- [ ] 環境変数のハードコードなし
+- [ ] エラーの握りつぶしなし
+
+---
+
+**参考**: [完了の定義（DoD）](../docs/DONE_DEFINITION.md) | [テスト戦略](../docs/TEST_STRATEGY.md)
