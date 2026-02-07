@@ -66,7 +66,7 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'platform' as 'default',  // platform layout added - needs nuxt prepare
-  middleware: 'platformAdmin' as 'auth',  // platformAdmin middleware added - needs nuxt prepare
+  middleware: 'platform-admin',
 })
 
 const router = useRouter()
