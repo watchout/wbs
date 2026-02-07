@@ -3,6 +3,8 @@
  *
  * AI クレジット追加パックの購入（Stripe Checkout Session 作成）
  * 認証必須: ADMIN のみ
+ *
+ * v2.0: 追加パックは買い切り（一回払い）に変更
  */
 
 import { defineEventHandler, readBody, createError } from 'h3'
@@ -37,22 +39,22 @@ export default defineEventHandler(async (event) => {
 
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000'
 
-  // 追加パックはサブスクリプションに追加（既存のサブスクリプションに add-on として）
+  // v2.0: 追加パックは買い切り（一回払い）
   const session = await stripe.checkout.sessions.create({
     customer: org.stripeCustomerId,
-    mode: 'subscription',
+    mode: 'payment', // subscription → payment に変更
     line_items: [{ price: packPriceId, quantity: 1 }],
-    subscription_data: {
-      metadata: {
-        organizationId: auth.organizationId,
-        type: 'credit_pack',
-      },
-    },
     success_url: `${baseUrl}/admin/billing?credits_purchased=true`,
     cancel_url: `${baseUrl}/admin/billing`,
     metadata: {
       organizationId: auth.organizationId,
       type: 'credit_pack',
+    },
+    payment_intent_data: {
+      metadata: {
+        organizationId: auth.organizationId,
+        type: 'credit_pack',
+      },
     },
   })
 

@@ -25,33 +25,53 @@ vi.mock('./prisma', () => ({
   prisma: mockPrisma,
 }))
 
+// SSOT_PRICING.md v2.0 準拠
 vi.mock('./stripe', () => ({
   stripe: {},
   PLAN_LIMITS: {
     STARTER: {
       maxUsers: 10,
-      monthlyAiCredits: 0,
-      features: ['weekly_board', 'department_filter', 'realtime_sync'],
+      monthlyAiCredits: 150,
+      monthlyPrice: 14800,
+      annualPrice: 148000,
+      features: [
+        'weekly_board', 'department_filter', 'realtime_sync',
+        'ai_voice_input', 'ai_text_input', 'ai_summary', 'ai_consult', 'ai_schedule',
+      ],
     },
     BUSINESS: {
       maxUsers: 30,
-      monthlyAiCredits: 50,
+      monthlyAiCredits: 400,
+      monthlyPrice: 39800,
+      annualPrice: 398000,
       features: [
         'weekly_board', 'department_filter', 'realtime_sync',
-        'signage_mode', 'calendar_sync', 'ai_voice_input',
-        'history_export',
+        'ai_voice_input', 'ai_text_input', 'ai_summary', 'ai_consult', 'ai_schedule',
+        'signage_mode', 'calendar_sync', 'history_export',
       ],
     },
     ENTERPRISE: {
       maxUsers: 100,
       monthlyAiCredits: -1,
+      monthlyPrice: 79800,
+      annualPrice: null,
       features: [
         'weekly_board', 'department_filter', 'realtime_sync',
-        'signage_mode', 'calendar_sync', 'ai_voice_input',
-        'history_export', 'api_access', 'sso_saml',
-        'multi_site', 'custom',
+        'ai_voice_input', 'ai_text_input', 'ai_summary', 'ai_consult', 'ai_schedule',
+        'signage_mode', 'calendar_sync', 'history_export',
+        'api_access', 'sso_saml', 'multi_site', 'custom',
       ],
     },
+  },
+  LAUNCH_COHORTS: [
+    { maxOrgs: 10, discountPercent: 40, couponId: 'cohort_1_40off' },
+    { maxOrgs: 20, discountPercent: 25, couponId: 'cohort_2_25off' },
+    { maxOrgs: 30, discountPercent: 10, couponId: 'cohort_3_10off' },
+  ],
+  CREDIT_PACKS: {
+    LIGHT: { credits: 100, price: 1500 },
+    STANDARD: { credits: 300, price: 3500 },
+    PRO: { credits: 1000, price: 9800 },
   },
 }))
 
@@ -178,7 +198,7 @@ describe('planLimits', () => {
     it('should pass when credits available', async () => {
       mockPrisma.aiCreditBalance.findUnique.mockResolvedValue({
         balance: 10,
-        monthlyGrant: 50,
+        monthlyGrant: 150, // v2.0: Starter has 150 credits
       })
 
       await expect(
@@ -200,7 +220,7 @@ describe('planLimits', () => {
     it('should throw 402 when no credits', async () => {
       mockPrisma.aiCreditBalance.findUnique.mockResolvedValue({
         balance: 0,
-        monthlyGrant: 50,
+        monthlyGrant: 150, // v2.0: Starter has 150 credits
       })
 
       await expect(

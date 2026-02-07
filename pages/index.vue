@@ -1080,19 +1080,20 @@ const userTiers = {
   enterprise: { label: 'エンタープライズ（100名以上）', users: 999 }
 }
 
-// ミエルボード: SSOT_PRICING.md 準拠（3プラン制）
+// ミエルボード: SSOT_PRICING.md v2.0 準拠（3プラン制）
 // 他製品: Coming Soon（将来的に個別 SSOT で確定）
 const productPrices = {
-  board: { starter: 9800, business: 29800, professional: 59800, enterprise: null },
+  board: { starter: 14800, business: 39800, professional: 79800, enterprise: null },
   stock: { starter: 9800, business: 19800, professional: 39800, enterprise: null },
   drive: { starter: 4900, business: 9900, professional: 19900, enterprise: null },
   file: { starter: 9800, business: 19800, professional: 39800, enterprise: null }
 }
 
+// v2.0: 全プランAI搭載
 const aiCredits: Record<string, number | string> = {
-  starter: 0,
-  business: 50,
-  professional: 50,
+  starter: 150,
+  business: 400,
+  professional: '無制限',
   enterprise: '無制限'
 }
 
@@ -1140,15 +1141,15 @@ const discountRate = computed(() => {
   return 0
 })
 
-// プランデータ
+// プランデータ（SSOT_PRICING.md v2.0 準拠）
 const planData = {
   starter: {
     id: 'starter',
-    name: 'スターター',
+    name: 'Starter',
     target: '個人事業主・小規模チーム（1〜10名）向け',
-    price: 9800,
-    originalPrice: 9800,
-    aiCredits: 100,
+    price: 14800,
+    originalPrice: 14800,
+    aiCredits: 150,
     pains: [
       'ホワイトボードの書き換えが面倒',
       '外出先から予定が確認できない',
@@ -1170,11 +1171,11 @@ const planData = {
   },
   business: {
     id: 'business',
-    name: 'ビジネス',
+    name: 'Business',
     target: '成長中の中小企業（10〜30名）向け',
-    price: 19800,
-    originalPrice: 19800,
-    aiCredits: 500,
+    price: 39800,
+    originalPrice: 39800,
+    aiCredits: 400,
     pains: [
       '部門ごとの予定管理が煩雑',
       '複数拠点での情報共有が難しい',
@@ -1197,12 +1198,12 @@ const planData = {
   },
   professional: {
     id: 'professional',
-    name: 'プロフェッショナル',
+    name: 'Enterprise',
     badge: '🏆 人気No.1',
     target: '本格導入を目指す企業（30〜100名）向け',
-    price: 39800,
-    originalPrice: 39800,
-    aiCredits: 2000,
+    price: 79800,
+    originalPrice: 79800,
+    aiCredits: '無制限',
     pains: [
       '現場・車両・在庫がバラバラで把握できない',
       'レポート作成に毎週何時間もかかる',

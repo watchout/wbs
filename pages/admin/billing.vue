@@ -106,8 +106,8 @@
             <div class="pack-cards">
               <div v-for="pack in creditPacks" :key="pack.name" class="pack-card">
                 <h4>{{ pack.name }}</h4>
-                <div class="pack-credits">+{{ pack.credits }}回/月</div>
-                <div class="pack-price">¥{{ pack.price.toLocaleString() }}/月</div>
+                <div class="pack-credits">+{{ pack.credits }}回</div>
+                <div class="pack-price">¥{{ pack.price.toLocaleString() }}（買い切り）</div>
                 <button
                   class="btn btn-sm btn-primary"
                   :disabled="subscribing"
@@ -172,35 +172,36 @@ if (route.query.credits_purchased === 'true') {
   successMessage.value = 'クレジットパックの購入が完了しました！'
 }
 
-// プラン定義（SSOT_PRICING.md 準拠）
+// プラン定義（SSOT_PRICING.md v2.0 準拠）
 const availablePlans = [
   {
     type: 'STARTER',
-    name: 'スターター',
-    monthlyPrice: 9800,
+    name: 'Starter',
+    monthlyPrice: 14800,
     recommended: false,
-    features: ['10名まで', '週間ボード', '部門フィルタ', 'リアルタイム更新', 'メールサポート'],
+    features: ['10名まで', 'AI 150回/月', '週間ボード', '部門フィルタ', 'リアルタイム同期', 'メールサポート'],
   },
   {
     type: 'BUSINESS',
-    name: 'ビジネス',
-    monthlyPrice: 29800,
+    name: 'Business',
+    monthlyPrice: 39800,
     recommended: true,
-    features: ['30名まで', '全機能', 'カレンダー連携', 'AI音声入力 50回/月', 'サイネージモード', '電話・メールサポート'],
+    features: ['30名まで', 'AI 400回/月', '全機能', 'カレンダー連携', 'サイネージモード', '履歴エクスポート', '電話・メールサポート'],
   },
   {
     type: 'ENTERPRISE',
-    name: 'エンタープライズ',
-    monthlyPrice: 59800,
+    name: 'Enterprise',
+    monthlyPrice: 79800,
     recommended: false,
-    features: ['100名まで', '全モジュール', 'AI無制限', 'API連携', 'SSO/SAML', '専任サポート'],
+    features: ['100名まで', 'AI無制限', '全モジュール', 'API連携', 'SSO/SAML', '専任サポート'],
   },
 ]
 
+// v2.0: 買い切りクレジットパック
 const creditPacks = [
-  { name: 'ライト', credits: 50, price: 2000, priceKey: 'ai_credit_pack_light' },
-  { name: 'スタンダード', credits: 150, price: 5000, priceKey: 'ai_credit_pack_standard' },
-  { name: 'プロ', credits: 400, price: 10000, priceKey: 'ai_credit_pack_pro' },
+  { name: 'ライト', credits: 100, price: 1500, priceKey: 'ai_credit_pack_light', isOneTime: true },
+  { name: 'スタンダード', credits: 300, price: 3500, priceKey: 'ai_credit_pack_standard', isOneTime: true },
+  { name: 'プロ', credits: 1000, price: 9800, priceKey: 'ai_credit_pack_pro', isOneTime: true },
 ]
 
 // データ取得
