@@ -14,10 +14,13 @@
 
 import { defineEventHandler, readRawBody, getHeader, createError } from 'h3'
 import Stripe from 'stripe'
-import { stripe, PLAN_LIMITS, type PlanTypeKey } from '~/server/utils/stripe'
+import { stripe, PLAN_LIMITS } from '~/server/utils/stripe'
 import { prisma } from '~/server/utils/prisma'
 import { resetMonthlyCredits, initializeCredits, grantPackCredits } from '~/server/utils/aiCredits'
 import type { PlanType, SubscriptionStatus } from '@prisma/client'
+import { createLogger } from '~/server/utils/logger'
+
+const log = createLogger('stripe-webhook')
 
 export default defineEventHandler(async (event) => {
   const rawBody = await readRawBody(event)
@@ -29,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
   if (!webhookSecret) {
-    console.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET is not configured')
+    log.error('STRIPE_WEBHOOK_SECRET is not configured')
     throw createError({ statusCode: 500, message: 'Webhook not configured' })
   }
 
@@ -39,11 +42,11 @@ export default defineEventHandler(async (event) => {
     stripeEvent = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error(`[Stripe Webhook] Signature verification failed: ${message}`)
+    log.error('Signature verification failed', { error: message })
     throw createError({ statusCode: 400, message: `Webhook signature verification failed` })
   }
 
-  console.log(`[Stripe Webhook] Received: ${stripeEvent.type}`)
+  log.info('Received event', { type: stripeEvent.type })
 
   try {
     switch (stripeEvent.type) {
@@ -60,18 +63,20 @@ export default defineEventHandler(async (event) => {
         break
 
       case 'invoice.paid':
-        await handleInvoicePaid(stripeEvent.data.object as unknown as Record<string, any>)
+        await handleInvoicePaid(stripeEvent.data.object as Stripe.Invoice)
         break
 
       case 'invoice.payment_failed':
-        await handlePaymentFailed(stripeEvent.data.object as unknown as Record<string, any>)
+        await handlePaymentFailed(stripeEvent.data.object as Stripe.Invoice)
         break
 
       default:
-        console.log(`[Stripe Webhook] Unhandled event type: ${stripeEvent.type}`)
+        log.info('Unhandled event type', { type: stripeEvent.type })
     }
   } catch (err) {
-    console.error(`[Stripe Webhook] Error handling ${stripeEvent.type}:`, err)
+    log.error(`Error handling ${stripeEvent.type}`, {
+      error: err instanceof Error ? err.message : String(err),
+    })
     throw createError({ statusCode: 500, message: 'Webhook processing failed' })
   }
 
@@ -89,7 +94,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const organizationId = session.metadata?.organizationId
   if (!organizationId) {
-    console.error('[Stripe Webhook] Missing organizationId in checkout session metadata')
+    log.error('Missing organizationId in checkout session metadata')
     return
   }
 
@@ -130,16 +135,21 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     },
   })
 
-  console.log(`[Stripe Webhook] Subscription canceled: ${subscription.id}`)
+  log.info('Subscription canceled', { subscriptionId: subscription.id })
 }
 
-async function handleInvoicePaid(invoice: Record<string, any>) {
-  const subscriptionId = invoice.subscription
-  if (!subscriptionId) return
+async function handleInvoicePaid(invoice: Stripe.Invoice) {
+  // Stripe SDK v20+: subscription は parent.subscription_details に移動
+  const subscriptionRef = invoice.parent?.subscription_details?.subscription
+  if (!subscriptionRef) return
+
+  const subscriptionId = typeof subscriptionRef === 'string'
+    ? subscriptionRef
+    : subscriptionRef.id
 
   // サブスクリプションの organizationId を取得
   const sub = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: String(subscriptionId) },
+    where: { stripeSubscriptionId: subscriptionId },
   })
 
   if (!sub) return
@@ -147,40 +157,54 @@ async function handleInvoicePaid(invoice: Record<string, any>) {
   // クレジットパックの支払いかチェック
   const lineItems = invoice.lines?.data || []
   for (const item of lineItems) {
-    const priceObj = item.price
-    const product = priceObj?.product
-    if (typeof product === 'string') {
-      const productObj = await stripe.products.retrieve(product)
-      const credits = productObj.metadata?.credits
-      if (credits) {
-        // クレジットパックの支払い
-        await grantPackCredits(
-          sub.organizationId,
-          parseInt(credits, 10),
-          productObj.name,
-          invoice.id
-        )
-        console.log(`[Stripe Webhook] Credit pack granted: ${credits} credits to ${sub.organizationId}`)
-      }
+    // Stripe SDK v20+: price は pricing.price_details に移動
+    const priceRef = item.pricing?.price_details?.price
+    if (!priceRef) continue
+
+    const priceObj = typeof priceRef === 'string'
+      ? await stripe.prices.retrieve(priceRef)
+      : priceRef
+
+    const productRef = priceObj.product
+    const productId = typeof productRef === 'string' ? productRef : productRef.id
+    const productObj = await stripe.products.retrieve(productId)
+    const credits = productObj.metadata?.credits
+    if (credits) {
+      // クレジットパックの支払い
+      await grantPackCredits(
+        sub.organizationId,
+        parseInt(credits, 10),
+        productObj.name,
+        invoice.id
+      )
+      log.info('Credit pack granted', {
+        credits,
+        organizationId: sub.organizationId,
+      })
     }
   }
 
   // 通常サブスクリプションの月次更新 → クレジットリセット
   await resetMonthlyCredits(sub.organizationId)
 
-  console.log(`[Stripe Webhook] Invoice paid, credits reset for: ${sub.organizationId}`)
+  log.info('Invoice paid, credits reset', { organizationId: sub.organizationId })
 }
 
-async function handlePaymentFailed(invoice: Record<string, any>) {
-  const subscriptionId = invoice.subscription
-  if (!subscriptionId) return
+async function handlePaymentFailed(invoice: Stripe.Invoice) {
+  // Stripe SDK v20+: subscription は parent.subscription_details に移動
+  const subscriptionRef = invoice.parent?.subscription_details?.subscription
+  if (!subscriptionRef) return
+
+  const subscriptionId = typeof subscriptionRef === 'string'
+    ? subscriptionRef
+    : subscriptionRef.id
 
   await prisma.subscription.updateMany({
-    where: { stripeSubscriptionId: String(subscriptionId) },
+    where: { stripeSubscriptionId: subscriptionId },
     data: { status: 'PAST_DUE' },
   })
 
-  console.log(`[Stripe Webhook] Payment failed for subscription: ${subscriptionId}`)
+  log.info('Payment failed', { subscriptionId })
 }
 
 // ================================================================
@@ -217,7 +241,8 @@ async function syncSubscription(
   if (!priceItem) return
 
   const price = priceItem.price
-  const productId = typeof price.product === 'string' ? price.product : (price.product as any).id
+  // Stripe SDK v20+: price.product は string | Stripe.Product
+  const productId = typeof price.product === 'string' ? price.product : price.product.id
   const product = await stripe.products.retrieve(productId)
 
   // クレジットパックはサブスクリプション同期の対象外
@@ -226,12 +251,11 @@ async function syncSubscription(
   const planType = detectPlanType(product)
   const limits = PLAN_LIMITS[planType]
 
-  // Stripe API v20+ ではプロパティ名が変わっている可能性があるため any でアクセス
-  const subAny = subscription as any
-  const currentPeriodStart = subAny.current_period_start ?? subAny.currentPeriodStart
-  const currentPeriodEnd = subAny.current_period_end ?? subAny.currentPeriodEnd
-  const trialEnd = subAny.trial_end ?? subAny.trialEnd
-  const canceledAt = subAny.canceled_at ?? subAny.canceledAt
+  // Stripe SDK v20+: current_period は SubscriptionItem に移動
+  const currentPeriodStart = priceItem.current_period_start
+  const currentPeriodEnd = priceItem.current_period_end
+  const trialEnd = subscription.trial_end
+  const canceledAt = subscription.canceled_at
 
   const data = {
     stripeSubscriptionId: subscription.id,
@@ -256,5 +280,5 @@ async function syncSubscription(
   // クレジット初期化
   await initializeCredits(organizationId, limits.monthlyAiCredits)
 
-  console.log(`[Stripe Webhook] Subscription synced: ${planType} for ${organizationId}`)
+  log.info('Subscription synced', { planType, organizationId })
 }

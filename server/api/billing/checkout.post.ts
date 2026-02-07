@@ -8,6 +8,7 @@
  */
 
 import { defineEventHandler, readBody, createError } from 'h3'
+import Stripe from 'stripe'
 import { requireAuth } from '~/server/utils/authMiddleware'
 import { stripe } from '~/server/utils/stripe'
 import { prisma } from '~/server/utils/prisma'
@@ -62,7 +63,7 @@ export default defineEventHandler(async (event) => {
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000'
 
   // セッション作成オプション
-  const sessionParams: Record<string, any> = {
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],

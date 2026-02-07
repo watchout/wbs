@@ -73,6 +73,28 @@ Q: 複数タスクを並列に進めたい？       → Claude Code Web
 Q: エラーの原因をコードから調査？     → Cursor or Claude Code CLI
 ```
 
+### ★ ツール境界違反の防止 ★
+
+**以下は Cursor の責務範囲外であり、違反とみなす:**
+
+1. **仕様確定済みの大規模実装を Cursor で行う** → Claude Code Web へ委譲
+   - 新機能のAPI + UI + テストの一括実装
+   - 例: Billing統合、Platform管理機能 等
+2. **DB マイグレーションを Cursor で実行する** → Claude Code CLI へ委譲
+3. **npm ci / npm install を Cursor で実行する** → Claude Code CLI へ委譲
+
+**Cursor で許可される実装:**
+- 小規模なバグ修正（1-3ファイル程度）
+- ドキュメント・ルールファイルの編集
+- UI の微調整・スタイル修正
+- テストコードの追加・修正
+- Lint / 型エラーの修正
+
+**ユーザーから「実装して」と言われた場合の対応:**
+1. 小規模な修正 → Cursor で直接実装
+2. 仕様確定済みの機能実装 → Claude Code Web 用のプロンプトを生成して提示
+3. 対話が必要な実装 → Claude Code CLI 用のコマンドを提示
+
 ### 禁止事項
 
 - **ローカルコミットのまま相手に引き継ぐ**ことを禁止（必ず push → pull で同期）
@@ -85,15 +107,50 @@ Q: エラーの原因をコードから調査？     → Cursor or Claude Code C
 ## 📍 現在のPhase: Phase 1
 
 ### Phase 1 運用ルール
-- main直接push: ❌ 禁止（PR必須）
-- PR/レビュー: 必須
-- CI通過必須（typecheck, test, build）
+- main直接push: ❌ **絶対禁止**（admin 権限でもバイパス不可）
+- PR/レビュー: 必須（例外なし）
+- CI通過必須（typecheck, test, build, forbidden-operations）
 - ブランチ保護: 有効
+
+### ★ Cursor での Git 操作ルール ★
+
+Cursor でコードを編集した場合、以下のフローを**必ず**守ること:
+
+```
+1. feature ブランチで作業: git checkout -b <type>/<scope>
+2. 変更をコミット: git add . && git commit
+3. push: git push -u origin HEAD
+4. PR 作成: gh pr create --base main
+```
+
+**❌ 以下は絶対禁止:**
+- `git push origin main` （main への直接 push）
+- PR を経由しないマージ
+- CI 未通過での PR マージ
+
+### ★ 実装後のテスト義務 ★
+
+**コードを編集したら、以下を必ず実行してからコミットすること:**
+
+```bash
+# 1. 型チェック（省略禁止）
+npm run typecheck
+
+# 2. テスト実行（省略禁止）
+npm run test
+
+# 3. ブラウザ確認（UI変更時は省略禁止）
+# → 実際にブラウザで画面を開いて動作確認
+# → コンソールエラーがないことを確認
+```
+
+**テストを省略した実装は「未完了」とみなし、マージ禁止。**
 
 ### ✅ Phase 1 移行完了チェックリスト
 - [x] GitHub main ブランチ保護を設定
 - [x] この「現在のPhase」を更新
-- [ ] CI/CD が正常動作することを確認
+- [x] CI/CD が正常動作することを確認
+- [x] テスト義務化ルールを追記
 
 ---
 
