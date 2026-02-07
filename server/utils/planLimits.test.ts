@@ -25,33 +25,39 @@ vi.mock('./prisma', () => ({
   prisma: mockPrisma,
 }))
 
+const MOCK_PLAN_LIMITS = {
+  STARTER: {
+    maxUsers: 10,
+    monthlyAiCredits: 0,
+    features: ['weekly_board', 'department_filter', 'realtime_sync'],
+  },
+  BUSINESS: {
+    maxUsers: 30,
+    monthlyAiCredits: 50,
+    features: [
+      'weekly_board', 'department_filter', 'realtime_sync',
+      'signage_mode', 'calendar_sync', 'ai_voice_input',
+      'history_export',
+    ],
+  },
+  ENTERPRISE: {
+    maxUsers: 100,
+    monthlyAiCredits: -1,
+    features: [
+      'weekly_board', 'department_filter', 'realtime_sync',
+      'signage_mode', 'calendar_sync', 'ai_voice_input',
+      'history_export', 'api_access', 'sso_saml',
+      'multi_site', 'custom',
+    ],
+  },
+}
+
 vi.mock('./stripe', () => ({
   stripe: {},
-  PLAN_LIMITS: {
-    STARTER: {
-      maxUsers: 10,
-      monthlyAiCredits: 0,
-      features: ['weekly_board', 'department_filter', 'realtime_sync'],
-    },
-    BUSINESS: {
-      maxUsers: 30,
-      monthlyAiCredits: 50,
-      features: [
-        'weekly_board', 'department_filter', 'realtime_sync',
-        'signage_mode', 'calendar_sync', 'ai_voice_input',
-        'history_export',
-      ],
-    },
-    ENTERPRISE: {
-      maxUsers: 100,
-      monthlyAiCredits: -1,
-      features: [
-        'weekly_board', 'department_filter', 'realtime_sync',
-        'signage_mode', 'calendar_sync', 'ai_voice_input',
-        'history_export', 'api_access', 'sso_saml',
-        'multi_site', 'custom',
-      ],
-    },
+  PLAN_LIMITS: MOCK_PLAN_LIMITS,
+  getPlanLimits: async (planType: string) => {
+    const limits = MOCK_PLAN_LIMITS[planType as keyof typeof MOCK_PLAN_LIMITS]
+    return limits || null
   },
 }))
 

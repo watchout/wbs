@@ -3,11 +3,13 @@
  *
  * SSOT_PRICING.md に基づき、プラン別の機能制限を適用する。
  * 各APIエンドポイントで呼び出して使用する。
+ *
+ * 注: DB ベースの設定を使用。getPlanLimits() で PlanConfig テーブルから取得。
  */
 
 import { createError } from 'h3'
 import { prisma } from './prisma'
-import { PLAN_LIMITS, type PlanTypeKey } from './stripe'
+import { PLAN_LIMITS, getPlanLimits, type PlanTypeKey } from './stripe'
 import type { PlanType } from '@prisma/client'
 
 /**
@@ -61,7 +63,8 @@ export async function requirePlanFeature(
 
   // サブスクリプションなし → 基本機能のみ
   if (!subscription) {
-    const starterFeatures: readonly string[] = PLAN_LIMITS.STARTER.features
+    const starterLimits = await getPlanLimits('STARTER')
+    const starterFeatures: readonly string[] = starterLimits?.features || PLAN_LIMITS.STARTER.features
     if (!starterFeatures.includes(feature)) {
       throw createError({
         statusCode: 403,
@@ -80,7 +83,8 @@ export async function requirePlanFeature(
   }
 
   const planType = subscription.planType as PlanTypeKey
-  const allowedFeatures: readonly string[] = PLAN_LIMITS[planType]?.features || []
+  const planLimits = await getPlanLimits(subscription.planType)
+  const allowedFeatures: readonly string[] = planLimits?.features || PLAN_LIMITS[planType]?.features || []
 
   if (!allowedFeatures.includes(feature)) {
     throw createError({
@@ -126,19 +130,21 @@ export async function getCurrentPlan(organizationId: string) {
   })
 
   if (!subscription) {
+    const starterLimits = await getPlanLimits('STARTER')
     return {
       planType: null as PlanType | null,
       status: null,
-      maxUsers: 10, // デフォルト
-      features: [...PLAN_LIMITS.STARTER.features] as string[],
+      maxUsers: starterLimits?.maxUsers || 10,
+      features: [...(starterLimits?.features || PLAN_LIMITS.STARTER.features)] as string[],
     }
   }
 
   const planType = subscription.planType as PlanTypeKey
+  const planLimits = await getPlanLimits(subscription.planType)
   return {
     planType: subscription.planType,
     status: subscription.status,
     maxUsers: subscription.maxUsers,
-    features: [...(PLAN_LIMITS[planType]?.features || [])] as string[],
+    features: [...(planLimits?.features || PLAN_LIMITS[planType]?.features || [])] as string[],
   }
 }

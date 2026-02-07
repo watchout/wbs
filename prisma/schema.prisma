@@ -62,6 +62,9 @@ model Organization {
   // Stripe 連携
   stripeCustomerId    String?   @unique
 
+  // プラットフォーム管理: システム組織フラグ
+  isSystemOrg         Boolean   @default(false)
+
   users       User[]
   devices     Device[]
   schedules   Schedule[]
@@ -111,6 +114,9 @@ model User {
   setupToken        String?
   setupTokenExpiry  DateTime?
   role           Role     @default(MEMBER)
+
+  // プラットフォーム管理: 横断管理者フラグ
+  isPlatformAdmin  Boolean   @default(false)
 
   // アカウントロック
   loginAttempts  Int       @default(0)
@@ -421,4 +427,49 @@ model AiCreditTransaction {
   createdAt       DateTime  @default(now())
 
   @@index([organizationId, createdAt])
+}
+
+// ------------ プラットフォーム管理設定 ------------
+
+model PlanConfig {
+  id                   String    @id @default(cuid())
+  planType             PlanType  @unique
+  name                 String
+  description          String?
+  monthlyPrice         Int
+  annualPrice          Int?
+  maxUsers             Int
+  monthlyAiCredits     Int
+  features             String[]
+  featureLabels        String[]
+  isRecommended        Boolean   @default(false)
+  sortOrder            Int       @default(0)
+  isActive             Boolean   @default(true)
+  stripePriceIdMonthly String?
+  stripePriceIdAnnual  String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model CreditPackConfig {
+  id            String    @id @default(cuid())
+  name          String
+  credits       Int
+  price         Int
+  stripePriceId String?
+  sortOrder     Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model CohortConfig {
+  id              String    @id @default(cuid())
+  cohortNumber    Int       @unique
+  maxOrgs         Int
+  discountPercent Int
+  stripeCouponId  String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
