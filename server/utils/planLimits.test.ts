@@ -6,8 +6,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-// Prisma モック（vi.hoisted で変数を事前に定義）
-const { mockPrisma } = vi.hoisted(() => ({
+// モック変数（vi.hoisted で事前定義 - vi.mock のホイスティング問題を回避）
+const { mockPrisma, MOCK_PLAN_LIMITS } = vi.hoisted(() => ({
   mockPrisma: {
     subscription: {
       findUnique: vi.fn(),
@@ -19,38 +19,39 @@ const { mockPrisma } = vi.hoisted(() => ({
       findUnique: vi.fn(),
     },
   },
+  MOCK_PLAN_LIMITS: {
+    STARTER: {
+      maxUsers: 10,
+      monthlyAiCredits: 150,
+      features: ['weekly_board', 'department_filter', 'realtime_sync', 'ai_voice_input', 'ai_text_input', 'ai_schedule'],
+    },
+    BUSINESS: {
+      maxUsers: 30,
+      monthlyAiCredits: 400,
+      features: [
+        'weekly_board', 'department_filter', 'realtime_sync',
+        'ai_voice_input', 'ai_text_input', 'ai_schedule',
+        'signage_mode', 'calendar_sync',
+        'history_export',
+      ],
+    },
+    ENTERPRISE: {
+      maxUsers: 100,
+      monthlyAiCredits: -1,
+      features: [
+        'weekly_board', 'department_filter', 'realtime_sync',
+        'ai_voice_input', 'ai_text_input', 'ai_schedule',
+        'signage_mode', 'calendar_sync',
+        'history_export', 'api_access', 'sso_saml',
+        'multi_site', 'custom',
+      ],
+    },
+  },
 }))
 
 vi.mock('./prisma', () => ({
   prisma: mockPrisma,
 }))
-
-const MOCK_PLAN_LIMITS = {
-  STARTER: {
-    maxUsers: 10,
-    monthlyAiCredits: 0,
-    features: ['weekly_board', 'department_filter', 'realtime_sync'],
-  },
-  BUSINESS: {
-    maxUsers: 30,
-    monthlyAiCredits: 50,
-    features: [
-      'weekly_board', 'department_filter', 'realtime_sync',
-      'signage_mode', 'calendar_sync', 'ai_voice_input',
-      'history_export',
-    ],
-  },
-  ENTERPRISE: {
-    maxUsers: 100,
-    monthlyAiCredits: -1,
-    features: [
-      'weekly_board', 'department_filter', 'realtime_sync',
-      'signage_mode', 'calendar_sync', 'ai_voice_input',
-      'history_export', 'api_access', 'sso_saml',
-      'multi_site', 'custom',
-    ],
-  },
-}
 
 vi.mock('./stripe', () => ({
   stripe: {},

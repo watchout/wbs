@@ -3,10 +3,12 @@
  * SSOT_PRICING.md v2.0 Section 1-3 準拠
  *
  * 先着30社に対するグランドファザリング制度
+ *
+ * DB の CohortConfig テーブルから設定を取得する（マスター管理画面で変更可能）
  */
 
 import { prisma } from './prisma'
-import { LAUNCH_COHORTS, type LaunchCohort } from './stripe'
+import { getCohortConfigFromDB } from './stripe'
 
 // ================================================================
 // コホート情報
@@ -69,18 +71,18 @@ async function countPaidOrganizations(): Promise<number> {
  */
 export async function determineCohort(): Promise<CohortInfo> {
   const currentPaidOrgs = await countPaidOrganizations()
+  const cohorts = await getCohortConfigFromDB()
 
   // コホートを順番にチェック
-  for (let i = 0; i < LAUNCH_COHORTS.length; i++) {
-    const cohort = LAUNCH_COHORTS[i]
-    const prevMax = i === 0 ? 0 : LAUNCH_COHORTS[i - 1].maxOrgs
+  for (let i = 0; i < cohorts.length; i++) {
+    const cohort = cohorts[i]
 
     // このコホートにまだ空きがあるか
     if (currentPaidOrgs < cohort.maxOrgs) {
       return {
-        cohortNumber: i + 1,
+        cohortNumber: cohort.cohortNumber,
         discountPercent: cohort.discountPercent,
-        couponId: cohort.couponId,
+        couponId: cohort.stripeCouponId,
         maxOrgs: cohort.maxOrgs,
         currentPaidOrgs,
         remainingSlots: cohort.maxOrgs - currentPaidOrgs,
@@ -88,12 +90,13 @@ export async function determineCohort(): Promise<CohortInfo> {
     }
   }
 
-  // 30社を超えた場合は割引なし
+  // 全コホートを超えた場合は割引なし
+  const lastCohort = cohorts[cohorts.length - 1]
   return {
     cohortNumber: null,
     discountPercent: 0,
     couponId: null,
-    maxOrgs: LAUNCH_COHORTS[LAUNCH_COHORTS.length - 1].maxOrgs,
+    maxOrgs: lastCohort ? lastCohort.maxOrgs : 0,
     currentPaidOrgs,
     remainingSlots: 0,
   }
@@ -105,19 +108,19 @@ export async function determineCohort(): Promise<CohortInfo> {
 export async function getLaunchDiscountStatus(): Promise<LaunchDiscountStatus> {
   const currentPaidOrgs = await countPaidOrganizations()
   const nextCohort = await determineCohort()
+  const cohortConfigs = await getCohortConfigFromDB()
 
-  const cohorts = LAUNCH_COHORTS.map((cohort, index) => {
-    const prevMax = index === 0 ? 0 : LAUNCH_COHORTS[index - 1].maxOrgs
-    const cohortCapacity = cohort.maxOrgs - prevMax // このコホートの枠数
+  const cohorts = cohortConfigs.map((cohort, index) => {
+    const prevMax = index === 0 ? 0 : cohortConfigs[index - 1].maxOrgs
+    const cohortCapacity = cohort.maxOrgs - prevMax
 
-    // このコホートに入った組織数
     let filledOrgs = 0
     if (currentPaidOrgs > prevMax) {
       filledOrgs = Math.min(currentPaidOrgs - prevMax, cohortCapacity)
     }
 
     return {
-      cohortNumber: index + 1,
+      cohortNumber: cohort.cohortNumber,
       discountPercent: cohort.discountPercent,
       maxOrgs: cohort.maxOrgs,
       filledOrgs,
@@ -160,6 +163,8 @@ export async function getOrganizationCohort(
     return null
   }
 
+  const cohortConfigs = await getCohortConfigFromDB()
+
   // 契約時点での組織数を推定（createdAt以前のサブスクリプション数）
   const orgCountAtSignup = await prisma.subscription.count({
     where: {
@@ -173,25 +178,25 @@ export async function getOrganizationCohort(
   })
 
   // 契約時のコホートを判定
-  for (let i = 0; i < LAUNCH_COHORTS.length; i++) {
-    const cohort = LAUNCH_COHORTS[i]
+  for (const cohort of cohortConfigs) {
     if (orgCountAtSignup < cohort.maxOrgs) {
       return {
-        cohortNumber: i + 1,
+        cohortNumber: cohort.cohortNumber,
         discountPercent: cohort.discountPercent,
-        couponId: cohort.couponId,
+        couponId: cohort.stripeCouponId,
         maxOrgs: cohort.maxOrgs,
-        currentPaidOrgs: orgCountAtSignup + 1, // 自社を含む
-        remainingSlots: 0, // 既存契約者には不要
+        currentPaidOrgs: orgCountAtSignup + 1,
+        remainingSlots: 0,
       }
     }
   }
 
+  const lastCohort = cohortConfigs[cohortConfigs.length - 1]
   return {
     cohortNumber: null,
     discountPercent: 0,
     couponId: null,
-    maxOrgs: LAUNCH_COHORTS[LAUNCH_COHORTS.length - 1].maxOrgs,
+    maxOrgs: lastCohort ? lastCohort.maxOrgs : 0,
     currentPaidOrgs: orgCountAtSignup + 1,
     remainingSlots: 0,
   }

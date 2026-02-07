@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000'
 
   // セッション作成オプション
-  const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+  const sessionParams: Record<string, any> = {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
