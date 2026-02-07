@@ -17,6 +17,7 @@ interface MeResponse {
     name: string | null
     email: string
     role: string
+    isPlatformAdmin?: boolean
     department?: {
       id: string
       name: string
@@ -82,7 +83,8 @@ export default defineEventHandler(async (event): Promise<MeResponse> => {
   // 通常ユーザーの場合
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    include: { organization: true, department: true }
+    include: { organization: true, department: true },
+    // isPlatformAdmin を含める
   })
 
   if (!user) {
@@ -102,6 +104,7 @@ export default defineEventHandler(async (event): Promise<MeResponse> => {
       name: user.name,
       email: user.email,
       role: user.role,
+      isPlatformAdmin: user.isPlatformAdmin,
       department: user.department ? {
         id: user.department.id,
         name: user.department.name

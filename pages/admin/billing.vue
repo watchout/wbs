@@ -106,8 +106,8 @@
             <div class="pack-cards">
               <div v-for="pack in creditPacks" :key="pack.name" class="pack-card">
                 <h4>{{ pack.name }}</h4>
-                <div class="pack-credits">+{{ pack.credits }}回</div>
-                <div class="pack-price">¥{{ pack.price.toLocaleString() }}（買い切り）</div>
+                <div class="pack-credits">+{{ pack.credits }}回/月</div>
+                <div class="pack-price">¥{{ pack.price.toLocaleString() }}/月</div>
                 <button
                   class="btn btn-sm btn-primary"
                   :disabled="subscribing"
@@ -172,37 +172,56 @@ if (route.query.credits_purchased === 'true') {
   successMessage.value = 'クレジットパックの購入が完了しました！'
 }
 
-// プラン定義（SSOT_PRICING.md v2.0 準拠）
-const availablePlans = [
-  {
-    type: 'STARTER',
-    name: 'Starter',
-    monthlyPrice: 14800,
-    recommended: false,
-    features: ['10名まで', 'AI 150回/月', '週間ボード', '部門フィルタ', 'リアルタイム同期', 'メールサポート'],
-  },
-  {
-    type: 'BUSINESS',
-    name: 'Business',
-    monthlyPrice: 39800,
-    recommended: true,
-    features: ['30名まで', 'AI 400回/月', '全機能', 'カレンダー連携', 'サイネージモード', '履歴エクスポート', '電話・メールサポート'],
-  },
-  {
-    type: 'ENTERPRISE',
-    name: 'Enterprise',
-    monthlyPrice: 79800,
-    recommended: false,
-    features: ['100名まで', 'AI無制限', '全モジュール', 'API連携', 'SSO/SAML', '専任サポート'],
-  },
-]
+// プラン定義を API から取得
+import { usePricingConfig, type PlanConfigResponse, type CreditPackConfigResponse } from '~/composables/usePricingConfig'
+const { data: pricingConfig } = usePricingConfig()
 
-// v2.0: 買い切りクレジットパック
-const creditPacks = [
-  { name: 'ライト', credits: 100, price: 1500, priceKey: 'ai_credit_pack_light', isOneTime: true },
-  { name: 'スタンダード', credits: 300, price: 3500, priceKey: 'ai_credit_pack_standard', isOneTime: true },
-  { name: 'プロ', credits: 1000, price: 9800, priceKey: 'ai_credit_pack_pro', isOneTime: true },
-]
+// プラン表示用の型
+interface AvailablePlan {
+  type: string
+  name: string
+  monthlyPrice: number
+  recommended: boolean
+  features: string[]
+  stripePriceId?: string | null
+}
+
+// 互換性のある形式でプランを提供
+const availablePlans = computed<AvailablePlan[]>(() => {
+  if (!pricingConfig.value?.plans?.length) {
+    // フォールバック
+    return [
+      { type: 'STARTER', name: 'スターター', monthlyPrice: 14800, recommended: false, features: ['10名まで', '週間ボード', '部門フィルタ', 'リアルタイム更新'], stripePriceId: null },
+      { type: 'BUSINESS', name: 'ビジネス', monthlyPrice: 39800, recommended: true, features: ['30名まで', '全機能', 'カレンダー連携', 'AI音声入力'], stripePriceId: null },
+      { type: 'ENTERPRISE', name: 'エンタープライズ', monthlyPrice: 79800, recommended: false, features: ['100名まで', '全モジュール', 'AI無制限'], stripePriceId: null },
+    ]
+  }
+  return pricingConfig.value.plans.map((plan: PlanConfigResponse) => ({
+    type: plan.planType,
+    name: plan.name,
+    monthlyPrice: plan.monthlyPrice,
+    recommended: plan.isRecommended,
+    features: plan.featureLabels.length > 0 ? plan.featureLabels : plan.features,
+    stripePriceId: plan.stripePriceIdMonthly,
+  }))
+})
+
+const creditPacks = computed(() => {
+  if (!pricingConfig.value?.creditPacks?.length) {
+    // フォールバック
+    return [
+      { name: 'ライト', credits: 100, price: 1500, priceKey: 'ai_credit_pack_light' },
+      { name: 'スタンダード', credits: 300, price: 3500, priceKey: 'ai_credit_pack_standard' },
+      { name: 'プロ', credits: 1000, price: 9800, priceKey: 'ai_credit_pack_pro' },
+    ]
+  }
+  return pricingConfig.value.creditPacks.map((pack: CreditPackConfigResponse) => ({
+    name: pack.name,
+    credits: pack.credits,
+    price: pack.price,
+    priceKey: pack.stripePriceId || `ai_credit_pack_${pack.name.toLowerCase()}`,
+  }))
+})
 
 // データ取得
 interface SubscriptionResponse {
@@ -301,12 +320,14 @@ async function subscribe(planType: string) {
   subscribing.value = true
   error.value = ''
   try {
-    // Stripe Prices は lookup_key で取得するが、ここでは簡易的に planType を送る
-    // 実際の priceId は Stripe Dashboard から取得する必要がある
+    // PlanConfig から Stripe Price ID を取得
+    const plan = availablePlans.value.find(p => p.type === planType)
+    const priceId = plan?.stripePriceId || `placeholder_${planType.toLowerCase()}`
+
     const result = await $fetch<{ url: string }>('/api/billing/checkout', {
       method: 'POST',
       body: {
-        priceId: `placeholder_${planType.toLowerCase()}`,
+        priceId,
         billingInterval: 'month',
       },
     })
