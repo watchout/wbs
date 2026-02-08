@@ -15,15 +15,6 @@ import { prisma } from '~/server/utils/prisma'
 // Prisma モデル型定義（prisma generate が未実行でもビルド可能にする）
 type PlanType = 'STARTER' | 'BUSINESS' | 'ENTERPRISE'
 
-// サーバーサイドキャッシュ
-interface CacheEntry {
-  data: BillingPlansResponse
-  timestamp: number
-}
-
-let cache: CacheEntry | null = null
-const CACHE_TTL = 60 * 1000 // 60秒
-
 interface PlanConfigResponse {
   id: string
   planType: PlanType
@@ -71,6 +62,15 @@ interface BillingPlansResponse {
   cohorts: CohortConfigResponse[]
   launchStatus: LaunchStatus
 }
+
+// サーバーサイドキャッシュ
+interface CacheEntry {
+  data: BillingPlansResponse
+  timestamp: number
+}
+
+let cache: CacheEntry | null = null
+const CACHE_TTL = 60 * 1000 // 60秒
 
 async function fetchBillingPlansData(): Promise<BillingPlansResponse> {
   // プラン設定（isActive: true、sortOrder 昇順）
