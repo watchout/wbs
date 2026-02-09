@@ -32,6 +32,7 @@ interface LoginResponse {
     name: string | null
     email: string
     role: string
+    isPlatformAdmin: boolean
   }
   organization: {
     id: string
@@ -176,7 +177,8 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      isPlatformAdmin: user.isPlatformAdmin
     },
     organization: {
       id: user.organization.id,
