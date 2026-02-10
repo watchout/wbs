@@ -11,10 +11,11 @@ async function main() {
   // 1. デモ組織
   const org = await prisma.organization.upsert({
     where: { id: 'demo-org-001' },
-    update: {},
+    update: { slug: 'demo' },
     create: {
       id: 'demo-org-001',
       name: 'デモ建設株式会社',
+      slug: 'demo',
       timezone: 'Asia/Tokyo'
     }
   })

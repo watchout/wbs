@@ -32,20 +32,13 @@ interface LoginResponse {
     name: string | null
     email: string
     role: string
+    isPlatformAdmin: boolean
   }
   organization: {
     id: string
     name: string
     slug: string
   }
-}
-
-// 組織名からslugを生成（MVP: 簡易実装）
-function generateSlug(name: string): string {
-  if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(name)) {
-    return 'demo'
-  }
-  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
 
 export default defineEventHandler(async (event): Promise<LoginResponse> => {
@@ -176,12 +169,13 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      isPlatformAdmin: user.isPlatformAdmin
     },
     organization: {
       id: user.organization.id,
       name: user.organization.name,
-      slug: generateSlug(user.organization.name)
+      slug: user.organization.slug
     }
   }
 })

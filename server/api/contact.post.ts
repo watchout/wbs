@@ -1,4 +1,20 @@
 import { prisma } from '~/server/utils/prisma'
+import { randomUUID } from 'crypto'
+
+/**
+ * 組織名からslugを生成する
+ * ASCII英数字とハイフンのみ。常にランダムサフィックスを付与してユニーク性を担保。
+ */
+function generateOrgSlug(name: string): string {
+  const suffix = randomUUID().split('-')[0] // 8文字のランダム値
+  // ASCII英数字部分を抽出
+  const ascii = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+$/, '')
+  if (ascii.length >= 3) {
+    return `${ascii}-${suffix}`
+  }
+  // 日本語名やASCII部分が短い場合はUUIDベースのみ
+  return `org-${suffix}`
+}
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -18,9 +34,12 @@ export default defineEventHandler(async (event) => {
     const domain = email.split('@')[1]
     const orgName = companyName?.trim() || `${domain.split('.')[0]} (仮)`
 
+    const slug = generateOrgSlug(orgName)
+
     const organization = await prisma.organization.create({
       data: {
-        name: orgName
+        name: orgName,
+        slug
       }
     })
 

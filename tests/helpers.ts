@@ -31,7 +31,8 @@ export async function createTestContext(orgSuffix: string): Promise<TestContext>
 
   const org = await prisma.organization.create({
     data: {
-      name: `Test Org ${uniqueSuffix}`
+      name: `Test Org ${uniqueSuffix}`,
+      slug: `test-${uniqueSuffix}`
     }
   })
 

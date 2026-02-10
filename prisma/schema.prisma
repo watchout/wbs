@@ -57,6 +57,7 @@ enum CreditTransactionType {
 model Organization {
   id          String   @id @default(uuid())
   name        String
+  slug        String   @unique   // URL用スラッグ（ASCII小文字+数字+ハイフン）
   timezone    String   @default("Asia/Tokyo")
 
   // Stripe 連携

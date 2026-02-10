@@ -19,10 +19,11 @@ async function main() {
   // 1. サクシード組織
   const org = await prisma.organization.upsert({
     where: { id: 'succeed' },
-    update: {},
+    update: { slug: 'succeed' },
     create: {
       id: 'succeed',
       name: '株式会社サクシード',
+      slug: 'succeed',
       timezone: 'Asia/Tokyo'
     }
   })

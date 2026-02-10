@@ -22,10 +22,11 @@ async function main() {
   // 1. ミエルプラス運営 Organization
   const systemOrg = await prisma.organization.upsert({
     where: { id: 'mielplus-system' },
-    update: { isSystemOrg: true },
+    update: { isSystemOrg: true, slug: 'mielplus-system' },
     create: {
       id: 'mielplus-system',
       name: 'ミエルプラス運営',
+      slug: 'mielplus-system',
       isSystemOrg: true,
     },
   })
