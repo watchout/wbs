@@ -156,7 +156,10 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'default' })
+definePageMeta({
+  layout: 'default',
+  middleware: 'admin'
+})
 
 const error = ref('')
 const successMessage = ref('')

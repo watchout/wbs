@@ -9,6 +9,20 @@ vi.mock('~/server/utils/googleCalendar', () => ({
     accessToken: 'mock-access-token',
     refreshToken: 'mock-refresh-token',
     expiresAt: new Date(Date.now() + 3600 * 1000)
+  }),
+  getCalendarClient: vi.fn().mockResolvedValue({}),
+  setupWebhook: vi.fn().mockResolvedValue({
+    channelId: 'mock-channel-id',
+    expiration: new Date(Date.now() + 7 * 24 * 3600 * 1000)
+  })
+}))
+
+// Mock calendarSync module
+vi.mock('~/server/utils/calendarSync', () => ({
+  syncCalendar: vi.fn().mockResolvedValue({
+    imported: 0,
+    exported: 0,
+    errors: []
   })
 }))
 

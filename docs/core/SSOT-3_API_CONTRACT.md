@@ -95,8 +95,21 @@ SHOULD: 成功レスポンスに不要な内部情報（passwordHash 等）を�
 | GET | /api/auth/me | 現在のユーザー情報 | Yes | Any | AUTH-001 |
 | POST | /api/auth/device-login | デバイスログイン | No | - | AUTH-004 |
 | POST | /api/auth/change-password | パスワード変更 | Yes | Any | ACCT-005 |
-| POST | /api/auth/set-password | 初回パスワード設定 | No | - | AUTH-005 |
+| POST | /api/auth/set-password | パスワード設定（初回・リセット兼用） | No | - | AUTH-005, AUTH-006 |
 | POST | /api/auth/create-setup-token | セットアップトークン発行 | Yes | ADMIN | AUTH-005 |
+
+```
+POST /api/auth/set-password 仕様補足:
+- 初回設定: passwordHash=null のユーザーにパスワードを設定
+- リセット: passwordHash!=null でも setupToken が有効であれば上書き可能
+  （管理者が create-setup-token で forReset=true で発行したトークン）
+- setupToken 消費後は setupToken=null, setupTokenExpiry=null に更新
+
+POST /api/users 仕様補足:
+- ユーザー作成時に setupToken を自動発行し、レスポンスに setupUrl を含める
+- setupUrl 形式: {APP_BASE_URL}/setup?email={email}&token={setupToken}
+- 管理者はこのURLをユーザーに直接共有する
+```
 
 ### 3.2 ユーザー（USERS）
 

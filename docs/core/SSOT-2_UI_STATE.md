@@ -17,6 +17,14 @@
 | SCR-ORG-LOGIN | 組織別ログイン | `/org/[slug]/login` | 組織スラッグ付きログイン | AUTH-001 |
 | SCR-DEVICE-LOGIN | デバイスログイン | `/org/[slug]/device-login` | サイネージ用認証 | AUTH-004 |
 | SCR-PRODUCT-BOARD | 製品LP（ボード） | `/products/board` | ミエルボード紹介ページ | - |
+| SCR-SETUP | パスワード設定 | `/setup` | 初回パスワード設定・パスワードリセット | AUTH-007, AUTH-006 |
+
+```
+フロー: 管理者がユーザー追加 → setupURL発行 → 社員がURL開く → /setup でパスワード設定 → /login へリダイレクト
+パラメータ: /setup?email={email}&token={setupToken}
+バリデーション: token有効期限（24h）超過 → エラー表示 + 管理者への再発行依頼メッセージ
+パスワード既設定済み（リセット）: token有効であれば既存パスワードを上書き可能
+```
 
 ### 1.2 Protected（認証必要・一般ユーザー）
 

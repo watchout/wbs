@@ -80,11 +80,21 @@ Organization ─┬── User ─────── CalendarOAuth（レガシ�
 |--------|-----|------|----------|------|
 | id | String (UUID) | NO | uuid() | 主キー |
 | name | String | NO | - | 組織名 |
+| slug | String | NO | - | URL用スラッグ（UNIQUE、ASCII小文字+数字+ハイフン） |
 | timezone | String | NO | "Asia/Tokyo" | タイムゾーン |
 | createdAt | DateTime | NO | now() | 作成日時 |
 | updatedAt | DateTime | NO | auto | 更新日時 |
 
-**インデックス**: `name`
+**制約**: UNIQUE(slug)
+**インデックス**: `name`, `slug`
+
+```
+MUST: slug は組織作成時に自動生成し、永続化する
+MUST: slug は UNIQUE かつ不変（組織名変更時も変えない）
+MUST: slug はASCII小文字・数字・ハイフンのみ（/^[a-z0-9-]+$/）
+MUST: 日本語組織名の場合は org-{短縮UUID} 形式で自動生成
+MUST NOT: slug を動的に組織名から毎回生成する
+```
 **関連**: users, devices, schedules, auditLogs, departments, meetingRequests, calendarConnections
 
 ---

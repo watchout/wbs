@@ -151,26 +151,27 @@ export async function exportToGoogle(
     // 2. Created internally (source = INTERNAL)
     // 3. Updated after last external sync (or never synced)
     // 4. Within sync range
-    const schedulesToExport = await prisma.schedule.findMany({
+    // NOTE: Prisma does not support field-to-field comparison in where clause,
+    //       so we fetch candidates and filter in application code.
+    const candidates = await prisma.schedule.findMany({
       where: {
         organizationId: connection.organizationId,
-        authorId: connection.userId, // Only export user's own schedules
+        authorId: connection.userId,
         source: 'INTERNAL',
         deletedAt: null,
         start: { gte: timeMin },
         end: { lte: timeMax },
         OR: [
-          { externalId: null }, // Never exported
-          {
-            // Updated since last export
-            AND: [
-              { externalUpdatedAt: { not: null } },
-              { updatedAt: { gt: prisma.schedule.fields.externalUpdatedAt } }
-            ]
-          }
+          { externalId: null },
+          { externalUpdatedAt: { not: null } }
         ]
       }
     })
+
+    // Filter: never exported OR updatedAt > externalUpdatedAt (modified since last export)
+    const schedulesToExport = candidates.filter(s =>
+      !s.externalId || (s.externalUpdatedAt && s.updatedAt > s.externalUpdatedAt)
+    )
 
     for (const schedule of schedulesToExport) {
       try {
