@@ -20,6 +20,11 @@
       </div>
     </div>
 
+    <!-- 権限エラーメッセージ -->
+    <div v-if="permissionError" class="permission-error">
+      {{ permissionError }}
+    </div>
+
     <!-- 週間マトリクス（コンポーネント） -->
     <main class="board-main">
       <WeeklyScheduleBoard
@@ -59,6 +64,9 @@ definePageMeta({
   layout: 'default',
   middleware: 'auth'
 })
+
+// 認証情報（ロール判定用）
+const { user: authUser, canEditScheduleFor, fetchMe } = useAuth()
 
 // Socket.IOプラグイン
 const { $socketIO } = useNuxtApp()
@@ -224,6 +232,9 @@ function toggleFullscreen() {
   router.push({ query: newQuery })
 }
 
+// 権限なしメッセージ
+const permissionError = ref('')
+
 // スケジュールモーダル
 function handleCellClick(payload: {
   employeeId: string
@@ -232,6 +243,19 @@ function handleCellClick(payload: {
   date: string
   schedule?: DaySchedule
 }) {
+  permissionError.value = ''
+
+  // 対象社員の部署IDを取得
+  const targetEmployee = employees.value.find(e => e.id === payload.employeeId)
+  const targetDeptId = targetEmployee?.departmentId ?? null
+
+  // ロール別権限チェック
+  if (!canEditScheduleFor(payload.authorId, targetDeptId)) {
+    permissionError.value = 'この社員の予定を編集する権限がありません'
+    setTimeout(() => { permissionError.value = '' }, 3000)
+    return
+  }
+
   selectedDate.value = payload.date
   selectedAuthorId.value = payload.authorId
 
@@ -300,6 +324,7 @@ function stopAutoRefresh() {
 
 // 初期化
 onMounted(() => {
+  fetchMe() // 認証情報を取得（ロール判定用）
   fetchData()
   fetchDepartments()
   if (isFullscreen.value) {
@@ -327,6 +352,15 @@ useHead({
 </script>
 
 <style scoped>
+.permission-error {
+  padding: 0.6rem 1.5rem;
+  background: #fff3e0;
+  color: #e65100;
+  font-size: 0.9rem;
+  text-align: center;
+  border-bottom: 1px solid #ffcc80;
+}
+
 .weekly-board {
   display: flex;
   flex-direction: column;

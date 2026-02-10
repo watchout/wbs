@@ -65,7 +65,7 @@ async function handleLogin() {
     // メールアドレスからテナントを自動判定してログイン
     const response = await $fetch<{
       success: boolean
-      user: { id: string; name: string | null; email: string }
+      user: { id: string; name: string | null; email: string; role: string; isPlatformAdmin: boolean }
       organization: { id: string; name: string; slug: string }
     }>('/api/auth/login', {
       method: 'POST',
@@ -75,8 +75,16 @@ async function handleLogin() {
       }
     })
 
-    // 成功時は該当テナントの週間ボードへリダイレクト
-    router.push(`/org/${response.organization.slug}/weekly-board`)
+    // 認証状態をクライアントにセット
+    const { setFromLogin } = useAuth()
+    setFromLogin(response)
+
+    // プラットフォーム管理者はダッシュボードへ、それ以外はテナント週間ボードへ
+    if (response.user.isPlatformAdmin) {
+      router.push('/platform')
+    } else {
+      router.push(`/org/${response.organization.slug}/weekly-board`)
+    }
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
     error.value = fetchError.data?.message || 'ログインに失敗しました'
