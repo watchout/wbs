@@ -2,11 +2,15 @@
  * ユーザー作成API
  *
  * POST /api/users
+ *
+ * ADMIN専用。ユーザー作成と同時にセットアップトークンを発行し、
+ * パスワード設定用URLを返す。
  */
 
-import { readBody, createError } from 'h3'
+import { readBody, createError, getRequestURL, getRequestHeader } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth, requireAdmin } from '~/server/utils/authMiddleware'
+import { randomUUID } from 'crypto'
 
 interface CreateUserRequest {
   email: string
@@ -24,7 +28,11 @@ interface CreateUserResponse {
     role: string
     departmentId: string | null
   }
+  /** パスワード設定用URL（管理者がユーザーに伝える） */
+  setupUrl: string
 }
+
+const TOKEN_EXPIRY_HOURS = 24
 
 export default defineEventHandler(async (event): Promise<CreateUserResponse> => {
   const auth = await requireAuth(event)
@@ -80,15 +88,33 @@ export default defineEventHandler(async (event): Promise<CreateUserResponse> => 
     ? body.role as ValidRole
     : 'MEMBER'
 
+  // setupToken を同時に発行
+  const setupToken = randomUUID()
+  const setupTokenExpiry = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000)
+
   const user = await prisma.user.create({
     data: {
       organizationId: auth.organizationId,
       email: body.email.trim(),
       name: body.name?.trim() || null,
       role,
-      departmentId: body.departmentId ?? null
+      departmentId: body.departmentId ?? null,
+      setupToken,
+      setupTokenExpiry
     }
   })
+
+  // setupUrl を生成
+  let baseUrl: string
+  try {
+    const requestUrl = getRequestURL(event)
+    baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+  } catch {
+    // テスト環境やリクエストURLが取得できない場合のフォールバック
+    const host = getRequestHeader(event, 'host') || 'localhost:6001'
+    baseUrl = `http://${host}`
+  }
+  const setupUrl = `${baseUrl}/setup?email=${encodeURIComponent(user.email)}&token=${setupToken}`
 
   return {
     success: true,
@@ -98,6 +124,7 @@ export default defineEventHandler(async (event): Promise<CreateUserResponse> => 
       name: user.name,
       role: user.role,
       departmentId: user.departmentId
-    }
+    },
+    setupUrl
   }
 })

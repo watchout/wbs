@@ -2,10 +2,11 @@
  * GET /api/calendar/google/callback
  * OAuth callback handler for Google Calendar
  */
-import { exchangeCodeForTokens } from '~/server/utils/googleCalendar'
+import { exchangeCodeForTokens, getCalendarClient, setupWebhook } from '~/server/utils/googleCalendar'
 import { encrypt } from '~/server/utils/encryption'
 import { prisma } from '~/server/utils/prisma'
 import { getSession } from '~/server/utils/session'
+import { syncCalendar } from '~/server/utils/calendarSync'
 
 interface StateData {
   sessionId: string
@@ -110,7 +111,60 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    // 12. Redirect to settings page with success
+    // 12. Initial sync — fetch the saved connection and import events
+    const savedConnection = await prisma.userCalendarConnection.findUnique({
+      where: {
+        userId_provider: {
+          userId: stateData.userId,
+          provider: 'google'
+        }
+      }
+    })
+
+    if (savedConnection) {
+      // 12a. Initial sync — import events from Google Calendar
+      try {
+        const syncResult = await syncCalendar(savedConnection, 'import')
+        console.log(
+          `[Calendar OAuth] Initial sync completed: imported=${syncResult.imported}, errors=${syncResult.errors.length}`
+        )
+      } catch (syncErr) {
+        // 初期同期の失敗は接続成功を妨げない（次回手動同期で対応可能）
+        console.error('[Calendar OAuth] Initial sync failed:', syncErr)
+      }
+
+      // 12b. Setup webhook for real-time sync (production only — localhost cannot receive webhooks)
+      const appBaseUrl = process.env.APP_BASE_URL
+      if (appBaseUrl && !appBaseUrl.includes('localhost')) {
+        try {
+          const calendar = await getCalendarClient(savedConnection.id)
+          const webhookUrl = `${appBaseUrl}/api/calendar/webhook`
+          const webhook = await setupWebhook(
+            calendar,
+            savedConnection.calendarId,
+            webhookUrl,
+            savedConnection.webhookToken || webhookToken
+          )
+
+          await prisma.userCalendarConnection.update({
+            where: { id: savedConnection.id },
+            data: {
+              webhookChannelId: webhook.channelId,
+              webhookExpiration: webhook.expiration
+            }
+          })
+
+          console.log(
+            `[Calendar OAuth] Webhook registered: channelId=${webhook.channelId}, expires=${webhook.expiration.toISOString()}`
+          )
+        } catch (webhookErr) {
+          // Webhook登録の失敗は接続成功を妨げない（手動同期で対応可能）
+          console.error('[Calendar OAuth] Webhook setup failed:', webhookErr)
+        }
+      }
+    }
+
+    // 13. Redirect to settings page with success
     return sendRedirect(event, '/settings/calendar?success=connected')
   } catch (err) {
     console.error('[Calendar OAuth] Token exchange failed:', err)

@@ -99,6 +99,22 @@
       </div>
     </div>
 
+    <!-- パスワード設定URL（ユーザー作成直後） -->
+    <div v-if="showSetupModal" class="modal-overlay" @click.self="closeSetupModal">
+      <div class="modal-card">
+        <h2>パスワード設定URL</h2>
+        <p class="reset-user-info">「{{ setupUser?.name || setupUser?.email }}」のパスワード設定URLを発行しました。</p>
+        <div class="reset-url-container">
+          <input type="text" :value="setupUrl" readonly class="reset-url-input" />
+          <button class="btn btn-primary" @click="copySetupUrl">コピー</button>
+        </div>
+        <p class="reset-note">※ このURLは24時間有効です。ユーザーに直接お伝えください。</p>
+        <div class="modal-actions">
+          <button class="btn btn-primary" @click="closeSetupModal">閉じる</button>
+        </div>
+      </div>
+    </div>
+
     <!-- パスワードリセットURL (AUTH-006) -->
     <div v-if="showResetModal" class="modal-overlay" @click.self="closeResetModal">
       <div class="modal-card">
@@ -150,6 +166,9 @@ const editingUser = ref<User | null>(null)
 const deletingUser = ref<User | null>(null)
 const resetUser = ref<User | null>(null)
 const resetUrl = ref('')
+const showSetupModal = ref(false)
+const setupUser = ref<{ name: string | null; email: string } | null>(null)
+const setupUrl = ref('')
 const submitting = ref(false)
 const modalError = ref('')
 
@@ -224,7 +243,7 @@ async function handleSubmit() {
         }
       })
     } else {
-      await $fetch('/api/users', {
+      const res = await $fetch<{ success: boolean; setupUrl: string; user: { name: string | null; email: string } }>('/api/users', {
         method: 'POST',
         body: {
           email: form.value.email,
@@ -233,6 +252,13 @@ async function handleSubmit() {
           departmentId: form.value.departmentId || undefined
         }
       })
+      // ユーザー作成後、セットアップURL表示モーダルを開く
+      closeModal()
+      setupUser.value = { name: res.user.name, email: res.user.email }
+      setupUrl.value = res.setupUrl
+      showSetupModal.value = true
+      await fetchUsers()
+      return
     }
     closeModal()
     await fetchUsers()
@@ -283,6 +309,17 @@ async function resetPassword(user: User) {
   } finally {
     submitting.value = false
   }
+}
+
+function copySetupUrl() {
+  navigator.clipboard.writeText(setupUrl.value)
+  alert('URLをコピーしました')
+}
+
+function closeSetupModal() {
+  showSetupModal.value = false
+  setupUser.value = null
+  setupUrl.value = ''
 }
 
 function copyResetUrl() {

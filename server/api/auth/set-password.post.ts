@@ -65,14 +65,9 @@ export default defineEventHandler(async (event): Promise<SetPasswordResponse> =>
     })
   }
 
-  // パスワード既設定チェック
-  if (user.passwordHash) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'パスワードは既に設定されています'
-    })
-  }
-
+  // パスワード設定（初回・リセット共通）
+  // setupToken が有効であれば既存パスワードの有無に関わらず設定を許可する
+  // （リセット用トークンは admin が forReset=true で発行）
   const passwordHash = await hashPassword(body.password)
 
   await prisma.user.update({

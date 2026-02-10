@@ -6,7 +6,7 @@
 
 import { readBody, createError } from 'h3'
 import { prisma } from '~/server/utils/prisma'
-import { requireAuth } from '~/server/utils/authMiddleware'
+import { requireAuth, requireScheduleEditPermission } from '~/server/utils/authMiddleware'
 
 interface CreateScheduleRequest {
   title: string
@@ -70,9 +70,10 @@ export default defineEventHandler(async (event): Promise<CreateScheduleResponse>
     })
   }
 
-  // authorId が指定された場合、同一組織のユーザーか確認
+  // authorId の決定と権限チェック
   let authorId = auth.userId || null
-  if (body.authorId) {
+  if (body.authorId && body.authorId !== auth.userId) {
+    // 他人の予定を作成する場合: 存在確認 + 権限チェック
     const author = await prisma.user.findFirst({
       where: {
         id: body.authorId,
@@ -85,6 +86,20 @@ export default defineEventHandler(async (event): Promise<CreateScheduleResponse>
         statusMessage: '指定されたユーザーが見つかりません'
       })
     }
+
+    // 操作者の部署情報を取得
+    const currentUser = await prisma.user.findUnique({
+      where: { id: auth.userId }
+    })
+
+    // ADMIN / LEADER（同部署）のみ他人の予定を作成可能
+    requireScheduleEditPermission({
+      authContext: auth,
+      scheduleAuthorId: body.authorId,
+      scheduleAuthorDepartmentId: author.departmentId,
+      userDepartmentId: currentUser?.departmentId ?? null
+    })
+
     authorId = body.authorId
   }
 
