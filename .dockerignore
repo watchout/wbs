@@ -10,6 +10,8 @@ dist
 *.md
 !README.md
 tests
+**/*.test.ts
+**/*.spec.ts
 進捗報告
 docs/knowledge
 .claude
