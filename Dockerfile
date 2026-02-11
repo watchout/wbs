@@ -1,11 +1,14 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# prisma schema + nuxt config を先にコピー
+# (npm ci の postinstall で nuxt prepare && prisma generate が走るため)
 COPY package.json package-lock.json ./
-RUN npm ci
-
 COPY prisma ./prisma
-RUN npx prisma generate
+COPY nuxt.config.ts tsconfig.json ./
+COPY app.vue ./
+
+RUN npm ci
 
 COPY . .
 RUN npm run build
