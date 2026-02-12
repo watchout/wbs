@@ -31,7 +31,9 @@ export default defineNuxtConfig({
     public: {
       appName: 'ミエルボード for 現場',
       appVersion: '0.1.0',
-      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
+      sentryDsn: process.env.SENTRY_DSN || '',
+      sentryEnvironment: process.env.NODE_ENV || 'development'
     }
   },
 
@@ -39,7 +41,10 @@ export default defineNuxtConfig({
   css: [],
 
   // モジュール
-  modules: [],
+  modules: ['@sentry/nuxt/module'],
+
+  // Sentry ソースマップ（本番デバッグ用）
+  sourcemap: { client: 'hidden' },
 
   // ビルド設定
   build: {

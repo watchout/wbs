@@ -5,7 +5,7 @@
 1. 開発サーバーが起動していること (`npm run dev`)
 2. データベースにシードデータが投入済み (`npx prisma db seed`)
 3. プラットフォーム管理者アカウントでログイン可能なこと
-   - メール: `admin@mielplus.jp`
+   - メール: `admin@mieruplus.jp`
    - パスワード: シード設定値
 
 ## 取得対象画面
@@ -25,7 +25,7 @@
 
 ```bash
 # 1. ログインページにアクセス
-# 2. admin@mielplus.jp でログイン
+# 2. admin@mieruplus.jp でログイン
 # 3. 各画面に遷移してスクリーンショット取得
 # 4. tests/visual/baseline/ に保存
 ```

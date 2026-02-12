@@ -4,13 +4,15 @@ services:
     container_name: wbs-app
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3100:3000"
     env_file:
       - .env.production
     environment:
       - NODE_ENV=production
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    labels:
+      - "com.centurylinklabs.watchtower.scope=wbs"
 
   watchtower:
     image: containrrr/watchtower

@@ -36,12 +36,36 @@ function createLogEntry(
   }
 }
 
+function sendToSentry(entry: LogEntry): void {
+  try {
+    import('@sentry/nuxt').then((Sentry) => {
+      if (entry.data?.error instanceof Error) {
+        Sentry.captureException(entry.data.error, {
+          tags: { module: entry.module },
+          extra: entry.data,
+        })
+      } else {
+        Sentry.captureMessage(`[${entry.module}] ${entry.message}`, {
+          level: 'error',
+          tags: { module: entry.module },
+          extra: entry.data,
+        })
+      }
+    }).catch(() => {
+      // Sentry 未初期化時は何もしない
+    })
+  } catch {
+    // Sentry import 失敗時は何もしない
+  }
+}
+
 function writeLog(entry: LogEntry): void {
   const output = JSON.stringify(entry)
   switch (entry.level) {
     case 'error':
       // eslint-disable-next-line no-console
       console.error(output)
+      sendToSentry(entry)
       break
     case 'warn':
       // eslint-disable-next-line no-console

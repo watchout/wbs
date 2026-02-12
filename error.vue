@@ -38,10 +38,22 @@
 
 <script setup lang="ts">
 import type { NuxtError } from '#app'
+import * as Sentry from '@sentry/nuxt'
 
 const props = defineProps<{
   error: NuxtError
 }>()
+
+// 500系エラーのみ Sentry に送信（404 はノイズになるため除外）
+onMounted(() => {
+  const code = props.error?.statusCode || 500
+  if (code >= 500) {
+    Sentry.captureException(props.error, {
+      tags: { statusCode: String(code) },
+      extra: { statusMessage: props.error?.statusMessage },
+    })
+  }
+})
 
 const errorType = computed(() => {
   const code = props.error?.statusCode || 500

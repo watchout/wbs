@@ -35,11 +35,11 @@ async function main() {
   // 2. Platform Admin ユーザー
   const platformAdminHash = await bcrypt.hash('platformadmin123', 10)
   const platformAdmin = await prisma.user.upsert({
-    where: { email: 'admin@mielplus.jp' },
+    where: { email: 'admin@mieruplus.jp' },
     update: { isPlatformAdmin: true },
     create: {
       organizationId: systemOrg.id,
-      email: 'admin@mielplus.jp',
+      email: 'admin@mieruplus.jp',
       name: 'プラットフォーム管理者',
       role: 'ADMIN',
       isPlatformAdmin: true,
@@ -146,7 +146,7 @@ async function main() {
   console.log('🎉 プラットフォーム管理データ投入完了!')
   console.log('')
   console.log('📋 プラットフォーム管理者ログイン情報:')
-  console.log('   Email: admin@mielplus.jp')
+  console.log('   Email: admin@mieruplus.jp')
   console.log('   Password: platformadmin123')
   console.log('   URL: /platform/')
 }

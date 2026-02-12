@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
+    "@sentry/nuxt": "^10.38.0",
     "@stripe/stripe-js": "^8.7.0",
     "bcrypt": "^6.0.0",
     "googleapis": "^170.1.0",
