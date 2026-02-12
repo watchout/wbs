@@ -38,8 +38,8 @@
           <span>✓ 14日間無料トライアル</span>
           <span>✓ クレジットカード不要</span>
         </div>
-        <div class="hero-urgency">
-          🎁 <strong>今月限定:</strong> 初月50%OFF + 導入サポート無料（残り<span class="countdown">12</span>社）
+        <div class="hero-urgency" v-if="isLaunchPhase">
+          🎁 <strong>ローンチ特別割引:</strong> {{ launchDiscount }}%OFF + 導入サポート無料（残り<span class="countdown">{{ launchRemaining }}</span>社）
         </div>
       </div>
       <div class="hero-visual">
@@ -868,8 +868,8 @@
           <div class="footer-column">
             <h4>会社情報</h4>
             <a href="https://iyasaka.co.jp" target="_blank" rel="noopener noreferrer">有限会社IYASAKA</a>
-            <a href="#">プライバシーポリシー</a>
-            <a href="#">利用規約</a>
+            <NuxtLink to="/privacy">プライバシーポリシー</NuxtLink>
+            <NuxtLink to="/terms">利用規約</NuxtLink>
           </div>
         </div>
       </div>
@@ -904,8 +904,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePricingConfig, type PlanConfigResponse } from '~/composables/usePricingConfig'
 
 const router = useRouter()
 const orgSlug = ref('')
@@ -922,6 +923,25 @@ const showComparison = ref(false)
 const selectedPlan = ref<any>(null)
 const showAiDemo = ref(false)
 const selectedProduct = ref<'board' | 'stock' | 'drive' | 'file' | null>(null)
+
+// ================================================================
+// 📌 APIからプラン・料金・ローンチ状況を動的取得
+// ================================================================
+const { data: pricingData } = usePricingConfig()
+
+/** APIから取得したプラン設定をplanType→データのマップに変換 */
+const planConfigMap = computed(() => {
+  const map: Record<string, PlanConfigResponse> = {}
+  for (const plan of pricingData.value.plans) {
+    map[plan.planType] = plan
+  }
+  return map
+})
+
+/** ローンチ割引の残り枠 */
+const launchRemaining = computed(() => pricingData.value.launchStatus.remaining)
+const launchDiscount = computed(() => pricingData.value.launchStatus.currentDiscount)
+const isLaunchPhase = computed(() => pricingData.value.launchStatus.isLaunchPhase)
 
 // スクロール検知
 if (typeof window !== 'undefined') {
@@ -958,8 +978,8 @@ const selectedUserTier = ref<'starter' | 'business' | 'professional' | 'enterpri
 //   - プロ: ¥10,000/月（+400回）
 // ================================================================
 
-// 製品詳細データ
-const productDetails = {
+// 製品詳細データ（ミエルボードの料金はAPIから動的取得）
+const productDetails = computed(() => ({
   board: {
     icon: '📆',
     name: 'ミエルボード',
@@ -981,9 +1001,9 @@ const productDetails = {
       '外出先から予定が確認できない'
     ],
     plans: [
-      { name: 'スターター', users: '〜10名', price: 9800, features: ['週間ボード', '部門フィルタ', 'リアルタイム更新', 'メールサポート'] },
-      { name: 'ビジネス', users: '〜30名', price: 29800, recommended: true, features: ['全機能', 'カレンダー連携', 'サイネージモード', 'AI音声入力 50回/月', '電話・メールサポート'] },
-      { name: 'エンタープライズ', users: '〜100名', price: 59800, features: ['全モジュール', 'AI無制限', 'API連携', 'SSO/SAML', '専任サポート'] }
+      { name: 'スターター', users: '〜10名', price: planConfigMap.value.STARTER?.monthlyPrice ?? 9800, features: ['週間ボード', '部門フィルタ', 'リアルタイム更新', 'メールサポート'] },
+      { name: 'ビジネス', users: '〜30名', price: planConfigMap.value.BUSINESS?.monthlyPrice ?? 29800, recommended: true, features: ['全機能', 'カレンダー連携', 'サイネージモード', 'AI音声入力 50回/月', '電話・メールサポート'] },
+      { name: 'エンタープライズ', users: '〜100名', price: planConfigMap.value.ENTERPRISE?.monthlyPrice ?? 59800, features: ['全モジュール', 'AI無制限', 'API連携', 'SSO/SAML', '専任サポート'] }
     ]
   },
   stock: {
@@ -1064,7 +1084,7 @@ const productDetails = {
       { name: 'プロフェッショナル', users: '〜100名', price: 39800, features: ['現場無制限', '200GBストレージ', 'API連携', 'AI 2,000回/月'] }
     ]
   }
-}
+}))
 
 function selectProduct(product: 'board' | 'stock' | 'drive' | 'file') {
   selectedProduct.value = selectedProduct.value === product ? null : product
@@ -1080,14 +1100,19 @@ const userTiers = {
   enterprise: { label: 'エンタープライズ（100名以上）', users: 999 }
 }
 
-// ミエルボード: SSOT_PRICING.md v2.0 準拠（3プラン制）
+// ミエルボード: APIから取得（フォールバック値あり）
 // 他製品: Coming Soon（将来的に個別 SSOT で確定）
-const productPrices = {
-  board: { starter: 14800, business: 39800, professional: 79800, enterprise: null },
-  stock: { starter: 9800, business: 19800, professional: 39800, enterprise: null },
-  drive: { starter: 4900, business: 9900, professional: 19900, enterprise: null },
-  file: { starter: 9800, business: 19800, professional: 39800, enterprise: null }
-}
+const productPrices = computed(() => ({
+  board: {
+    starter: planConfigMap.value.STARTER?.monthlyPrice ?? 14800,
+    business: planConfigMap.value.BUSINESS?.monthlyPrice ?? 39800,
+    professional: planConfigMap.value.ENTERPRISE?.monthlyPrice ?? 79800,
+    enterprise: null as number | null,
+  },
+  stock: { starter: 9800, business: 19800, professional: 39800, enterprise: null as number | null },
+  drive: { starter: 4900, business: 9900, professional: 19900, enterprise: null as number | null },
+  file: { starter: 9800, business: 19800, professional: 39800, enterprise: null as number | null },
+}))
 
 // v2.0: 全プランAI搭載
 const aiCredits: Record<string, number | string> = {
@@ -1099,24 +1124,25 @@ const aiCredits: Record<string, number | string> = {
 
 const calculatedPrice = computed(() => {
   if (selectedUserTier.value === 'enterprise') return null
-  
+
   let total = 0
   let productCount = 0
-  
+  const prices = productPrices.value
+
   if (selectedProducts.value.board) {
-    total += productPrices.board[selectedUserTier.value] || 0
+    total += prices.board[selectedUserTier.value] || 0
     productCount++
   }
   if (selectedProducts.value.stock) {
-    total += productPrices.stock[selectedUserTier.value] || 0
+    total += prices.stock[selectedUserTier.value] || 0
     productCount++
   }
   if (selectedProducts.value.drive) {
-    total += productPrices.drive[selectedUserTier.value] || 0
+    total += prices.drive[selectedUserTier.value] || 0
     productCount++
   }
   if (selectedProducts.value.file) {
-    total += productPrices.file[selectedUserTier.value] || 0
+    total += prices.file[selectedUserTier.value] || 0
     productCount++
   }
   
@@ -1141,15 +1167,15 @@ const discountRate = computed(() => {
   return 0
 })
 
-// プランデータ（SSOT_PRICING.md v2.0 準拠）
-const planData = {
+// プランデータ（APIから取得した料金を反映）
+const planData = computed(() => ({
   starter: {
     id: 'starter',
     name: 'Starter',
     target: '個人事業主・小規模チーム（1〜10名）向け',
-    price: 14800,
-    originalPrice: 14800,
-    aiCredits: 150,
+    price: planConfigMap.value.STARTER?.monthlyPrice ?? 14800,
+    originalPrice: planConfigMap.value.STARTER?.monthlyPrice ?? 14800,
+    aiCredits: planConfigMap.value.STARTER?.monthlyAiCredits ?? 150,
     pains: [
       'ホワイトボードの書き換えが面倒',
       '外出先から予定が確認できない',
@@ -1173,9 +1199,9 @@ const planData = {
     id: 'business',
     name: 'Business',
     target: '成長中の中小企業（10〜30名）向け',
-    price: 39800,
-    originalPrice: 39800,
-    aiCredits: 400,
+    price: planConfigMap.value.BUSINESS?.monthlyPrice ?? 39800,
+    originalPrice: planConfigMap.value.BUSINESS?.monthlyPrice ?? 39800,
+    aiCredits: planConfigMap.value.BUSINESS?.monthlyAiCredits ?? 400,
     pains: [
       '部門ごとの予定管理が煩雑',
       '複数拠点での情報共有が難しい',
@@ -1201,9 +1227,9 @@ const planData = {
     name: 'Enterprise',
     badge: '🏆 人気No.1',
     target: '本格導入を目指す企業（30〜100名）向け',
-    price: 79800,
-    originalPrice: 79800,
-    aiCredits: '無制限',
+    price: planConfigMap.value.ENTERPRISE?.monthlyPrice ?? 79800,
+    originalPrice: planConfigMap.value.ENTERPRISE?.monthlyPrice ?? 79800,
+    aiCredits: planConfigMap.value.ENTERPRISE?.monthlyAiCredits === -1 ? '無制限' : (planConfigMap.value.ENTERPRISE?.monthlyAiCredits ?? '無制限'),
     pains: [
       '現場・車両・在庫がバラバラで把握できない',
       'レポート作成に毎週何時間もかかる',
@@ -1251,10 +1277,11 @@ const planData = {
       { icon: '🔒', name: 'セキュリティ監査対応', description: 'SOC2等に対応' }
     ]
   }
-}
+}))
 
 function openPlanModal(planId: string) {
-  selectedPlan.value = planData[planId as keyof typeof planData]
+  const data = planData.value
+  selectedPlan.value = data[planId as keyof typeof data]
 }
 
 function startTrial(planId: string) {

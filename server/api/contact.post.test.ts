@@ -5,19 +5,21 @@
  * リード獲得APIのテスト
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
 import { prisma } from '../utils/prisma'
+import { clearAllRateLimits } from '../utils/rateLimit'
 
 // APIハンドラを直接インポート
 import contactHandler from './contact.post'
 
 // H3イベントのモック作成ヘルパー
-function createMockEvent(body: Record<string, unknown>) {
+function createMockEvent(body: Record<string, unknown>, ip = '127.0.0.1') {
   return {
     node: {
       req: {
-        headers: {},
-        method: 'POST'
+        headers: { 'x-forwarded-for': ip },
+        method: 'POST',
+        socket: { remoteAddress: ip }
       },
       res: {
         setHeader: vi.fn(),
@@ -41,6 +43,11 @@ vi.mock('h3', async () => {
 
 describe('POST /api/contact', () => {
   const testEmails: string[] = []
+
+  beforeEach(() => {
+    // 各テスト前にレート制限をリセット
+    clearAllRateLimits()
+  })
 
   afterAll(async () => {
     // テストで作成したデータをクリーンアップ
@@ -79,18 +86,26 @@ describe('POST /api/contact', () => {
       const event = createMockEvent({
         email: testEmail,
         companyName: 'テスト株式会社'
-      })
+      }, '10.0.0.1')
 
       const response = await contactHandler(event)
 
       expect(response.success).toBe(true)
       expect(response.organizationId).toBeDefined()
+      expect(response.setupToken).toBeDefined()
 
       // Organization名が会社名になっていることを確認
       const org = await prisma.organization.findUnique({
         where: { id: response.organizationId }
       })
       expect(org?.name).toBe('テスト株式会社')
+
+      // セットアップトークンがDBに保存されていることを確認
+      const user = await prisma.user.findFirst({
+        where: { organizationId: response.organizationId }
+      })
+      expect(user?.setupToken).toBe(response.setupToken)
+      expect(user?.setupTokenExpiry).toBeDefined()
     })
 
     it('should create organization with domain name when company name not provided', async () => {
@@ -99,7 +114,7 @@ describe('POST /api/contact', () => {
 
       const event = createMockEvent({
         email: testEmail
-      })
+      }, '10.0.0.2')
 
       const response = await contactHandler(event)
 
@@ -118,11 +133,11 @@ describe('POST /api/contact', () => {
       testEmails.push(testEmail)
 
       // 1回目の登録
-      const event1 = createMockEvent({ email: testEmail })
+      const event1 = createMockEvent({ email: testEmail }, '10.0.0.3')
       await contactHandler(event1)
 
       // 2回目の登録（重複）
-      const event2 = createMockEvent({ email: testEmail })
+      const event2 = createMockEvent({ email: testEmail }, '10.0.0.4')
       await expect(contactHandler(event2)).rejects.toThrow()
     })
   })
