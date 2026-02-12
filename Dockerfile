@@ -31,4 +31,5 @@ ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
 
-CMD ["node", ".output/server/index.mjs"]
+# Sentry サーバー側初期化を --import で読み込み
+CMD ["node", "--import", "./.output/server/sentry.server.config.mjs", ".output/server/index.mjs"]
