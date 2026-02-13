@@ -43,6 +43,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+definePageMeta({
+  layout: 'blank',
+})
+
 interface Organization {
   id: string
   name: string
