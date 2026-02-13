@@ -16,6 +16,7 @@ export interface SessionData {
   email: string
   role: string
   deviceId?: string  // デバイスログインの場合
+  otpVerifiedUntil?: Date  // OTP 2FA 検証済み期限
   createdAt: Date
   expiresAt: Date
 }
@@ -140,6 +141,27 @@ function cleanupExpiredSessions(): void {
       sessions.delete(id)
     }
   }
+}
+
+/**
+ * OTP 検証済みフラグをセッションに設定
+ */
+export function setOtpVerified(sessionId: string, durationMs: number): boolean {
+  const session = sessions.get(sessionId)
+  if (!session) return false
+
+  session.otpVerifiedUntil = new Date(Date.now() + durationMs)
+  return true
+}
+
+/**
+ * セッションが OTP 検証済みかチェック
+ */
+export function isOtpVerified(sessionId: string): boolean {
+  const session = sessions.get(sessionId)
+  if (!session?.otpVerifiedUntil) return false
+
+  return new Date() < session.otpVerifiedUntil
 }
 
 /**

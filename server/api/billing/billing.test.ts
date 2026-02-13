@@ -96,6 +96,7 @@ vi.mock('~/server/utils/stripe', () => ({
 }))
 vi.mock('~/server/utils/authMiddleware', () => ({
   requireAuth: mockAuth,
+  requireOtpVerified: vi.fn(), // OTP 検証は課金テストではスキップ
 }))
 vi.mock('~/server/utils/aiCredits', () => mockAiCredits)
 vi.mock('~/server/utils/cohort', () => mockCohort)

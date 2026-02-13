@@ -9,7 +9,7 @@
 
 import { defineEventHandler, readBody, createError } from 'h3'
 import Stripe from 'stripe'
-import { requireAuth } from '~/server/utils/authMiddleware'
+import { requireAuth, requireOtpVerified } from '~/server/utils/authMiddleware'
 import { stripe } from '~/server/utils/stripe'
 import { prisma } from '~/server/utils/prisma'
 import { determineCohort } from '~/server/utils/cohort'
@@ -20,6 +20,9 @@ export default defineEventHandler(async (event) => {
   if (auth.role !== 'ADMIN') {
     throw createError({ statusCode: 403, message: '管理者のみが課金設定を変更できます' })
   }
+
+  // OTP 2FA 検証（課金操作保護）
+  requireOtpVerified(event)
 
   const body = await readBody(event)
   const { priceId, billingInterval } = body as {
