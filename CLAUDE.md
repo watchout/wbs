@@ -1,4 +1,4 @@
-# CLAUDE.md - プロジェクト指示書（v3.3）
+# CLAUDE.md - プロジェクト指示書（v3.4）
 
 > Claude Code CLI / Web が自動で読み込むプロジェクト指示書です。
 > プロジェクトの全仕様書は docs/ にあります。
@@ -75,6 +75,74 @@ Web → CLI: /teleport  または  claude --teleport
 - ローカルコミットのまま引き継がない（push → pull で同期必須）
 - Claude Code CLI / Web がコードの設計判断をしない（実行に徹する）
 - Cursor で重いシェルコマンド（migrate reset, npm ci 等）を実行しない
+
+---
+
+## 📚 会社ナレッジ参照ルール
+
+> 設計判断・機能提案・マーケティング施策の前に、会社の知識データベースダイジェストを参照する。
+
+```
+参照ファイル: docs/knowledge/_company/KNOWLEDGE_DIGEST.md
+
+1. 設計判断・機能提案の前に KNOWLEDGE_DIGEST.md を読み、記載された原則に従う
+2. マーケティング関連の判断はダイジェストの原則を根拠にする
+3. ダイジェストの原則と矛盾する実装を検出した場合は警告する
+4. ダイジェストに記載のない領域の判断が必要な場合は報告する
+
+更新: framework sync-knowledge（または手動で配置）
+```
+
+---
+
+## 🧠 スキル（専門家チーム）による合議制開発
+
+各フェーズには専門家チームが定義されており、合議制で意思決定を行う。
+
+```
+.claude/skills/
+├── deliberation/      ← 合議制意思決定プロトコル
+├── discovery/         ← Discovery Phase専門家（D1-D4）
+├── business/          ← Business Phase専門家（B1-B4）
+├── product/           ← Product Phase専門家（P1-P5）
+├── technical/         ← Technical Phase専門家（T1-T5）
+├── implementation/    ← Implementation Phase専門家（I1-I5）
+└── review-council/    ← レビュー評議会（R1-R5）
+```
+
+**スキル実行コマンド**:
+```
+「ディスカバリーを開始して」   → Discovery Phaseを実行
+「ビジネス設計を開始して」     → Business Phaseを実行
+「プロダクト設計を開始して」   → Product Phaseを実行
+「技術設計を開始して」         → Technical Phaseを実行
+「実装を開始して」             → Implementation Phaseを実行
+「レビュー評議会を開催して」   → Review Councilを実行
+```
+
+**個別エージェント実行**:
+```
+「D1を実行」  → Idea Excavator
+「P4を実行」  → Feature Spec Writer
+「I3を実行」  → Code Auditor
+```
+
+**合議の実行**:
+```
+「合議して：[議題]」     → 自動で適切な専門家を選定
+「軽量合議：[議題]」     → DETAIL層の決定（2-3名）
+「標準合議：[議題]」     → CONTRACT層の決定（3-4名）
+「重量合議：[議題]」     → CORE層の決定（全専門家）
+```
+
+**合議トリガー（自動）**:
+- CORE層の変更提案 → 重量合議
+- CONTRACT層の新規定義 → 標準合議
+- 複数SSOTへの影響 → 標準合議
+- 技術的負債の可能性 → 軽量合議
+- セキュリティ関連 → 標準合議
+
+詳細: .claude/skills/_INDEX.md 参照
 
 ---
 
@@ -182,6 +250,19 @@ DoD（docs/DONE_DEFINITION.md）の Level 2 基準を満たさない PR は
 マージ禁止とする。
 ```
 
+### SSOT 3層と止まらないルール
+
+```
+SSOTは3層構造で管理する:
+  CORE層（変わりにくい）: 目的、スコープ、ビジネスルール
+  CONTRACT層（破壊しない）: API契約、画面I/O、DB主要テーブル
+  DETAIL層（変更前提）: エラー文言、バリデーション、UI微調整
+
+仕様がない場合の行動:
+  CORE/CONTRACT層が未定義 → 実装を開始せず、確認を求める
+  DETAIL層が未定義 → デフォルト案で実装し、Decision Backlog に記録
+```
+
 ---
 
 ## 機能実装の実行方法
@@ -232,7 +313,7 @@ Claude Code Web のタスク完了
 │   ├── seed.ts                ← シードデータ
 │   └── migrations/            ← マイグレーション履歴
 ├── docs/
-│   ├── ssot/                  ← SSOT階層（ai-dev-framework v3.3 準拠）
+│   ├── ssot/                  ← SSOT階層（ai-dev-framework v3.4 準拠）
 │   │   ├── SSOT-0_PRD.md
 │   │   └── SSOT-1_FEATURE_CATALOG.md
 │   ├── core/                  ← コア定義（横断ルール）
@@ -337,9 +418,90 @@ scope: 機能ID or モジュール名
 
 ---
 
+## 🔒 実装開始前の Pre-Code Gate（3段階チェック）
+
+```
+⚠️ Gate は CLI で構造的に強制される:
+  - `framework run` は全 Gate が passed でないと実行を拒否する
+  - Gate の状態は .framework/gates.json で永続管理される
+  - `framework gate check` で全ゲートを一括チェック
+  - `framework gate status` で現在の状態を確認
+  - `framework plan` 成功時に Gate B が自動で passed になる
+  - `framework audit ssot` 実行時に Gate C が自動で再評価される
+
+コードを1行でも書く前に、以下の3段階を順番に確認する。
+1つでも ☐ がある段階では、実装を開始してはならない。
+```
+
+### Gate A: 開発環境・インフラの準備
+
+```
+以下が全て完了しているか:
+  □ docker-compose.yml が存在し、DB/Redis コンテナが起動できる
+  □ .env.example が存在し、必要な環境変数が定義されている
+  □ npm install が成功する
+  □ npx prisma migrate dev が成功する
+  □ npm run dev でローカル開発サーバーが起動する
+  □ .github/workflows/ci.yml が配置されている
+  □ CI がグリーン（typecheck + test + build が通る）
+
+未完了 → 「開発環境が未セットアップです」と報告し、先に構築する。
+```
+
+### Gate B: タスク分解・計画の完了
+
+```
+以下が全て完了しているか:
+  □ 全SSOTの優先度・依存関係を分析済み
+  □ 依存グラフを構築し、Wave 分類が完了している
+  □ GitHub Projects ボードが作成されている
+  □ 各機能の親 Issue が作成されている
+  □ ブランチ戦略が確認されている:
+    - main: 常にデプロイ可能（直接コミット禁止）
+    - feature/[機能ID]-[レイヤー]: 機能実装用
+    - fix/[機能ID]-[説明]: バグ修正用
+
+未完了 → 「タスク分解が未実施です」と報告し、先に計画する。
+```
+
+### Gate C: SSOT 完全性チェック
+
+```
+対象機能の SSOT で以下を確認する:
+  □ §3-E 入出力例:  5ケース以上（正常2+異常3）が記入されているか
+  □ §3-F 境界値:    全データ項目の境界パターンが定義されているか
+  □ §3-G 例外応答:  全エラーケースの応答が定義されているか
+  □ §3-H Gherkin:   全MUST要件のシナリオが存在するか
+  □ 完全性チェックリスト: SSOT冒頭のチェックリストが全項目 ✅ か
+
+不足を発見 → 「§3-E/F/G/H が未記入です。補完が必要です」と報告。
+§3-E/F/G/H が空のまま実装を開始することは絶対に禁止。
+```
+
+### Gate 通過後の実装フロー
+
+```
+Gate A/B/C 全て ✅ の場合のみ:
+
+1. feature/[機能ID]-[レイヤー] ブランチを作成
+2. 標準タスク分解に従い実装:
+   Task 1: DB（マイグレーション、シード、インデックス）
+   Task 2: API（エンドポイント、バリデーション、エラーハンドリング）
+   Task 3: UI（画面、状態管理、フロー）
+   Task 4: 結合（API + UI 接続、E2E）
+   Task 5: テスト
+   Task 6: レビュー + ドキュメント更新
+3. PR を作成し、レビューを経て main にマージ
+4. GitHub Projects の Issue ステータスを更新
+```
+
+---
+
 ## 禁止事項
 
 ```
+❌ Gate A/B/C を確認せずに実装を開始する ← 最重要
+❌ §3-E/F/G/H が空のまま実装を開始する
 1. 生SQL（$queryRaw / $executeRaw でのDDL/DML）
 2. organizationId なしのクエリ
 3. organizationId ?? 'default' のようなフォールバック

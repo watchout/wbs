@@ -417,6 +417,144 @@ OPS-005:
 
 ---
 
+## §3-E 入出力例
+
+> 機能台帳レベルの入出力例。主要カテゴリの代表的なAPI操作を対象とする。
+
+### AUTH: 認証機能
+
+| # | 種別 | 入力 | 期待出力 |
+|---|------|------|----------|
+| 1 | 正常 | POST /api/auth/login { email, password }（正しい資格情報） | 200 OK、JWT Cookie設定、{ user, organization } |
+| 2 | 正常 | POST /api/auth/device-login { orgSlug, kioskSecret }（正しいシークレット） | 200 OK、DEVICEロールJWT Cookie設定 |
+| 3 | 異常 | POST /api/auth/login { email, password }（不正なパスワード） | 401「メールアドレスまたはパスワードが正しくありません」 |
+| 4 | 異常 | POST /api/auth/login 5回連続失敗 | 423 Locked「アカウントがロックされました（15分間）」 |
+| 5 | 異常 | POST /api/auth/device-login { orgSlug: "invalid", kioskSecret }  | 401 Unauthorized |
+
+### CRUD: スケジュールCRUD操作
+
+| # | 種別 | 入力 | 期待出力 |
+|---|------|------|----------|
+| 1 | 正常 | POST /api/schedules { title, date, startTime, endTime, userId } | 201 Created、{ id, title, ... } |
+| 2 | 正常 | PATCH /api/schedules/:id { title: "変更後" } | 200 OK、更新後のスケジュールデータ |
+| 3 | 異常 | POST /api/schedules { title: "" }（空件名） | 400 Bad Request「件名は必須です」 |
+| 4 | 異常 | DELETE /api/schedules/:otherId（他テナントのID） | 404 Not Found（情報漏洩防止） |
+| 5 | 異常 | POST /api/schedules（認証なし） | 401 Unauthorized |
+
+### ROLE: 権限制御
+
+| # | 種別 | 入力 | 期待出力 |
+|---|------|------|----------|
+| 1 | 正常 | ADMINがユーザーのロールをLEADERに変更 | 200 OK、ロール変更が反映 |
+| 2 | 正常 | MEMBERがスケジュール一覧を取得 | 200 OK、自テナントのスケジュールのみ返却 |
+| 3 | 異常 | MEMBERが他ユーザーのロールを変更試行 | 403 Forbidden |
+| 4 | 異常 | LEADERが管理者画面（/admin/*）にアクセス | 403 Forbidden、リダイレクト |
+| 5 | 異常 | DEVICEロールでスケジュール編集APIを呼び出し | 403 Forbidden |
+
+---
+
+## §3-F 境界値
+
+> 機能台帳の全カテゴリにわたるデータ項目の境界パターン。
+
+| カテゴリ | データ項目 | 最小 | 最大 | 境界テスト |
+|---------|-----------|------|------|-----------|
+| AUTH | メールアドレス長 | 5文字 | 254文字 | 4文字→エラー、254文字→OK、255文字→エラー |
+| AUTH | パスワード長 | 8文字 | 128文字 | 7文字→エラー、8文字→OK |
+| AUTH | ログイン試行回数 | 1回 | 5回 | 5回目→ロック、6回目→423応答 |
+| ACCT | ユーザー名長 | 1文字 | 100文字 | 空→エラー、100文字→OK、101文字→エラー |
+| ROLE | ロール種別 | ADMIN | DEVICE | 不正ロール文字列→400エラー |
+| CRUD | 予定件名長 | 1文字 | 200文字 | 空→エラー、200文字→OK |
+| CRUD | 予定時間 | 00:00 | 23:59 | 開始>終了→バリデーションエラー |
+| LIST | 日付フィルター範囲 | 1日 | 365日 | 範囲外→デフォルト7日間にフォールバック |
+| OPS | 組織あたりユーザー数 | 1 | 500 | 500超→警告 |
+| SEC | レートリミット（認証） | - | 5回/分 | 6回目→429 Too Many Requests |
+| SEC | レートリミット（OTP送信） | - | 3回/5分 | 4回目→429 Too Many Requests |
+
+---
+
+## §3-G 例外応答
+
+> 全機能カテゴリのエラーケースと応答定義。
+
+| カテゴリ | エラーケース | HTTP | 応答 |
+|---------|------------|------|------|
+| AUTH | 不正な資格情報 | 401 | { error: "メールアドレスまたはパスワードが正しくありません" } |
+| AUTH | アカウントロック | 423 | { error: "アカウントがロックされました", lockedUntil } |
+| AUTH | セッション期限切れ | 401 | { error: "セッションが期限切れです。再度ログインしてください" } |
+| ACCT | 重複メールアドレス | 409 | { error: "このメールアドレスは既に登録されています" } |
+| ROLE | 権限不足 | 403 | { error: "この操作を行う権限がありません" } |
+| ROLE | 最後のADMIN削除試行 | 400 | { error: "組織に最低1名のADMINが必要です" } |
+| CRUD | バリデーション失敗 | 400 | { error: "入力内容を確認してください", details: [...] } |
+| CRUD | 対象リソース不在 | 404 | { error: "指定されたデータが見つかりません" } |
+| SEC | テナント境界違反 | 403 | { error: "アクセスが拒否されました" } |
+| SEC | CSRF トークン不正 | 403 | { error: "不正なリクエストです" } |
+| SEC | レートリミット超過 | 429 | { error: "リクエストが多すぎます", retryAfter } |
+| OPS | ヘルスチェック失敗 | 503 | { status: "unhealthy", details: { db, redis } } |
+| ERR | 予期しないエラー | 500 | { error: "システムエラーが発生しました" } |
+
+---
+
+## §3-H Gherkin シナリオ
+
+> 全カテゴリの MUST 要件に対する Gherkin シナリオ。
+
+### Scenario: メール/パスワードログイン（AUTH-001）
+
+```gherkin
+Scenario: 正しい資格情報でログインする
+  Given ユーザー "admin@demo.com" が組織 "demo-org" に登録されている
+  And パスワードが正しくハッシュ化されて保存されている
+  When POST /api/auth/login に { email: "admin@demo.com", password: "correct" } を送信する
+  Then ステータスコード 200 が返される
+  And JWT Cookie が設定される
+  And レスポンスに user.role = "ADMIN" が含まれる
+```
+
+### Scenario: ログイン試行回数制限（AUTH-001 AC5）
+
+```gherkin
+Scenario: 5回連続でログイン失敗するとロックされる
+  Given ユーザー "user@demo.com" が登録されている
+  When 不正なパスワードで5回連続ログインを試行する
+  Then 5回目のレスポンスで 423 Locked が返される
+  And "アカウントがロックされました" メッセージが含まれる
+  And 15分後に再試行が可能になる
+```
+
+### Scenario: マルチテナントデータ分離（ROLE-002, SEC）
+
+```gherkin
+Scenario: 他テナントのスケジュールにアクセスできない
+  Given 組織A のユーザーがログイン済みである
+  And 組織B にスケジュール "schedule-b-001" が存在する
+  When GET /api/schedules/schedule-b-001 を送信する
+  Then 404 Not Found が返される
+  And レスポンスに組織Bのデータは含まれない
+```
+
+### Scenario: RBAC による管理画面アクセス制御（ROLE-003）
+
+```gherkin
+Scenario: MEMBER ロールが管理画面にアクセスできない
+  Given MEMBER ロールのユーザーがログイン済みである
+  When /admin/users ページに遷移する
+  Then 403 Forbidden ページが表示される
+  And 管理者メニューがナビゲーションに表示されない
+```
+
+### Scenario: スケジュールのリアルタイム同期（WBS-008）
+
+```gherkin
+Scenario: スケジュール更新が全クライアントにリアルタイム通知される
+  Given 同一組織の2つのブラウザセッションが週間ボードを表示している
+  When セッションAでスケジュールを更新する
+  Then セッションBに1秒以内にSocket.IOイベントが届く
+  And セッションBの表示が自動更新される
+```
+
+---
+
 ## 変更履歴
 
 | 日付 | 変更内容 | 変更者 |
