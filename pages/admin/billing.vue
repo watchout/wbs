@@ -110,8 +110,8 @@
                 <div class="pack-price">¥{{ pack.price.toLocaleString() }}/月</div>
                 <button
                   class="btn btn-sm btn-primary"
-                  :disabled="subscribing"
-                  @click="purchasePack(pack.priceKey)"
+                  :disabled="subscribing || !pack.priceId"
+                  @click="purchasePack(pack.priceId!)"
                 >
                   購入
                 </button>
@@ -220,16 +220,16 @@ const creditPacks = computed(() => {
   if (!pricingConfig.value?.creditPacks?.length) {
     // フォールバック
     return [
-      { name: 'ライト', credits: 100, price: 1500, priceKey: 'ai_credit_pack_light' },
-      { name: 'スタンダード', credits: 300, price: 3500, priceKey: 'ai_credit_pack_standard' },
-      { name: 'プロ', credits: 1000, price: 9800, priceKey: 'ai_credit_pack_pro' },
+      { name: 'ライト', credits: 100, price: 1500, priceId: null },
+      { name: 'スタンダード', credits: 300, price: 3500, priceId: null },
+      { name: 'プロ', credits: 1000, price: 9800, priceId: null },
     ]
   }
   return pricingConfig.value.creditPacks.map((pack: CreditPackConfigResponse) => ({
     name: pack.name,
     credits: pack.credits,
     price: pack.price,
-    priceKey: pack.stripePriceId || `ai_credit_pack_${pack.name.toLowerCase()}`,
+    priceId: pack.stripePriceId,
   }))
 })
 
@@ -412,14 +412,14 @@ async function openPortal() {
   })
 }
 
-async function purchasePack(priceKey: string) {
+async function purchasePack(packPriceId: string) {
   await ensureOtpVerified(async () => {
     subscribing.value = true
     error.value = ''
     try {
       const result = await $fetch<{ url: string }>('/api/billing/credits/purchase', {
         method: 'POST',
-        body: { packPriceId: `placeholder_${priceKey}` },
+        body: { packPriceId },
       })
       if (result.url) {
         window.location.href = result.url
