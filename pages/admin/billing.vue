@@ -152,6 +152,13 @@
         </div>
       </section>
     </div>
+
+    <!-- OTP 認証モーダル -->
+    <BillingOtpVerifyModal
+      :visible="showOtpModal"
+      @verified="onOtpVerified"
+      @cancel="onOtpCancel"
+    />
   </div>
 </template>
 
@@ -318,65 +325,111 @@ function formatDateTime(dateStr: string): string {
   return new Date(dateStr).toLocaleString('ja-JP')
 }
 
+// OTP 2FA
+const showOtpModal = ref(false)
+const otpVerified = ref(false)
+let pendingAction: (() => Promise<void>) | null = null
+
+/** OTP 検証済みか確認し、未検証ならモーダル表示 */
+async function ensureOtpVerified(action: () => Promise<void>) {
+  // すでに検証済みか API で確認
+  if (!otpVerified.value) {
+    try {
+      const status = await $fetch<{ verified: boolean }>('/api/auth/otp/status')
+      otpVerified.value = status.verified
+    } catch {
+      otpVerified.value = false
+    }
+  }
+
+  if (otpVerified.value) {
+    await action()
+    return
+  }
+
+  // OTP 未検証 → モーダル表示して保留
+  pendingAction = action
+  showOtpModal.value = true
+}
+
+function onOtpVerified() {
+  showOtpModal.value = false
+  otpVerified.value = true
+  if (pendingAction) {
+    pendingAction()
+    pendingAction = null
+  }
+}
+
+function onOtpCancel() {
+  showOtpModal.value = false
+  pendingAction = null
+}
+
 // アクション
 async function subscribe(planType: string) {
-  subscribing.value = true
-  error.value = ''
-  try {
-    // PlanConfig から Stripe Price ID を取得
-    const plan = availablePlans.value.find(p => p.type === planType)
-    const priceId = plan?.stripePriceId || `placeholder_${planType.toLowerCase()}`
+  await ensureOtpVerified(async () => {
+    subscribing.value = true
+    error.value = ''
+    try {
+      const plan = availablePlans.value.find(p => p.type === planType)
+      const priceId = plan?.stripePriceId || `placeholder_${planType.toLowerCase()}`
 
-    const result = await $fetch<{ url: string }>('/api/billing/checkout', {
-      method: 'POST',
-      body: {
-        priceId,
-        billingInterval: 'month',
-      },
-    })
-    if (result.url) {
-      window.location.href = result.url
+      const result = await $fetch<{ url: string }>('/api/billing/checkout', {
+        method: 'POST',
+        body: {
+          priceId,
+          billingInterval: 'month',
+        },
+      })
+      if (result.url) {
+        window.location.href = result.url
+      }
+    } catch (e: unknown) {
+      error.value = 'チェックアウトの作成に失敗しました'
+    } finally {
+      subscribing.value = false
     }
-  } catch (e: unknown) {
-    error.value = 'チェックアウトの作成に失敗しました'
-  } finally {
-    subscribing.value = false
-  }
+  })
 }
 
 async function openPortal() {
-  subscribing.value = true
-  error.value = ''
-  try {
-    const result = await $fetch<{ url: string }>('/api/billing/portal', {
-      method: 'POST',
-    })
-    if (result.url) {
-      window.location.href = result.url
+  await ensureOtpVerified(async () => {
+    subscribing.value = true
+    error.value = ''
+    try {
+      const result = await $fetch<{ url: string }>('/api/billing/portal', {
+        method: 'POST',
+      })
+      if (result.url) {
+        window.location.href = result.url
+      }
+    } catch (e: unknown) {
+      error.value = 'ポータルの作成に失敗しました'
+    } finally {
+      subscribing.value = false
     }
-  } catch (e: unknown) {
-    error.value = 'ポータルの作成に失敗しました'
-  } finally {
-    subscribing.value = false
-  }
+  })
 }
 
 async function purchasePack(priceKey: string) {
-  subscribing.value = true
-  error.value = ''
-  try {
-    const result = await $fetch<{ url: string }>('/api/billing/credits/purchase', {
-      method: 'POST',
-      body: { packPriceId: `placeholder_${priceKey}` },
-    })
-    if (result.url) {
-      window.location.href = result.url
+  await ensureOtpVerified(async () => {
+    subscribing.value = true
+    error.value = ''
+    try {
+      const result = await $fetch<{ url: string }>('/api/billing/credits/purchase', {
+        method: 'POST',
+        body: { packPriceId: `placeholder_${priceKey}` },
+      })
+      if (result.url) {
+        window.location.href = result.url
+      }
+    } catch (e: unknown) {
+      error.value = 'パック購入の作成に失敗しました'
+    } finally {
+      subscribing.value = false
     }
-  } catch (e: unknown) {
-    error.value = 'パック購入の作成に失敗しました'
-  } finally {
-    subscribing.value = false
-  }
+  })
 }
 </script>
 

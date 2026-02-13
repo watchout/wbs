@@ -430,6 +430,23 @@ model AiCreditTransaction {
   @@index([organizationId, createdAt])
 }
 
+// ------------ OTP (ワンタイムパスワード) ------------
+
+model OtpToken {
+  id          String   @id @default(uuid())
+  userId      String
+  code        String           // 6桁コード（ハッシュ化）
+  purpose     String           // "billing" 等
+  attempts    Int      @default(0)  // 入力試行回数（ブルートフォース対策）
+  expiresAt   DateTime
+  usedAt      DateTime?        // 使用済みフラグ
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
+}
+
 // ------------ プラットフォーム管理設定 ------------
 
 model PlanConfig {

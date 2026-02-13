@@ -186,6 +186,63 @@ export function buildTrialWelcomeEmail(params: {
   return { subject, html }
 }
 
+/**
+ * OTP 認証コードメール
+ *
+ * 課金操作時の2FA用6桁コードを送信
+ */
+export function buildOtpEmail(params: {
+  code: string
+}): { subject: string; html: string } {
+  const { code } = params
+
+  const subject = '【ミエルプラス】認証コード'
+
+  const html = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:'Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f5f5;">
+  <div style="max-width:600px;margin:0 auto;padding:32px 16px;">
+    <div style="background:white;border-radius:12px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+      <div style="text-align:center;margin-bottom:24px;">
+        <h1 style="font-size:24px;color:#1a1a2e;margin:0;">ミエルプラス</h1>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+
+      <h2 style="font-size:18px;color:#333;margin:0 0 16px;text-align:center;">認証コード</h2>
+      <p style="color:#555;line-height:1.7;text-align:center;">
+        課金操作の本人確認のため、以下のコードを入力してください。
+      </p>
+
+      <div style="text-align:center;margin:24px 0;">
+        <span style="display:inline-block;background:#f0f9ff;border:2px solid #1e40af;border-radius:12px;padding:16px 40px;font-size:32px;font-weight:700;letter-spacing:8px;color:#1e40af;">
+          ${escapeHtml(code)}
+        </span>
+      </div>
+
+      <p style="color:#888;font-size:13px;line-height:1.6;text-align:center;">
+        ※ このコードは5分間有効です。<br>
+        ※ このメールに心当たりがない場合は無視してください。
+      </p>
+
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+
+      <div style="text-align:center;color:#999;font-size:12px;">
+        <p>© ${new Date().getFullYear()} ミエルプラス / 有限会社IYASAKA</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`.trim()
+
+  return { subject, html }
+}
+
 // ================================================================
 // ヘルパー
 // ================================================================

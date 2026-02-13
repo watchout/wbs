@@ -9,7 +9,7 @@
  */
 
 import { createError, getQuery, getHeaders, getCookie, setCookie, type H3Event } from 'h3'
-import { getSession, refreshSessionIfNeeded, sessionCookieOptions, deviceSessionCookieOptions } from './session'
+import { getSession, refreshSessionIfNeeded, isOtpVerified, sessionCookieOptions, deviceSessionCookieOptions } from './session'
 
 
 export interface AuthContext {
@@ -115,6 +115,22 @@ export function requireLeader(authContext: AuthContext): void {
     throw createError({
       statusCode: 403,
       statusMessage: 'リーダー以上の権限が必要です'
+    })
+  }
+}
+
+/**
+ * OTP 2FA 検証済みを要求（課金操作用）
+ *
+ * セッションに otpVerifiedUntil が設定され、有効期限内であることを確認
+ */
+export function requireOtpVerified(event: H3Event): void {
+  const sessionId = getCookie(event, 'session_id')
+  if (!sessionId || !isOtpVerified(sessionId)) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: '課金操作には認証コードが必要です',
+      data: { requireOtp: true },
     })
   }
 }
