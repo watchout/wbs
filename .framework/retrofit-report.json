@@ -1,0 +1,908 @@
+{
+  "projectDir": "/Users/kaneko/wbs",
+  "projectName": "wbs",
+  "scannedAt": "2026-02-13T00:07:26.132Z",
+  "directory": {
+    "hasSrc": false,
+    "hasDocs": true,
+    "hasTests": true,
+    "hasPublic": false,
+    "hasFramework": true,
+    "hasClaudeMd": true,
+    "hasPackageJson": true,
+    "topLevelDirs": [
+      "components",
+      "composables",
+      "docs",
+      "infra",
+      "layouts",
+      "middleware",
+      "nginx",
+      "pages",
+      "plugins",
+      "prisma",
+      "scripts",
+      "server",
+      "tests"
+    ],
+    "srcSubdirs": []
+  },
+  "techStack": [
+    {
+      "name": "Vue",
+      "category": "framework",
+      "version": "^3.5.0",
+      "source": "package.json (vue)"
+    },
+    {
+      "name": "TypeScript",
+      "category": "language",
+      "version": "^5.6.0",
+      "source": "package.json (typescript)"
+    },
+    {
+      "name": "Prisma",
+      "category": "database",
+      "version": "^6.0.0",
+      "source": "package.json (prisma)"
+    },
+    {
+      "name": "Vitest",
+      "category": "testing",
+      "version": "^2.1.0",
+      "source": "package.json (vitest)"
+    }
+  ],
+  "fileStats": {
+    "totalFiles": 683,
+    "totalLines": 96379,
+    "byExtension": {
+      ".md": 223,
+      ".json": 115,
+      ".ts": 149,
+      ".js": 140,
+      ".css": 56
+    }
+  },
+  "existingDocs": [
+    {
+      "path": "docs/AI_ROLES/STRATEGIC_CONTEXT_PROMPT.md",
+      "name": "STRATEGIC_CONTEXT_PROMPT.md",
+      "sizeBytes": 19389,
+      "category": "AI_ROLES"
+    },
+    {
+      "path": "docs/BRANCH_AND_RELEASE.md",
+      "name": "BRANCH_AND_RELEASE.md",
+      "sizeBytes": 5043,
+      "category": "docs"
+    },
+    {
+      "path": "docs/DEVELOPMENT_RULES_PACK_COMPLETE.md",
+      "name": "DEVELOPMENT_RULES_PACK_COMPLETE.md",
+      "sizeBytes": 6562,
+      "category": "docs"
+    },
+    {
+      "path": "docs/DONE_DEFINITION.md",
+      "name": "DONE_DEFINITION.md",
+      "sizeBytes": 4144,
+      "category": "docs"
+    },
+    {
+      "path": "docs/FRAMEWORK_v34_OPERATIONS.md",
+      "name": "FRAMEWORK_v34_OPERATIONS.md",
+      "sizeBytes": 4065,
+      "category": "docs"
+    },
+    {
+      "path": "docs/GITHUB_SETUP_GUIDE.md",
+      "name": "GITHUB_SETUP_GUIDE.md",
+      "sizeBytes": 1494,
+      "category": "docs"
+    },
+    {
+      "path": "docs/INDEX_WEAK_CURRENT.md",
+      "name": "INDEX_WEAK_CURRENT.md",
+      "sizeBytes": 11770,
+      "category": "docs"
+    },
+    {
+      "path": "docs/IYASAKA_BRAND_MASTER_PROTOCOL.md",
+      "name": "IYASAKA_BRAND_MASTER_PROTOCOL.md",
+      "sizeBytes": 12983,
+      "category": "docs"
+    },
+    {
+      "path": "docs/PRODUCT_VISION.md",
+      "name": "PRODUCT_VISION.md",
+      "sizeBytes": 7202,
+      "category": "docs"
+    },
+    {
+      "path": "docs/QUALITY_MANAGEMENT_OVERVIEW.md",
+      "name": "QUALITY_MANAGEMENT_OVERVIEW.md",
+      "sizeBytes": 2037,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_APP_HEADER.md",
+      "name": "SSOT_APP_HEADER.md",
+      "sizeBytes": 10774,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_BILLING.md",
+      "name": "SSOT_BILLING.md",
+      "sizeBytes": 12439,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_BRAND.md",
+      "name": "SSOT_BRAND.md",
+      "sizeBytes": 13620,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_CALENDAR_SYNC.md",
+      "name": "SSOT_CALENDAR_SYNC.md",
+      "sizeBytes": 16457,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_ERROR_PAGES.md",
+      "name": "SSOT_ERROR_PAGES.md",
+      "sizeBytes": 8482,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_EXIT_STRATEGY.md",
+      "name": "SSOT_EXIT_STRATEGY.md",
+      "sizeBytes": 33661,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_GENBA_WEEK.md",
+      "name": "SSOT_GENBA_WEEK.md",
+      "sizeBytes": 19269,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_MARKETING.md",
+      "name": "SSOT_MARKETING.md",
+      "sizeBytes": 41621,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_MEETING_SCHEDULER.md",
+      "name": "SSOT_MEETING_SCHEDULER.md",
+      "sizeBytes": 12738,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_MIEL_FILE.md",
+      "name": "SSOT_MIEL_FILE.md",
+      "sizeBytes": 28788,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_MVP_EXTEND.md",
+      "name": "SSOT_MVP_EXTEND.md",
+      "sizeBytes": 10161,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_PRICING.md",
+      "name": "SSOT_PRICING.md",
+      "sizeBytes": 12996,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_TEMPLATE_GENERIC.md",
+      "name": "SSOT_TEMPLATE_GENERIC.md",
+      "sizeBytes": 7128,
+      "category": "docs"
+    },
+    {
+      "path": "docs/SSOT_UI_NAVIGATION.md",
+      "name": "SSOT_UI_NAVIGATION.md",
+      "sizeBytes": 9579,
+      "category": "docs"
+    },
+    {
+      "path": "docs/TEST_STRATEGY.md",
+      "name": "TEST_STRATEGY.md",
+      "sizeBytes": 4940,
+      "category": "docs"
+    },
+    {
+      "path": "docs/UI_ROUTING_MAP.md",
+      "name": "UI_ROUTING_MAP.md",
+      "sizeBytes": 15260,
+      "category": "docs"
+    },
+    {
+      "path": "docs/UI_ROUTING_MAP_CORRECTION_REPORT.md",
+      "name": "UI_ROUTING_MAP_CORRECTION_REPORT.md",
+      "sizeBytes": 14068,
+      "category": "docs"
+    },
+    {
+      "path": "docs/UI_ROUTING_MAP_REPORT.md",
+      "name": "UI_ROUTING_MAP_REPORT.md",
+      "sizeBytes": 10711,
+      "category": "docs"
+    },
+    {
+      "path": "docs/VPS_PORT_ALLOCATION.md",
+      "name": "VPS_PORT_ALLOCATION.md",
+      "sizeBytes": 3813,
+      "category": "docs"
+    },
+    {
+      "path": "docs/agency_commission_system.md",
+      "name": "agency_commission_system.md",
+      "sizeBytes": 5057,
+      "category": "docs"
+    },
+    {
+      "path": "docs/agency_registration_spec.md",
+      "name": "agency_registration_spec.md",
+      "sizeBytes": 10588,
+      "category": "docs"
+    },
+    {
+      "path": "docs/ai_development_context.md",
+      "name": "ai_development_context.md",
+      "sizeBytes": 6679,
+      "category": "docs"
+    },
+    {
+      "path": "docs/ai_feature_specification.md",
+      "name": "ai_feature_specification.md",
+      "sizeBytes": 18255,
+      "category": "docs"
+    },
+    {
+      "path": "docs/chat_billing_plans.md",
+      "name": "chat_billing_plans.md",
+      "sizeBytes": 5095,
+      "category": "docs"
+    },
+    {
+      "path": "docs/core/SSOT-2_UI_STATE.md",
+      "name": "SSOT-2_UI_STATE.md",
+      "sizeBytes": 11088,
+      "category": "core"
+    },
+    {
+      "path": "docs/core/SSOT-3_API_CONTRACT.md",
+      "name": "SSOT-3_API_CONTRACT.md",
+      "sizeBytes": 10090,
+      "category": "core"
+    },
+    {
+      "path": "docs/core/SSOT-4_DATA_MODEL.md",
+      "name": "SSOT-4_DATA_MODEL.md",
+      "sizeBytes": 15098,
+      "category": "core"
+    },
+    {
+      "path": "docs/core/SSOT-5_CROSS_CUTTING.md",
+      "name": "SSOT-5_CROSS_CUTTING.md",
+      "sizeBytes": 12677,
+      "category": "core"
+    },
+    {
+      "path": "docs/development_environment_guide.md",
+      "name": "development_environment_guide.md",
+      "sizeBytes": 6580,
+      "category": "docs"
+    },
+    {
+      "path": "docs/devops.ja.md",
+      "name": "devops.ja.md",
+      "sizeBytes": 2061,
+      "category": "docs"
+    },
+    {
+      "path": "docs/devops.md",
+      "name": "devops.md",
+      "sizeBytes": 1670,
+      "category": "docs"
+    },
+    {
+      "path": "docs/dir_structure.md",
+      "name": "dir_structure.md",
+      "sizeBytes": 912,
+      "category": "docs"
+    },
+    {
+      "path": "docs/final_integration_report.md",
+      "name": "final_integration_report.md",
+      "sizeBytes": 13450,
+      "category": "docs"
+    },
+    {
+      "path": "docs/functional_spec.ja.md",
+      "name": "functional_spec.ja.md",
+      "sizeBytes": 2911,
+      "category": "docs"
+    },
+    {
+      "path": "docs/functional_spec.md",
+      "name": "functional_spec.md",
+      "sizeBytes": 2672,
+      "category": "docs"
+    },
+    {
+      "path": "docs/knowledge/_company/KNOWLEDGE_DIGEST.md",
+      "name": "KNOWLEDGE_DIGEST.md",
+      "sizeBytes": 6513,
+      "category": "_company"
+    },
+    {
+      "path": "docs/multi-tenant-architecture.md",
+      "name": "multi-tenant-architecture.md",
+      "sizeBytes": 20657,
+      "category": "docs"
+    },
+    {
+      "path": "docs/mvv.md",
+      "name": "mvv.md",
+      "sizeBytes": 4407,
+      "category": "docs"
+    },
+    {
+      "path": "docs/phase0_architecture.md",
+      "name": "phase0_architecture.md",
+      "sizeBytes": 17597,
+      "category": "docs"
+    },
+    {
+      "path": "docs/phase0_weak_current_spec.md",
+      "name": "phase0_weak_current_spec.md",
+      "sizeBytes": 14458,
+      "category": "docs"
+    },
+    {
+      "path": "docs/project_specification.md",
+      "name": "project_specification.md",
+      "sizeBytes": 8621,
+      "category": "docs"
+    },
+    {
+      "path": "docs/quality_checklist.md",
+      "name": "quality_checklist.md",
+      "sizeBytes": 5121,
+      "category": "docs"
+    },
+    {
+      "path": "docs/references_and_resources.md",
+      "name": "references_and_resources.md",
+      "sizeBytes": 7883,
+      "category": "docs"
+    },
+    {
+      "path": "docs/reviews/2026-01-23_WBS-14-15-16_review.md",
+      "name": "2026-01-23_WBS-14-15-16_review.md",
+      "sizeBytes": 3440,
+      "category": "reviews"
+    },
+    {
+      "path": "docs/reviews/2026-01-28_rfv_mvp_extend.md",
+      "name": "2026-01-28_rfv_mvp_extend.md",
+      "sizeBytes": 5331,
+      "category": "reviews"
+    },
+    {
+      "path": "docs/service_overview.md",
+      "name": "service_overview.md",
+      "sizeBytes": 11317,
+      "category": "docs"
+    },
+    {
+      "path": "docs/socket_events.ja.md",
+      "name": "socket_events.ja.md",
+      "sizeBytes": 858,
+      "category": "docs"
+    },
+    {
+      "path": "docs/socket_events.md",
+      "name": "socket_events.md",
+      "sizeBytes": 706,
+      "category": "docs"
+    },
+    {
+      "path": "docs/ssot/GAP_ANALYSIS_REPORT.md",
+      "name": "GAP_ANALYSIS_REPORT.md",
+      "sizeBytes": 11041,
+      "category": "ssot"
+    },
+    {
+      "path": "docs/ssot/NEXT_ACTIONS.md",
+      "name": "NEXT_ACTIONS.md",
+      "sizeBytes": 7545,
+      "category": "ssot"
+    },
+    {
+      "path": "docs/ssot/SSOT-0_PRD.md",
+      "name": "SSOT-0_PRD.md",
+      "sizeBytes": 12078,
+      "category": "ssot"
+    },
+    {
+      "path": "docs/ssot/SSOT-1_FEATURE_CATALOG.md",
+      "name": "SSOT-1_FEATURE_CATALOG.md",
+      "sizeBytes": 19968,
+      "category": "ssot"
+    },
+    {
+      "path": "docs/ssot/SSOT_AUDIT_REPORT.md",
+      "name": "SSOT_AUDIT_REPORT.md",
+      "sizeBytes": 29713,
+      "category": "ssot"
+    },
+    {
+      "path": "docs/standards/CHANGES.md",
+      "name": "CHANGES.md",
+      "sizeBytes": 6267,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/CODING_STANDARDS.md",
+      "name": "CODING_STANDARDS.md",
+      "sizeBytes": 10372,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/DEPLOYMENT.md",
+      "name": "DEPLOYMENT.md",
+      "sizeBytes": 9603,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/DEV_ENVIRONMENT.md",
+      "name": "DEV_ENVIRONMENT.md",
+      "sizeBytes": 7266,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/ENVIRONMENTS.md",
+      "name": "ENVIRONMENTS.md",
+      "sizeBytes": 9970,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/GIT_WORKFLOW.md",
+      "name": "GIT_WORKFLOW.md",
+      "sizeBytes": 8838,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/INCIDENT_RESPONSE.md",
+      "name": "INCIDENT_RESPONSE.md",
+      "sizeBytes": 9306,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/MONITORING.md",
+      "name": "MONITORING.md",
+      "sizeBytes": 10554,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/PROJECT_PLAN.md",
+      "name": "PROJECT_PLAN.md",
+      "sizeBytes": 9669,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/RISKS.md",
+      "name": "RISKS.md",
+      "sizeBytes": 7905,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/TECH_STACK.md",
+      "name": "TECH_STACK.md",
+      "sizeBytes": 8370,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/TESTING_STANDARDS.md",
+      "name": "TESTING_STANDARDS.md",
+      "sizeBytes": 11757,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/growth/GROWTH_STRATEGY.md",
+      "name": "GROWTH_STRATEGY.md",
+      "sizeBytes": 9914,
+      "category": "growth"
+    },
+    {
+      "path": "docs/standards/growth/METRICS_DEFINITION.md",
+      "name": "METRICS_DEFINITION.md",
+      "sizeBytes": 8775,
+      "category": "growth"
+    },
+    {
+      "path": "docs/standards/idea/COMPETITOR_ANALYSIS.md",
+      "name": "COMPETITOR_ANALYSIS.md",
+      "sizeBytes": 6104,
+      "category": "idea"
+    },
+    {
+      "path": "docs/standards/idea/IDEA_CANVAS.md",
+      "name": "IDEA_CANVAS.md",
+      "sizeBytes": 5846,
+      "category": "idea"
+    },
+    {
+      "path": "docs/standards/idea/USER_PERSONA.md",
+      "name": "USER_PERSONA.md",
+      "sizeBytes": 6509,
+      "category": "idea"
+    },
+    {
+      "path": "docs/standards/idea/VALUE_PROPOSITION.md",
+      "name": "VALUE_PROPOSITION.md",
+      "sizeBytes": 9379,
+      "category": "idea"
+    },
+    {
+      "path": "docs/standards/marketing/EMAIL_SEQUENCE.md",
+      "name": "EMAIL_SEQUENCE.md",
+      "sizeBytes": 10020,
+      "category": "marketing"
+    },
+    {
+      "path": "docs/standards/marketing/LAUNCH_PLAN.md",
+      "name": "LAUNCH_PLAN.md",
+      "sizeBytes": 9778,
+      "category": "marketing"
+    },
+    {
+      "path": "docs/standards/marketing/LP_SPEC.md",
+      "name": "LP_SPEC.md",
+      "sizeBytes": 10323,
+      "category": "marketing"
+    },
+    {
+      "path": "docs/standards/marketing/PRICING_STRATEGY.md",
+      "name": "PRICING_STRATEGY.md",
+      "sizeBytes": 8185,
+      "category": "marketing"
+    },
+    {
+      "path": "docs/standards/marketing/SNS_STRATEGY.md",
+      "name": "SNS_STRATEGY.md",
+      "sizeBytes": 9140,
+      "category": "marketing"
+    },
+    {
+      "path": "docs/standards/project/CLAUDE.md",
+      "name": "CLAUDE.md",
+      "sizeBytes": 12341,
+      "category": "project"
+    },
+    {
+      "path": "docs/standards/project/agents/code-reviewer.md",
+      "name": "code-reviewer.md",
+      "sizeBytes": 2352,
+      "category": "agents"
+    },
+    {
+      "path": "docs/standards/project/agents/ssot-explorer.md",
+      "name": "ssot-explorer.md",
+      "sizeBytes": 2221,
+      "category": "agents"
+    },
+    {
+      "path": "docs/standards/project/agents/visual-tester.md",
+      "name": "visual-tester.md",
+      "sizeBytes": 2504,
+      "category": "agents"
+    },
+    {
+      "path": "docs/standards/skills/SKILLS_INDEX.md",
+      "name": "SKILLS_INDEX.md",
+      "sizeBytes": 16285,
+      "category": "skills"
+    },
+    {
+      "path": "docs/standards/skills/_deliberation/DELIBERATION_PROTOCOL.md",
+      "name": "DELIBERATION_PROTOCOL.md",
+      "sizeBytes": 7094,
+      "category": "_deliberation"
+    },
+    {
+      "path": "docs/standards/skills/business-design/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 2935,
+      "category": "business-design"
+    },
+    {
+      "path": "docs/standards/skills/code-audit/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 3719,
+      "category": "code-audit"
+    },
+    {
+      "path": "docs/standards/skills/discovery/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 5279,
+      "category": "discovery"
+    },
+    {
+      "path": "docs/standards/skills/feature-spec/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 8594,
+      "category": "feature-spec"
+    },
+    {
+      "path": "docs/standards/skills/implementation/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 5964,
+      "category": "implementation"
+    },
+    {
+      "path": "docs/standards/skills/orchestrator/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 6788,
+      "category": "orchestrator"
+    },
+    {
+      "path": "docs/standards/skills/product-design/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 3077,
+      "category": "product-design"
+    },
+    {
+      "path": "docs/standards/skills/review-council/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 8261,
+      "category": "review-council"
+    },
+    {
+      "path": "docs/standards/skills/ssot-audit/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 3575,
+      "category": "ssot-audit"
+    },
+    {
+      "path": "docs/standards/skills/technical-design/SKILL.md",
+      "name": "SKILL.md",
+      "sizeBytes": 5476,
+      "category": "technical-design"
+    },
+    {
+      "path": "docs/task_matrix.md",
+      "name": "task_matrix.md",
+      "sizeBytes": 1680,
+      "category": "docs"
+    },
+    {
+      "path": "docs/technical_references/literature_01_llm_pitfalls.md",
+      "name": "literature_01_llm_pitfalls.md",
+      "sizeBytes": 7098,
+      "category": "technical_references"
+    },
+    {
+      "path": "docs/technical_references/literature_02_token_optimization.md",
+      "name": "literature_02_token_optimization.md",
+      "sizeBytes": 8063,
+      "category": "technical_references"
+    },
+    {
+      "path": "docs/technical_references/literature_03_guardrails_guide.md",
+      "name": "literature_03_guardrails_guide.md",
+      "sizeBytes": 11942,
+      "category": "technical_references"
+    },
+    {
+      "path": "docs/technical_references/literature_04_cursor_optimization.md",
+      "name": "literature_04_cursor_optimization.md",
+      "sizeBytes": 9009,
+      "category": "technical_references"
+    },
+    {
+      "path": "docs/technical_references/literature_05_development_process_optimization.md",
+      "name": "literature_05_development_process_optimization.md",
+      "sizeBytes": 13484,
+      "category": "technical_references"
+    },
+    {
+      "path": "docs/technical_references/literature_06_rag_development_cases.md",
+      "name": "literature_06_rag_development_cases.md",
+      "sizeBytes": 16453,
+      "category": "technical_references"
+    },
+    {
+      "path": "docs/technical_references/literature_07_prompt_engineering_best_practices.md",
+      "name": "literature_07_prompt_engineering_best_practices.md",
+      "sizeBytes": 15070,
+      "category": "technical_references"
+    },
+    {
+      "path": "docs/technical_references/rag_implementation_guide.md",
+      "name": "rag_implementation_guide.md",
+      "sizeBytes": 7728,
+      "category": "technical_references"
+    },
+    {
+      "path": "CLAUDE.md",
+      "name": "CLAUDE.md",
+      "sizeBytes": 21089,
+      "category": "root"
+    },
+    {
+      "path": "README.md",
+      "name": "README.md",
+      "sizeBytes": 4339,
+      "category": "root"
+    },
+    {
+      "path": "tasks_backlog.ja.md",
+      "name": "tasks_backlog.ja.md",
+      "sizeBytes": 16499,
+      "category": "root"
+    },
+    {
+      "path": "tasks_backlog.md",
+      "name": "tasks_backlog.md",
+      "sizeBytes": 16746,
+      "category": "root"
+    }
+  ],
+  "gaps": [
+    {
+      "ssoId": "SSOT-0",
+      "name": "PRD",
+      "path": "docs/requirements/SSOT-0_PRD.md",
+      "status": "missing",
+      "recommendation": "Required: Generate PRD from codebase analysis"
+    },
+    {
+      "ssoId": "SSOT-1",
+      "name": "Feature Catalog",
+      "path": "docs/requirements/SSOT-1_FEATURE_CATALOG.md",
+      "status": "missing",
+      "recommendation": "Required: Generate Feature Catalog from codebase analysis"
+    },
+    {
+      "ssoId": "SSOT-2",
+      "name": "UI/State",
+      "path": "docs/design/core/SSOT-2_UI_STATE.md",
+      "status": "missing",
+      "recommendation": "Required: Generate UI/State from codebase analysis"
+    },
+    {
+      "ssoId": "SSOT-3",
+      "name": "API Contract",
+      "path": "docs/design/core/SSOT-3_API_CONTRACT.md",
+      "status": "missing",
+      "recommendation": "Required: Generate API Contract from codebase analysis"
+    },
+    {
+      "ssoId": "SSOT-4",
+      "name": "Data Model",
+      "path": "docs/design/core/SSOT-4_DATA_MODEL.md",
+      "status": "missing",
+      "recommendation": "Required: Generate Data Model from codebase analysis"
+    },
+    {
+      "ssoId": "SSOT-5",
+      "name": "Cross-Cutting",
+      "path": "docs/design/core/SSOT-5_CROSS_CUTTING.md",
+      "status": "missing",
+      "recommendation": "Required: Generate Cross-Cutting from codebase analysis"
+    },
+    {
+      "ssoId": "STD-TECH",
+      "name": "Tech Stack",
+      "path": "docs/standards/TECH_STACK.md",
+      "status": "exists",
+      "recommendation": "Audit with 'framework audit ssot' to verify quality"
+    },
+    {
+      "ssoId": "STD-CODE",
+      "name": "Coding Standards",
+      "path": "docs/standards/CODING_STANDARDS.md",
+      "status": "exists",
+      "recommendation": "Audit with 'framework audit ssot' to verify quality"
+    },
+    {
+      "ssoId": "STD-GIT",
+      "name": "Git Workflow",
+      "path": "docs/standards/GIT_WORKFLOW.md",
+      "status": "exists",
+      "recommendation": "Audit with 'framework audit ssot' to verify quality"
+    },
+    {
+      "ssoId": "STD-TEST",
+      "name": "Testing Standards",
+      "path": "docs/standards/TESTING_STANDARDS.md",
+      "status": "exists",
+      "recommendation": "Audit with 'framework audit ssot' to verify quality"
+    },
+    {
+      "ssoId": "IDEA",
+      "name": "Idea Canvas",
+      "path": "docs/idea/IDEA_CANVAS.md",
+      "status": "missing",
+      "recommendation": "Optional: Generate Idea Canvas when ready"
+    },
+    {
+      "ssoId": "OPS-ENV",
+      "name": "Environments",
+      "path": "docs/operations/ENVIRONMENTS.md",
+      "status": "missing",
+      "recommendation": "Optional: Generate Environments when ready"
+    },
+    {
+      "ssoId": "OPS-DEPLOY",
+      "name": "Deployment",
+      "path": "docs/operations/DEPLOYMENT.md",
+      "status": "missing",
+      "recommendation": "Optional: Generate Deployment when ready"
+    }
+  ],
+  "readiness": {
+    "score": 60,
+    "maxScore": 83,
+    "details": [
+      {
+        "name": "package.json exists",
+        "passed": true,
+        "points": 10
+      },
+      {
+        "name": "src/ directory exists",
+        "passed": false,
+        "points": 10,
+        "detail": "No src/ directory"
+      },
+      {
+        "name": "Framework detected",
+        "passed": true,
+        "points": 10,
+        "detail": "Vue"
+      },
+      {
+        "name": "TypeScript configured",
+        "passed": true,
+        "points": 10
+      },
+      {
+        "name": "Testing framework configured",
+        "passed": true,
+        "points": 10,
+        "detail": "Vitest"
+      },
+      {
+        "name": "docs/ directory exists",
+        "passed": true,
+        "points": 10
+      },
+      {
+        "name": "Required SSOT documents",
+        "passed": false,
+        "points": 3,
+        "detail": "1/7 required SSOTs exist"
+      },
+      {
+        "name": "Not already managed",
+        "passed": false,
+        "points": 10,
+        "detail": "Already has .framework/ directory"
+      },
+      {
+        "name": "CLAUDE.md exists",
+        "passed": true,
+        "points": 10
+      }
+    ]
+  }
+}

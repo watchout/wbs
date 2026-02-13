@@ -1,0 +1,80 @@
+{
+  "gateA": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "package.json exists",
+        "passed": true,
+        "message": "package.json exists: found"
+      },
+      {
+        "name": "Dependencies installed (node_modules/)",
+        "passed": true,
+        "message": "Dependencies installed (node_modules/): found"
+      },
+      {
+        "name": "Environment config (.env or .env.example)",
+        "passed": true,
+        "message": "Environment config found"
+      },
+      {
+        "name": "Docker Compose config",
+        "passed": true,
+        "message": "Docker Compose config found"
+      },
+      {
+        "name": "CI configuration (.github/workflows/)",
+        "passed": true,
+        "message": "CI configuration found"
+      },
+      {
+        "name": "Framework management (.framework/)",
+        "passed": true,
+        "message": "Framework management (.framework/): found"
+      }
+    ],
+    "checkedAt": "2026-02-13T06:27:45.656Z"
+  },
+  "gateB": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "Implementation plan (.framework/plan.json)",
+        "passed": true,
+        "message": "Plan found: 5 waves, status=generated"
+      },
+      {
+        "name": "Plan contains features",
+        "passed": true,
+        "message": "51 features across 5 waves"
+      },
+      {
+        "name": "Project profile configured (.framework/project.json)",
+        "passed": true,
+        "message": "Project profile found"
+      }
+    ],
+    "checkedAt": "2026-02-13T06:38:25.656Z"
+  },
+  "gateC": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "docs/ssot/SSOT-0_PRD.md",
+        "passed": true,
+        "message": "docs/ssot/SSOT-0_PRD.md: All §3-E/F/G/H sections present",
+        "filePath": "docs/ssot/SSOT-0_PRD.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/ssot/SSOT-1_FEATURE_CATALOG.md",
+        "passed": true,
+        "message": "docs/ssot/SSOT-1_FEATURE_CATALOG.md: All §3-E/F/G/H sections present",
+        "filePath": "docs/ssot/SSOT-1_FEATURE_CATALOG.md",
+        "missingSections": []
+      }
+    ],
+    "checkedAt": "2026-02-13T06:50:06.171Z"
+  },
+  "updatedAt": "2026-02-13T06:50:06.172Z"
+}

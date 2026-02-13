@@ -29,6 +29,11 @@
       "docs/SSOT_*.md"
     ]
   },
+  "knowledgeSource": {
+    "type": "local",
+    "path": "/Users/kaneko/Library/CloudStorage/GoogleDrive-watchout.329@gmail.com/マイドライブ/IYASAKA/知識データベース",
+    "lastSync": "2026-02-10"
+  },
   "quality": {
     "lastAudit": "2026-02-05",
     "scores": {

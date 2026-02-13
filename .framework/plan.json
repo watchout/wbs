@@ -1,0 +1,555 @@
+{
+  "status": "generated",
+  "generatedAt": "2026-02-13T06:30:00.000Z",
+  "updatedAt": "2026-02-13T06:30:00.000Z",
+  "waves": [
+    {
+      "number": 1,
+      "phase": "common",
+      "layer": 1,
+      "title": "Authentication Foundation",
+      "features": [
+        {
+          "id": "AUTH-001",
+          "name": "メール/パスワードログイン",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 5,
+          "status": "done"
+        },
+        {
+          "id": "AUTH-004",
+          "name": "デバイスログイン",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": ["AUTH-001"],
+          "dependencyCount": 1,
+          "status": "done"
+        },
+        {
+          "id": "AUTH-005",
+          "name": "ログアウト",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["AUTH-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "AUTH-007",
+          "name": "セットアップトークン",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["AUTH-001"],
+          "dependencyCount": 1,
+          "status": "done"
+        },
+        {
+          "id": "AUTH-009",
+          "name": "セッション管理（JWT + Cookie）",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": ["AUTH-001"],
+          "dependencyCount": 1,
+          "status": "done"
+        },
+        {
+          "id": "AUTH-006",
+          "name": "パスワードリセット",
+          "priority": "P1",
+          "size": "M",
+          "type": "common",
+          "dependencies": ["AUTH-001", "AUTH-007"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "AUTH-010",
+          "name": "セッション自動更新（Sliding Window）",
+          "priority": "P1",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["AUTH-009"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "ACCT-001",
+          "name": "ユーザー登録（管理者招待）",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": ["AUTH-001"],
+          "dependencyCount": 2,
+          "status": "done"
+        },
+        {
+          "id": "ACCT-002",
+          "name": "プロフィール表示",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["ACCT-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "ACCT-003",
+          "name": "プロフィール編集",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["ACCT-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "ACCT-005",
+          "name": "パスワード変更",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["AUTH-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "phase": "common",
+      "layer": 3,
+      "title": "Common Features",
+      "features": [
+        {
+          "id": "ROLE-001",
+          "name": "ロール定義（ADMIN/LEADER/MEMBER/DEVICE）",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 4,
+          "status": "done"
+        },
+        {
+          "id": "ROLE-002",
+          "name": "ロールベースアクセス制御（RBAC）",
+          "priority": "P0",
+          "size": "L",
+          "type": "common",
+          "dependencies": ["ROLE-001"],
+          "dependencyCount": 2,
+          "status": "done"
+        },
+        {
+          "id": "ROLE-003",
+          "name": "権限チェック（フロントエンド）",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": ["ROLE-002"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "ROLE-004",
+          "name": "権限チェック（バックエンド）",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": ["ROLE-002"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "ROLE-005",
+          "name": "管理者ロール変更",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["ROLE-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "NAV-001",
+          "name": "共通ヘッダー",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "NAV-002",
+          "name": "ユーザーメニュー",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["NAV-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "NAV-003",
+          "name": "管理者メニュー",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["NAV-001", "ROLE-002"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "NAV-005",
+          "name": "モバイルナビゲーション",
+          "priority": "P1",
+          "size": "M",
+          "type": "common",
+          "dependencies": ["NAV-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "SEC-001",
+          "name": "CSRF対策",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "SEC-002",
+          "name": "CORS設定",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "SEC-003",
+          "name": "レートリミット",
+          "priority": "P1",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "SEC-004",
+          "name": "入力バリデーション",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "SEC-005",
+          "name": "SQLインジェクション対策",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "SEC-006",
+          "name": "XSS対策",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "ERR-001",
+          "name": "404ページ",
+          "priority": "P1",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "ERR-002",
+          "name": "403ページ（権限エラー）",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": ["ROLE-002"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "ERR-003",
+          "name": "500ページ",
+          "priority": "P1",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "CRUD-001",
+          "name": "新規作成",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 1,
+          "status": "done"
+        },
+        {
+          "id": "CRUD-002",
+          "name": "一覧表示",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 1,
+          "status": "done"
+        },
+        {
+          "id": "CRUD-003",
+          "name": "更新",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "CRUD-004",
+          "name": "削除（論理削除）",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "LIST-003",
+          "name": "部署フィルター",
+          "priority": "P1",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "LIST-004",
+          "name": "日付範囲フィルター",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "AUDIT-001",
+          "name": "操作ログ",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "AUDIT-003",
+          "name": "変更履歴（バージョニング）",
+          "priority": "P1",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "OPS-001",
+          "name": "管理者ダッシュボード",
+          "priority": "P0",
+          "size": "L",
+          "type": "common",
+          "dependencies": ["ROLE-002"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "OPS-002",
+          "name": "ユーザー管理",
+          "priority": "P0",
+          "size": "M",
+          "type": "common",
+          "dependencies": ["ACCT-001", "ROLE-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "OPS-003",
+          "name": "バックアップ・リストア",
+          "priority": "P1",
+          "size": "M",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "OPS-005",
+          "name": "ヘルスチェック",
+          "priority": "P0",
+          "size": "S",
+          "type": "common",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "phase": "individual",
+      "title": "Wave 1: Core Business Features",
+      "features": [
+        {
+          "id": "WBS-001",
+          "name": "週間スケジュールボード",
+          "priority": "P0",
+          "size": "XL",
+          "type": "proprietary",
+          "dependencies": ["CRUD-001", "CRUD-002", "LIST-003", "LIST-004"],
+          "dependencyCount": 2,
+          "status": "done"
+        },
+        {
+          "id": "WBS-002",
+          "name": "サイネージ表示",
+          "priority": "P0",
+          "size": "L",
+          "type": "proprietary",
+          "dependencies": ["WBS-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "WBS-005",
+          "name": "部署管理",
+          "priority": "P0",
+          "size": "M",
+          "type": "proprietary",
+          "dependencies": [],
+          "dependencyCount": 1,
+          "status": "done"
+        },
+        {
+          "id": "WBS-006",
+          "name": "共通ヘッダー＆設定",
+          "priority": "P0",
+          "size": "M",
+          "type": "proprietary",
+          "dependencies": ["NAV-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "WBS-007",
+          "name": "UIナビゲーション",
+          "priority": "P0",
+          "size": "M",
+          "type": "proprietary",
+          "dependencies": ["NAV-001"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "WBS-008",
+          "name": "リアルタイム同期（Socket.IO）",
+          "priority": "P0",
+          "size": "L",
+          "type": "proprietary",
+          "dependencies": [],
+          "dependencyCount": 1,
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "phase": "individual",
+      "title": "Wave 2: Integration & AI Features",
+      "features": [
+        {
+          "id": "WBS-003",
+          "name": "Googleカレンダー連携",
+          "priority": "P0",
+          "size": "XL",
+          "type": "proprietary",
+          "dependencies": ["WBS-001"],
+          "dependencyCount": 1,
+          "status": "done"
+        },
+        {
+          "id": "WBS-004",
+          "name": "AI日程調整",
+          "priority": "P1",
+          "size": "L",
+          "type": "proprietary",
+          "dependencies": ["WBS-001", "WBS-003"],
+          "dependencyCount": 0,
+          "status": "done"
+        },
+        {
+          "id": "AI-001",
+          "name": "AI会議日程提案",
+          "priority": "P1",
+          "size": "L",
+          "type": "proprietary",
+          "dependencies": ["WBS-004"],
+          "dependencyCount": 0,
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "phase": "individual",
+      "title": "Wave 3: Phase 1+ Features (Backlog)",
+      "features": [
+        {
+          "id": "NOTIF-001",
+          "name": "メール通知",
+          "priority": "P2",
+          "size": "M",
+          "type": "proprietary",
+          "dependencies": [],
+          "dependencyCount": 0,
+          "status": "backlog"
+        }
+      ]
+    }
+  ],
+  "circularDependencies": []
+}
