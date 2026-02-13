@@ -9,11 +9,11 @@
 
 | 項目 | 内容 |
 |------|------|
-| プロジェクト | ミエルボード for 現場（ミエルプラス） |
-| Stripe 統合方式 | Stripe Checkout（リダイレクト型） |
-| PCI DSS 対応レベル | SAQ A（カード情報非通過・非保持） |
+| プロジェクト | {{PROJECT_NAME}} |
+| Stripe 統合方式 | {{STRIPE_INTEGRATION}} <!-- Stripe Checkout（リダイレクト型）/ Stripe Elements（埋込型）--> |
+| PCI DSS 対応レベル | {{PCI_LEVEL}} <!-- SAQ A（非保持・非通過）/ SAQ A-EP（Elements利用時）--> |
 | 適用法令 | 割賦販売法、クレジットカード・セキュリティガイドライン 6.0 |
-| 最終更新日 | 2026-02-13 |
+| 最終更新日 | {{DATE}} |
 
 ---
 
@@ -23,8 +23,8 @@
 
 Stripe を利用する場合でも、PCI DSS 準拠は **加盟店（当プロジェクト）の責任** である。
 
-| 責任範囲 | Stripe | 加盟店（ミエルプラス） |
-|----------|--------|----------------------|
+| 責任範囲 | Stripe | 加盟店 |
+|----------|--------|--------|
 | カードデータの処理・保存 | ✅ Stripe が担当 | ❌ 触れない |
 | TLS/HTTPS の確保 | ✅ Stripe API 側 | ✅ 自社サイト側 |
 | API キーの管理 | ✅ 生成・ローテーション提供 | ✅ 安全な保管・運用 |
@@ -70,18 +70,20 @@ Stripe Checkout（リダイレクト型）を使用する場合、最も軽量�
 ```bash
 # SSL Labs でサーバー設定を検証（A 評価以上を目標）
 # https://www.ssllabs.com/ssltest/
-curl -I https://mieruplus.jp
+curl -I https://{{DOMAIN}}
 # Strict-Transport-Security ヘッダーの確認
 ```
 
-### 2.3 現在の実装状況
+### 2.3 実装状況
+
+<!-- プロジェクト固有: 実際の対応状況を記入 -->
 
 | 項目 | 状態 | 備考 |
 |------|------|------|
-| HTTPS（Let's Encrypt） | ✅ 対応済 | Nginx + Certbot |
-| TLS 1.2+ | ✅ 対応済 | Nginx 設定 |
-| HSTS ヘッダー | 🔲 要確認 | Nginx で設定推奨 |
-| 混合コンテンツ | ✅ なし | 全リソース HTTPS |
+| HTTPS（Let's Encrypt） | 🔲 | |
+| TLS 1.2+ | 🔲 | |
+| HSTS ヘッダー | 🔲 | |
+| 混合コンテンツなし | 🔲 | |
 
 ---
 
@@ -105,10 +107,10 @@ curl -I https://mieruplus.jp
 - [ ] テスト環境では `sk_test_` / `pk_test_` を使用（本番キーを開発に使わない）
 - [ ] 漏洩の疑いがある場合は **即座に Stripe Dashboard でローテーション**
 
-### 3.3 現在の実装
+### 3.3 環境変数の設定
 
 ```
-# .env.production（VPS 上、root のみ読み取り可）
+# .env.production（本番サーバー、権限を制限）
 STRIPE_SECRET_KEY=sk_live_xxxxx      # サーバー側のみ使用
 STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx # クライアントに公開
 STRIPE_WEBHOOK_SECRET=whsec_xxxxx    # Webhook 検証用
@@ -116,7 +118,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx    # Webhook 検証用
 
 ### 3.4 推奨追加対策
 
-- [ ] IP アドレス制限（VPS の固定 IP のみ許可）— Stripe Dashboard で設定可能
+- [ ] IP アドレス制限（本番サーバーの固定 IP のみ許可）— Stripe Dashboard で設定可能
 - [ ] Restricted Key の活用（必要最小限の権限のみ付与）
 - [ ] API リクエストログの定期監査
 
@@ -132,16 +134,18 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx    # Webhook 検証用
 - [ ] HTTPS エンドポイントのみ使用
 - [ ] Webhook イベントの冪等性を保証（同一イベントの重複処理を防止）
 
-### 4.2 現在の実装
+### 4.2 実装パターン
 
 ```typescript
-// server/api/billing/webhook.post.ts
-// ✅ stripe.webhooks.constructEvent() で署名検証済み
+// Webhook エンドポイントの実装例
+// ✅ stripe.webhooks.constructEvent() で署名検証
 // ✅ event.type でイベント種別を判定
 // ✅ 冪等性: subscriptionId ベースで重複更新を防止
 ```
 
 ### 4.3 監視対象イベント
+
+<!-- プロジェクト固有: 利用するイベントを選択 -->
 
 | イベント | 用途 |
 |----------|------|
@@ -172,11 +176,13 @@ frame-src https://*.js.stripe.com https://js.stripe.com https://hooks.stripe.com
 script-src https://*.js.stripe.com https://js.stripe.com https://maps.googleapis.com;
 ```
 
-### 5.3 現在の実装状況
+### 5.3 実装状況
+
+<!-- プロジェクト固有: CSP ヘッダーの設定状況を記入 -->
 
 | 項目 | 状態 | 備考 |
 |------|------|------|
-| CSP ヘッダー | 🔲 未設定 | Nuxt/Nginx で設定推奨 |
+| CSP ヘッダー | 🔲 | Nginx / フレームワーク設定で対応 |
 
 ---
 
@@ -186,19 +192,22 @@ script-src https://*.js.stripe.com https://js.stripe.com https://maps.googleapis
 
 Stripe は、ダッシュボードへのアクセスおよび課金操作に対して **2FA（二要素認証）** を推奨している。
 
-### 6.2 当プロジェクトの対応（OTP 2FA）
+### 6.2 当プロジェクトの対応
+
+<!-- プロジェクト固有: 2FA の実装方式を記入 -->
 
 | 要件 | 実装状況 | 詳細 |
 |------|----------|------|
-| ADMIN の課金操作に 2FA | ✅ 実装済 | メールベース OTP |
-| OTP コード形式 | 6桁数字 | `crypto.randomInt()` |
-| OTP 有効期限 | 5分間 | `OTP_EXPIRY_MS` |
-| 最大試行回数 | 3回 | 超過で無効化 |
-| OTP ハッシュ化 | SHA-256 | 短命トークン+試行回数制限のため bcrypt 不要 |
-| 検証済みフラグ | 30分間有効 | `otpVerifiedUntil` セッション内 |
-| 対象操作 | checkout, portal, credits | `requireOtpVerified()` |
+| 管理者の課金操作に 2FA | 🔲 | |
+| OTP コード形式 | — | 6桁数字推奨 |
+| OTP 有効期限 | — | 5分間推奨 |
+| 最大試行回数 | — | 3回推奨 |
+| OTP ハッシュ化 | — | SHA-256 or bcrypt |
+| 検証済みフラグ | — | 30分間有効推奨 |
 
 ### 6.3 保護対象 API
+
+<!-- プロジェクト固有: 2FA を要求する API エンドポイントを列挙 -->
 
 ```
 POST /api/billing/checkout       → requireOtpVerified()
@@ -225,16 +234,16 @@ POST /api/billing/credits/purchase → requireOtpVerified()
 
 #### EC 加盟店に求められる対策
 
-| カテゴリ | 要件 | 当プロジェクト対応 |
-|----------|------|-------------------|
-| **非保持化** | カード情報を自社で保持しない | ✅ Stripe Checkout（リダイレクト型） |
-| **EMV 3-D セキュア** | 本人認証（OTP/生体認証） | ✅ Stripe が自動で処理 |
-| **脆弱性対策** | 管理画面のアクセス制限・権限管理 | ✅ RBAC（ADMIN/LEADER/MEMBER） |
-| **脆弱性対策** | Web アプリの定期的脆弱性診断 | 🔲 定期診断は未実施 |
-| **不正ログイン対策** | 多要素認証の導入 | ✅ ADMIN 課金操作に OTP 2FA |
-| **不正ログイン対策** | ログイン試行回数制限 | ✅ OTP 3回制限、レートリミット |
-| **不正ログイン対策** | 不審 IP からのアクセス制限 | 🔲 IP ベースの制限は未実装 |
-| **クレジットマスター対策** | 大量カード試行の検知・遮断 | ✅ Stripe Radar が自動で対応 |
+| カテゴリ | 要件 | 対応状況 |
+|----------|------|----------|
+| **非保持化** | カード情報を自社で保持しない | 🔲 |
+| **EMV 3-D セキュア** | 本人認証（OTP/生体認証） | 🔲 |
+| **脆弱性対策** | 管理画面のアクセス制限・権限管理 | 🔲 |
+| **脆弱性対策** | Web アプリの定期的脆弱性診断 | 🔲 |
+| **不正ログイン対策** | 多要素認証の導入 | 🔲 |
+| **不正ログイン対策** | ログイン試行回数制限 | 🔲 |
+| **不正ログイン対策** | 不審 IP からのアクセス制限 | 🔲 |
+| **クレジットマスター対策** | 大量カード試行の検知・遮断 | 🔲 |
 
 ---
 
@@ -281,7 +290,7 @@ POST /api/billing/credits/purchase → requireOtpVerified()
 ### 10.1 API キー漏洩時
 
 1. **即座に** Stripe Dashboard で対象キーをローテーション
-2. 新しいキーを VPS の `.env.production` に反映
+2. 新しいキーを `.env.production` に反映
 3. アプリケーションを再起動
 4. 漏洩経路を特定し、再発防止策を実施
 5. 影響範囲を調査（不正な API 呼び出しの有無）
@@ -320,19 +329,21 @@ POST /api/billing/credits/purchase → requireOtpVerified()
 
 ## 12. 対応状況サマリ
 
+<!-- プロジェクト固有: 実装の進捗に応じて更新 -->
+
 | 要件 | 重要度 | 状態 | 備考 |
 |------|--------|------|------|
-| TLS 1.2+ / HTTPS | 必須 | ✅ | Let's Encrypt + Nginx |
-| カード情報非保持 | 必須 | ✅ | Stripe Checkout |
-| API キー環境変数管理 | 必須 | ✅ | `.env.production` |
-| Webhook 署名検証 | 必須 | ✅ | `constructEvent()` |
-| 管理者 2FA | 推奨→必須 | ✅ | OTP メール認証 |
-| RBAC（権限管理） | 必須 | ✅ | ADMIN/LEADER/MEMBER |
-| CSP ヘッダー設定 | 推奨 | 🔲 | Nginx で設定予定 |
-| HSTS ヘッダー | 推奨 | 🔲 | Nginx で設定予定 |
-| IP アドレス制限（API キー） | 推奨 | 🔲 | VPS 固定 IP で制限可 |
-| Web アプリ脆弱性診断 | ガイドライン要件 | 🔲 | 定期実施を計画 |
-| 不審 IP アクセス制限 | ガイドライン要件 | 🔲 | fail2ban 等で対応予定 |
+| TLS 1.2+ / HTTPS | 必須 | 🔲 | |
+| カード情報非保持 | 必須 | 🔲 | |
+| API キー環境変数管理 | 必須 | 🔲 | |
+| Webhook 署名検証 | 必須 | 🔲 | |
+| 管理者 2FA | 推奨→必須 | 🔲 | |
+| RBAC（権限管理） | 必須 | 🔲 | |
+| CSP ヘッダー設定 | 推奨 | 🔲 | |
+| HSTS ヘッダー | 推奨 | 🔲 | |
+| IP アドレス制限（API キー） | 推奨 | 🔲 | |
+| Web アプリ脆弱性診断 | ガイドライン要件 | 🔲 | |
+| 不審 IP アクセス制限 | ガイドライン要件 | 🔲 | |
 
 ---
 
