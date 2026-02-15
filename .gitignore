@@ -20,3 +20,9 @@ yarn-error.log*
 # Visual test generated files (baseline is tracked)
 tests/visual/current/
 tests/visual/diff/
+
+# Backups (contains production DB dumps)
+backups/
+
+# Progress reports (local only)
+進捗報告/

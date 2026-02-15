@@ -1,7 +1,7 @@
 {
   "repo": "https://github.com/watchout/ai-dev-framework.git",
-  "version": "local:1f852ff3",
-  "fetchedAt": "2026-02-13T23:24:32.668Z",
+  "version": "local:0884d11e",
+  "fetchedAt": "2026-02-15T22:25:15.671Z",
   "files": [
     "docs/standards/CHANGES.md",
     "docs/standards/CODING_STANDARDS.md",
