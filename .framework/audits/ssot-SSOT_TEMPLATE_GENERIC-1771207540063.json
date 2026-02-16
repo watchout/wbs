@@ -1,0 +1,119 @@
+{
+  "mode": "ssot",
+  "target": {
+    "id": "SSOT_TEMPLATE_GENERIC",
+    "name": "SSOT_TEMPLATE_GENERIC.md",
+    "path": "docs/SSOT_TEMPLATE_GENERIC.md",
+    "auditDate": "2026-02-16T02:05:40.061Z",
+    "iteration": 1
+  },
+  "scorecard": [
+    {
+      "category": "Completeness",
+      "maxPoints": 15,
+      "earned": 0,
+      "deductions": [
+        {
+          "reason": "Missing sections: §1, §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §12",
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "category": "Consistency",
+      "maxPoints": 15,
+      "earned": 15,
+      "deductions": []
+    },
+    {
+      "category": "Clarity",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Verifiability",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Traceability",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Feasibility",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "RFC 2119 Compliance",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Test Coverage",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Cross-SSOT Consistency",
+      "maxPoints": 5,
+      "earned": 2,
+      "deductions": [
+        {
+          "reason": "No cross-SSOT references",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "category": "Document Quality",
+      "maxPoints": 5,
+      "earned": 5,
+      "deductions": []
+    }
+  ],
+  "totalScore": 82,
+  "verdict": "fail",
+  "absoluteConditions": [
+    {
+      "name": "TBD Count = 0",
+      "passed": true
+    },
+    {
+      "name": "Critical Findings = 0",
+      "passed": false,
+      "detail": "1 critical findings"
+    },
+    {
+      "name": "Cross-SSOT Critical/Major = 0",
+      "passed": true
+    }
+  ],
+  "findings": [
+    {
+      "id": 1,
+      "severity": "critical",
+      "category": "Completeness",
+      "location": "Document",
+      "issue": "Missing 12 required sections: §1, §2, §3, §4, §5, §6, §7, §8, §9, §10, §11, §12",
+      "correction": "Add all missing sections per SSOT template",
+      "deduction": 15
+    },
+    {
+      "id": 2,
+      "severity": "minor",
+      "category": "Cross-SSOT Consistency",
+      "location": "Document",
+      "issue": "No references to other SSOT documents (SSOT-2 through SSOT-5)",
+      "correction": "Add cross-references to relevant SSOT documents",
+      "deduction": 3
+    }
+  ]
+}

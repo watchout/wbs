@@ -1,0 +1,118 @@
+{
+  "mode": "ssot",
+  "target": {
+    "id": "SSOT_GENBA_WEEK",
+    "name": "SSOT_GENBA_WEEK.md",
+    "path": "docs/SSOT_GENBA_WEEK.md",
+    "auditDate": "2026-02-16T02:21:50.814Z",
+    "iteration": 1
+  },
+  "scorecard": [
+    {
+      "category": "Completeness",
+      "maxPoints": 15,
+      "earned": 12,
+      "deductions": [
+        {
+          "reason": "Missing sections: §2",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "category": "Consistency",
+      "maxPoints": 15,
+      "earned": 15,
+      "deductions": []
+    },
+    {
+      "category": "Clarity",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Verifiability",
+      "maxPoints": 10,
+      "earned": 0,
+      "deductions": [
+        {
+          "reason": "45 untestable MUST requirements",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "category": "Traceability",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Feasibility",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "RFC 2119 Compliance",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Test Coverage",
+      "maxPoints": 10,
+      "earned": 10,
+      "deductions": []
+    },
+    {
+      "category": "Cross-SSOT Consistency",
+      "maxPoints": 5,
+      "earned": 5,
+      "deductions": []
+    },
+    {
+      "category": "Document Quality",
+      "maxPoints": 5,
+      "earned": 5,
+      "deductions": []
+    }
+  ],
+  "totalScore": 87,
+  "verdict": "fail",
+  "absoluteConditions": [
+    {
+      "name": "TBD Count = 0",
+      "passed": true
+    },
+    {
+      "name": "Critical Findings = 0",
+      "passed": true
+    },
+    {
+      "name": "Cross-SSOT Critical/Major = 0",
+      "passed": true
+    }
+  ],
+  "findings": [
+    {
+      "id": 1,
+      "severity": "major",
+      "category": "Completeness",
+      "location": "Document",
+      "issue": "Missing 1 required sections: §2",
+      "correction": "Add all missing sections per SSOT template",
+      "deduction": 3
+    },
+    {
+      "id": 2,
+      "severity": "major",
+      "category": "Verifiability",
+      "location": "Document",
+      "issue": "45 MUST requirements may be untestable",
+      "correction": "Add measurable criteria to each MUST requirement",
+      "deduction": 10
+    }
+  ]
+}
