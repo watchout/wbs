@@ -116,7 +116,7 @@
 
 ---
 
-## 2. ミエルボード for 現場の構成イメージ
+## §2. ミエルボード for 現場の構成イメージ
 
 ### 2-1. 将来的なモジュール構成（Phase 0 〜 Phase 2）
 
@@ -554,6 +554,668 @@ AIが守るべき開発ルール：
 - [ ] マルチテナント境界が曖昧になっていないか
 - [ ] テスト戦略上「必須テスト対象」かどうか
 - [ ] ルール抵触があれば代替案を提示
+
+---
+
+## §8. Tenancy（マルチテナント境界）
+
+> このプロジェクトは **organizationId が境界の要** である。
+> RFC 2119 キーワード: MUST / MUST NOT / SHOULD / MAY を使用。違反時は 403 error を返す。
+
+### 8.1 テナント境界
+
+- **boundary**: tenant = `organizationId`（UUID）
+- 全ての業務データ（Schedule, ScheduleVersion, Department, User, Device, AuditLog）は organizationId を持ち、テナント単位で論理分離される
+
+### 8.2 認証
+
+- **auth**: 全APIエンドポイントで `requireAuth(event)` を呼び出し、`AuthContext` を取得しなければならない（**MUST**）。未認証の場合は 401 error を return する
+- 認証例外エンドポイント: **なし**（Phase 0 の週間ボード機能においてパブリックAPIは存在しない）
+- デバイスログイン（サイネージ用）は `kioskSecret` による認証を経て `organizationId` を解決する。この場合も `requireAuth()` を通過する（**MUST**）。失敗時は 401 error を return する
+
+### 8.3 DBフィルタ
+
+- **db_filter**: 全ての Prisma クエリの `where` 句に `organizationId` フィルタを含めなければならない（**MUST**）。フィルタ欠落時は 0 件を return する
+- `findMany`, `findFirst`, `findUnique`, `create`, `update`, `delete` いずれの操作（計6種）でも `organizationId` を使用する（**MUST**、欠落時は error）
+- ソフトデリート済みレコードの除外（`deletedAt: null`）もあわせて適用すべきである（**SHOULD**）
+
+### 8.4 禁止パターン（MUST NOT、違反時は 500 error）
+
+以下の4パターンは実装において **MUST NOT** とする（違反時は 500 error）:
+
+| パターン | 理由 |
+|---------|------|
+| `organizationId` なしの Prisma クエリ | テナント境界破壊 |
+| `organizationId ?? 'default'` 等のフォールバック | テナント汚染リスク |
+| 他テナントの `organizationId` を直接指定するクエリ | クロステナントアクセス |
+| `$queryRaw` / `$executeRaw` による生SQL | Prisma ガードレール回避 |
+
+### 8.5 境界テスト要件
+
+- テナント境界テストの実装は **MUST** とする（最低3シナリオ、false を return して拒否を確認）
+- 最低限必要なテストシナリオ:
+  - Organization A のユーザーが Organization B のスケジュールを取得できないこと
+  - Organization A のユーザーが Organization B の部署一覧を取得できないこと
+  - `organizationId` を偽装したリクエストが拒否されること
+
+---
+
+## §9. Data Model / Migration（データモデル・マイグレーション）
+
+> Phase 0 ではスキーマ変更禁止ポリシーを採用。既存テーブルの `description` フィールドを拡張データの格納先とする。
+
+### 9.1 スキーマ変更
+
+- **schema_changes**: no（Phase 0 では原則スキーマ変更なし）
+- 拡張データは `Schedule.description` に JSON 文字列として格納する
+
+### 9.2 関連 Prisma モデル
+
+- **prisma_models_changed**: 構造変更なし（既存モデルをそのまま使用）
+- 本機能が参照する主要モデル:
+
+| モデル | 役割 | organizationId |
+|--------|------|----------------|
+| `Schedule` | スケジュールデータ本体 | **MUST**（欠落時 0 件 return） |
+| `ScheduleVersion` | スケジュール変更履歴（親の Schedule 経由でテナント分離） | 間接参照 |
+| `User` | 社員情報・スケジュールの author | **MUST**（欠落時 403 error） |
+| `Department` | 部署情報・フィルタ用 | **MUST**（欠落時 0 件 return） |
+| `Device` | サイネージ端末 | **MUST**（欠落時 401 error） |
+| `Organization` | テナントマスタ | PK |
+
+### 9.3 マイグレーションルール
+
+- **migration_required**: no（Phase 0 ではマイグレーション不要）
+- 既存 `prisma/migrations/**/migration.sql` の編集は **MUST NOT** とする（CI で検出し error を return する）
+- 将来スキーマ変更が必要になった場合は `npx prisma migrate dev --name <name>` で新規マイグレーション1ファイルを追加する（**MUST**、追加数 1 以上）
+- `$queryRaw` / `$executeRaw` によるDDL/DMLは **MUST NOT** とする（CI forbidden-operations チェックで error を return する）
+
+---
+
+## §10. Contract（API・UI・エラー契約）
+
+### 10.1 API Contract
+
+#### (A) Schedules API
+
+##### GET /api/schedules/weekly-board
+
+- **auth**: `requireAuth(event)` **MUST**（未認証時 401 error を return）
+- **request**:
+  ```typescript
+  // Query Parameters
+  {
+    startDate?: string   // YYYY-MM-DD（省略時は今週）
+    departmentId?: string // 部門フィルタ（optional）
+  }
+  ```
+- **response**:
+  ```typescript
+  interface WeeklyBoardResponse {
+    success: boolean
+    weekStart: string          // YYYY-MM-DD
+    weekEnd: string            // YYYY-MM-DD
+    employees: EmployeeSchedule[]
+    organizationId: string
+  }
+  ```
+- **validation**: `startDate` は有効な日付形式であること（**MUST**）。不正な場合は 400 を返す
+- **side effects**: なし（読み取り専用）
+
+##### POST /api/schedules
+
+- **auth**: `requireAuth(event)` **MUST**（未認証時 401 error を return）。他人の予定作成には ADMIN または同部署 LEADER 権限が必要（不足時 403 error）
+- **request**:
+  ```typescript
+  interface CreateScheduleRequest {
+    title: string            // MUST: 空文字不可（空文字で 400 error）
+    description?: string
+    start: string            // MUST: ISO 8601
+    end: string              // MUST: ISO 8601, start < end
+    authorId?: string        // 他人の予定作成時に指定
+    color?: string
+  }
+  ```
+- **response**: `{ success: boolean, schedule: { id, title, description, start, end, authorId, color, createdAt } }`
+- **validation**: title 必須、start/end 必須・形式チェック・前後関係チェック（**MUST**）。違反時は 400 error を return する
+- **side effects**: Schedule レコード1件作成
+
+##### PATCH /api/schedules/:id
+
+- **auth**: `requireAuth(event)` **MUST**（未認証時 401 error を return）。ADMIN / LEADER（同部署）/ 本人のみ編集可（権限不足時 403 error）
+- **request**: `UpdateScheduleRequest`（全フィールド optional）
+- **response**: `{ success: boolean, schedule: { id, title, description, start, end, authorId, color, updatedAt } }`
+- **validation**: title 空文字不可、start/end 形式・前後関係チェック（**MUST**）。違反時は 400 error を return する
+- **side effects**: Schedule レコード更新
+
+##### DELETE /api/schedules/:id
+
+- **auth**: `requireAuth(event)` **MUST**（未認証時 401 error を return）。ADMIN / LEADER（同部署）/ 本人のみ削除可（権限不足時 403 error）
+- **response**: `{ success: true, message: string }`
+- **side effects**: ソフトデリート（`deletedAt` を設定）。物理削除は **MUST NOT**（物理削除試行時は 400 error を return する）
+
+#### (B) Departments API
+
+##### GET /api/departments
+
+- **auth**: `requireAuth(event)` **MUST**（未認証時 401 error を return）
+- **response**: `{ success: true, departments: DepartmentResponse[] }`
+- ソフトデリート済みは除外される（**MUST**）。`deletedAt != null` のレコードは response に含めず 0 件扱いとする
+
+##### POST /api/departments
+
+- **auth**: `requireAuth(event)` + ADMIN 権限 **MUST**（権限不足時 403 error を return）
+- **request**: `{ name: string, color?: string, sortOrder?: number }`
+
+##### PATCH /api/departments/:id
+
+- **auth**: `requireAuth(event)` + ADMIN 権限 **MUST**（権限不足時 403 error を return）
+
+##### DELETE /api/departments/:id
+
+- **auth**: `requireAuth(event)` + ADMIN 権限 **MUST**（権限不足時 403 error を return）
+
+### 10.2 UI Contract
+
+#### (B) 画面状態
+
+- **entrypoint**: `/org/[slug]/weekly-board`（通常表示）、`?fullscreen=true`（サイネージ表示）
+
+| 状態 | 条件 | 表示内容 |
+|------|------|---------|
+| **loading** | API応答待ち | スケルトンローダー（マトリクス形状のプレースホルダー） |
+| **empty** | employees 配列が空 | 「スケジュールが登録されていません」メッセージ |
+| **error** | API 401 | ログイン画面へリダイレクト |
+| **error** | API 500 | 「データの取得に失敗しました。再読み込みしてください」 |
+| **data** | 正常取得 | 社員×曜日マトリクスを表示 |
+| **fullscreen** | `?fullscreen=true` | ダークテーマ、フォント拡大、ヘッダー非表示 |
+
+- **accessibility**: フォントサイズ 16px 以上（**MUST**）。サイネージモードでは 18px 以上（**SHOULD**）。基準未達の場合は error ログを出力
+
+### 10.3 Error Spec
+
+| error_code | HTTP | condition | user_message | retry | logging |
+|-----------|------|-----------|--------------|-------|---------|
+| AUTH_REQUIRED | 401 | セッション未認証 / 期限切れ | 「認証が必要です」 | no（ログインへ遷移） | warn |
+| FORBIDDEN | 403 | 権限不足（MEMBER が他人の予定を編集等） | 「このスケジュールを編集する権限がありません」 | no | warn |
+| INVALID_DATE | 400 | startDate パラメータが不正 | 「有効な日付を指定してください（YYYY-MM-DD）」 | no | info |
+| TITLE_REQUIRED | 400 | title が空 | 「タイトルは必須です」 | no | info |
+| INVALID_DATETIME | 400 | start/end の形式が不正 | 「日時の形式が不正です」 | no | info |
+| INVALID_RANGE | 400 | start >= end | 「開始日時は終了日時より前である必要があります」 | no | info |
+| NOT_FOUND | 404 | 指定IDのスケジュールが存在しない | 「スケジュールが見つかりません」 | no | info |
+| USER_NOT_FOUND | 400 | authorId で指定されたユーザーが存在しない | 「指定されたユーザーが見つかりません」 | no | info |
+| INTERNAL_ERROR | 500 | サーバー内部エラー | 「週間ボードの取得に失敗しました」 | yes（リトライ可） | error |
+
+### 10.4 Compatibility
+
+- **既存仕様との互換**: 既存の Schedule / User / Department テーブル構造に依存。破壊的変更なし
+- **破壊的変更**: no
+- **versioning**: API バージョニングは Phase 0 では未導入。将来的にヘッダーベースのバージョニングを導入してもよい（**MAY**）
+
+---
+
+## §11. Security & Privacy（セキュリティ・プライバシー）
+
+### 11.1 認証（authn）
+
+- **方式**: JWT + HttpOnly Cookie（セッションベース）
+- 全 API エンドポイントで `requireAuth(event)` を呼び出す（**MUST**）。未呼出の場合 401 error を return
+- セッションは Sliding Window 方式で自動延長される
+- 開発環境のみクエリパラメータ / ヘッダーによる認証バイパスを許可する（**MAY**）。本番環境では **MUST NOT**（本番でバイパス検出時は 403 error を return）
+
+### 11.2 認可（authz）
+
+- **RBAC モデル**:
+
+| ロール | スケジュール閲覧 | 自分の予定編集 | 他人の予定編集 | 部署管理 | 組織設定 |
+|--------|:---:|:---:|:---:|:---:|:---:|
+| MEMBER | o | o | x | x | x |
+| LEADER | o | o | o（同部署のみ） | x | x |
+| ADMIN | o | o | o（全員） | o | o |
+| DEVICE | o（閲覧専用） | x | x | x | x |
+
+- 権限チェックには `requireAdmin()`, `requireLeader()`, `requireScheduleEditPermission()` の3関数を使用する（**MUST**）。権限不足時は 403 error を return
+- フロントエンド側でもロールに応じた操作UIの表示/非表示を制御する（**SHOULD**）
+
+### 11.3 バリデーション
+
+- 全ユーザー入力は Zod スキーマまたは手動バリデーションで検証する（**MUST**）。検証失敗時は 400 error を return
+- 現在の実装は手動バリデーション。将来的に Zod スキーマへの移行を推奨する（**SHOULD**）
+- バリデーション項目:
+  - `title`: 非空文字列、最低1文字（**MUST**）。空文字時は 400 error
+  - `start` / `end`: ISO 8601 形式、start < end（**MUST**、違反時は 400 error）
+  - `startDate`（クエリ）: YYYY-MM-DD 形式（**MUST**）。不正時は 400 error を return
+  - `departmentId`（クエリ）: UUID 形式（**SHOULD**）
+
+### 11.4 シークレット管理
+
+- 環境変数経由で管理する（**MUST**）。ハードコード検出時は CI で error を return
+- ソースコード内へのハードコードは **MUST NOT**（検出時は CI error で false 判定）
+- `.env` ファイルは `.gitignore` に含める（**MUST**）。含まれていない場合は CI で error
+
+### 11.5 PII（個人情報）
+
+- **pii**: present
+- 含まれる PII:
+  - `User.email` — 認証コンテキストおよび API レスポンスに含まれる
+  - `User.name` — 週間ボードの社員名表示に使用
+- PII をサーバーログに出力してはならない（**MUST NOT**）。検出時はセキュリティ error として報告（severity: 1）
+- API レスポンスの `email` フィールドは週間ボード表示には不要であり、フロントエンドで非表示にすべきである（**SHOULD**）
+
+### 11.6 監査ログ
+
+- **audit_log**: required
+- スケジュールの作成・更新・削除操作は `AuditLog` テーブルに記録すべきである（**SHOULD**）
+- ログ項目: `organizationId`, `userId`, `action`（例: `SCHEDULE_CREATE`, `SCHEDULE_UPDATE`, `SCHEDULE_DELETE`）, `targetId`, `meta`（変更内容の JSON）
+- 監査ログ自体も `organizationId` でフィルタする（**MUST**）。フィルタ欠落時は 0 件を return
+
+---
+
+## §12. Config（設定・環境変数）
+
+> **Config First 原則**: 環境依存の値はすべて環境変数で管理する（**MUST**）。未設定の場合は起動時に error を return する。
+
+| category | key | type | default | scope | change_risk | description |
+|----------|-----|------|---------|-------|-------------|-------------|
+| database | `DATABASE_URL` | string | (なし) | env | high | PostgreSQL 接続文字列。全環境で必須（**MUST**）。未設定時は起動 error |
+| auth | `JWT_SECRET` | string | (なし) | env | high | JWT 署名用シークレット。本番では32文字以上のランダム文字列を設定する（**MUST**、未設定時は起動 error） |
+| auth | `SESSION_SECRET` | string | (なし) | env | high | セッション管理用シークレット |
+| app | `DEFAULT_ORGANIZATION_ID` | string | `""` | env (dev only) | low | 開発モードでの認証バイパス用デフォルト organizationId。本番では設定しない（**MUST NOT**）。本番で検出時は起動 error |
+| app | `NODE_ENV` | string | `development` | env | medium | 実行環境。`production` / `development` / `test` |
+| app | `NUXT_PUBLIC_SITE_URL` | string | `http://localhost:3000` | env | low | サイトの公開URL |
+| realtime | `SOCKET_IO_PORT` | number | `3001` | env | low | Socket.IO サーバーポート。週間ボードのリアルタイム更新に使用 |
+| feature_flag | `ENABLE_CALENDAR_SYNC` | boolean | `false` | tenant | medium | 外部カレンダー同期機能の有効化。Phase 0 ではデフォルト無効（**MAY** 有効化） |
+| feature_flag | `ENABLE_FULLSCREEN_MODE` | boolean | `true` | global | low | サイネージ用フルスクリーンモード。デフォルト有効 |
+
+### 12.1 環境別設定
+
+- **dev**: `DEFAULT_ORGANIZATION_ID` を設定し、認証バイパスを有効にしてもよい（**MAY**）
+- **stg**: 本番と同等の設定を使用する（**SHOULD**）
+- **prod**: `DEFAULT_ORGANIZATION_ID` は未設定とする（**MUST**）。`NODE_ENV=production` を設定する（**MUST**）。未設定時は起動 error を return
+
+---
+
+## §3-E 入出力例
+
+> 主要APIの具体的な入出力例。正常系2ケース + 異常系3ケース以上を記載する。
+
+### E-1. GET /api/schedules/weekly-board（正常系: フィルタなし）
+
+**リクエスト**:
+```http
+GET /api/schedules/weekly-board?startDate=2026-02-16
+Cookie: session=<valid_jwt>
+```
+
+**レスポンス** (200):
+```json
+{
+  "success": true,
+  "weekStart": "2026-02-16",
+  "weekEnd": "2026-02-22",
+  "organizationId": "org-uuid-001",
+  "employees": [
+    {
+      "id": "user-uuid-001",
+      "name": "田中太郎",
+      "department": "工事",
+      "schedules": {
+        "monday": { "displayText": "9-18 ◯◯ホテル 新館工事", "start": "2026-02-16T09:00:00Z", "end": "2026-02-16T18:00:00Z" },
+        "tuesday": { "displayText": "9-18 ◯◯ホテル 新館工事", "start": "2026-02-17T09:00:00Z", "end": "2026-02-17T18:00:00Z" },
+        "wednesday": { "displayText": "休み", "start": null, "end": null },
+        "thursday": { "displayText": "10-16 △△旅館 打合せ", "start": "2026-02-19T10:00:00Z", "end": "2026-02-19T16:00:00Z" },
+        "friday": { "displayText": "9-18 ◯◯ホテル 新館工事", "start": "2026-02-20T09:00:00Z", "end": "2026-02-20T18:00:00Z" },
+        "saturday": { "displayText": "", "start": null, "end": null },
+        "sunday": { "displayText": "", "start": null, "end": null }
+      }
+    }
+  ]
+}
+```
+
+### E-2. POST /api/schedules（正常系: 新規スケジュール作成）
+
+**リクエスト**:
+```http
+POST /api/schedules
+Cookie: session=<valid_jwt>
+Content-Type: application/json
+
+{
+  "title": "◯◯ホテル LAN工事",
+  "description": "{\"siteName\":\"◯◯ホテル\",\"activityType\":\"LAN工事\"}",
+  "start": "2026-02-18T09:00:00Z",
+  "end": "2026-02-18T18:00:00Z",
+  "color": "#1a73e8"
+}
+```
+
+**レスポンス** (201):
+```json
+{
+  "success": true,
+  "schedule": {
+    "id": "sched-uuid-new-001",
+    "title": "◯◯ホテル LAN工事",
+    "description": "{\"siteName\":\"◯◯ホテル\",\"activityType\":\"LAN工事\"}",
+    "start": "2026-02-18T09:00:00Z",
+    "end": "2026-02-18T18:00:00Z",
+    "authorId": "user-uuid-001",
+    "color": "#1a73e8",
+    "createdAt": "2026-02-15T12:00:00Z"
+  }
+}
+```
+
+### E-3. GET /api/schedules/weekly-board（異常系: 未認証）
+
+**リクエスト**:
+```http
+GET /api/schedules/weekly-board?startDate=2026-02-16
+```
+（Cookie なし）
+
+**レスポンス** (401):
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTH_REQUIRED",
+    "message": "認証が必要です"
+  }
+}
+```
+
+### E-4. POST /api/schedules（異常系: バリデーションエラー — title 空文字）
+
+**リクエスト**:
+```http
+POST /api/schedules
+Cookie: session=<valid_jwt>
+Content-Type: application/json
+
+{
+  "title": "",
+  "start": "2026-02-18T09:00:00Z",
+  "end": "2026-02-18T18:00:00Z"
+}
+```
+
+**レスポンス** (400):
+```json
+{
+  "success": false,
+  "error": {
+    "code": "TITLE_REQUIRED",
+    "message": "タイトルは必須です"
+  }
+}
+```
+
+### E-5. POST /api/schedules（異常系: start >= end の不正範囲）
+
+**リクエスト**:
+```http
+POST /api/schedules
+Cookie: session=<valid_jwt>
+Content-Type: application/json
+
+{
+  "title": "◯◯ホテル 保守点検",
+  "start": "2026-02-18T18:00:00Z",
+  "end": "2026-02-18T09:00:00Z"
+}
+```
+
+**レスポンス** (400):
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_RANGE",
+    "message": "開始日時は終了日時より前である必要があります"
+  }
+}
+```
+
+### E-6. PATCH /api/schedules/:id（異常系: 権限不足）
+
+**リクエスト**:
+```http
+PATCH /api/schedules/sched-uuid-999
+Cookie: session=<valid_jwt_member_role>
+Content-Type: application/json
+
+{
+  "title": "変更しようとした"
+}
+```
+（MEMBER ロールのユーザーが他人のスケジュールを編集しようとした場合）
+
+**レスポンス** (403):
+```json
+{
+  "success": false,
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "このスケジュールを編集する権限がありません"
+  }
+}
+```
+
+### E-7. DELETE /api/schedules/:id（異常系: 存在しないID）
+
+**リクエスト**:
+```http
+DELETE /api/schedules/sched-uuid-nonexistent
+Cookie: session=<valid_jwt>
+```
+
+**レスポンス** (404):
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "スケジュールが見つかりません"
+  }
+}
+```
+
+---
+
+## §3-F 境界値
+
+> 各データ項目の境界値定義。バリデーションおよびテストで使用する。
+
+### F-1. Schedule フィールド境界値
+
+| フィールド | 型 | 最小値 | 最大値 | 境界パターン | MUST 条件 |
+|-----------|-----|--------|--------|-------------|-----------|
+| `title` | string | 1文字 | 200文字 | 空文字 → 400 error、1文字 → OK、200文字 → OK、201文字 → 400 error | MUST 1 文字以上 |
+| `description` | string | 0文字（optional） | 5000文字 | null → OK、空文字 → OK、5000文字 → OK、5001文字 → 400 error | MUST 5000 文字以下 |
+| `start` | ISO 8601 | 現在日時 - 1年 | 現在日時 + 2年 | 過去1年超 → 400 error、未来2年超 → 400 error | MUST true（有効な ISO 8601 形式） |
+| `end` | ISO 8601 | start + 1分 | start + 24時間 | start と同値 → 400 error、start - 1分 → 400 error | MUST true（end > start） |
+| `color` | string | 4文字（`#RGB`） | 7文字（`#RRGGBB`） | null → OK（デフォルト色）、不正形式 → 400 error | MUST true（`/^#[0-9a-fA-F]{3,6}$/` に一致） |
+
+### F-2. クエリパラメータ境界値
+
+| パラメータ | 型 | 境界パターン | 結果 |
+|-----------|-----|-------------|------|
+| `startDate` | YYYY-MM-DD | 省略 → 今週の月曜日をデフォルト | MUST true（有効日付 or 省略） |
+| `startDate` | YYYY-MM-DD | `"2026-02-16"` → 正常 | 200 response |
+| `startDate` | YYYY-MM-DD | `"2026-13-01"` → 不正月 | MUST 400 error を return |
+| `startDate` | YYYY-MM-DD | `"not-a-date"` → 形式不正 | MUST 400 error を return |
+| `startDate` | YYYY-MM-DD | `"2026-02-30"` → 存在しない日 | MUST 400 error を return |
+| `departmentId` | UUID | 省略 → 全部署対象 | 200 response |
+| `departmentId` | UUID | 存在するUUID → フィルタ適用 | 200 response（該当部署のみ） |
+| `departmentId` | UUID | 存在しないUUID → 空結果 | 200 response（employees: []） |
+
+### F-3. 表示関連の境界値
+
+| 項目 | 最小値 | 最大値 | 境界パターン |
+|------|--------|--------|-------------|
+| 社員数（employees配列） | 0人 | 100人 | 0人 → empty 状態表示、100人超 → ページネーション検討（Phase 1） |
+| 1セルの表示テキスト長 | 0文字 | 30文字 | 30文字超 → 末尾「…」で切り捨て表示 |
+| 部署数 | 0件 | 50件 | 0件 → フィルタUI非表示、50件超 → スクロール付きドロップダウン |
+| 週の範囲 | 過去52週 | 未来52週 | 範囲外 → 400 error を return |
+
+---
+
+## §3-G 例外応答
+
+> 全エラーケースの応答定義。各エラーコードに対する HTTP ステータス、条件、ユーザーメッセージ、リトライ可否、ログレベルを定義する。
+
+### G-1. 認証・認可エラー
+
+| error_code | HTTP | 条件 | user_message | retry | logging | MUST 条件 |
+|-----------|------|------|--------------|-------|---------|-----------|
+| AUTH_REQUIRED | 401 | Cookie なし / JWT 期限切れ / JWT 改ざん | 「認証が必要です」 | false（ログイン画面へ遷移） | warn | MUST return 401 |
+| FORBIDDEN | 403 | MEMBER が他人の予定を編集・削除 | 「このスケジュールを編集する権限がありません」 | false | warn | MUST return 403 |
+| ADMIN_REQUIRED | 403 | 非 ADMIN が部署管理操作を実行 | 「管理者権限が必要です」 | false | warn | MUST return 403 |
+| TENANT_MISMATCH | 403 | 他テナントのリソースにアクセス試行 | 「アクセス権限がありません」 | false | error | MUST return 403 |
+
+### G-2. バリデーションエラー
+
+| error_code | HTTP | 条件 | user_message | retry | logging | MUST 条件 |
+|-----------|------|------|--------------|-------|---------|-----------|
+| TITLE_REQUIRED | 400 | title が空文字または未指定 | 「タイトルは必須です」 | false | info | MUST return 400 |
+| TITLE_TOO_LONG | 400 | title が 200 文字超過 | 「タイトルは200文字以内で入力してください」 | false | info | MUST return 400 |
+| INVALID_DATE | 400 | startDate が YYYY-MM-DD 形式でない | 「有効な日付を指定してください（YYYY-MM-DD）」 | false | info | MUST return 400 |
+| INVALID_DATETIME | 400 | start/end が ISO 8601 形式でない | 「日時の形式が不正です」 | false | info | MUST return 400 |
+| INVALID_RANGE | 400 | start >= end | 「開始日時は終了日時より前である必要があります」 | false | info | MUST return 400 |
+| DESCRIPTION_TOO_LONG | 400 | description が 5000 文字超過 | 「説明は5000文字以内で入力してください」 | false | info | MUST return 400 |
+| INVALID_COLOR | 400 | color が `#RGB` / `#RRGGBB` 形式でない | 「カラーコードの形式が不正です」 | false | info | MUST return 400 |
+
+### G-3. リソースエラー
+
+| error_code | HTTP | 条件 | user_message | retry | logging | MUST 条件 |
+|-----------|------|------|--------------|-------|---------|-----------|
+| NOT_FOUND | 404 | 指定 ID のスケジュールが存在しない / ソフトデリート済み | 「スケジュールが見つかりません」 | false | info | MUST return 404 |
+| USER_NOT_FOUND | 400 | authorId で指定されたユーザーが存在しない | 「指定されたユーザーが見つかりません」 | false | info | MUST return 400 |
+| DEPARTMENT_NOT_FOUND | 404 | 指定 ID の部署が存在しない | 「部署が見つかりません」 | false | info | MUST return 404 |
+
+### G-4. サーバーエラー
+
+| error_code | HTTP | 条件 | user_message | retry | logging | MUST 条件 |
+|-----------|------|------|--------------|-------|---------|-----------|
+| INTERNAL_ERROR | 500 | DB 接続失敗 / 未ハンドル例外 | 「週間ボードの取得に失敗しました」 | true（リトライ可） | error | MUST return 500 |
+| DB_CONNECTION_ERROR | 500 | Prisma 接続タイムアウト | 「サーバーに接続できません。しばらくしてから再試行してください」 | true | error | MUST return 500 |
+
+### G-5. 禁止操作エラー
+
+| error_code | HTTP | 条件 | user_message | retry | logging | MUST 条件 |
+|-----------|------|------|--------------|-------|---------|-----------|
+| PHYSICAL_DELETE_FORBIDDEN | 400 | 物理削除を試行 | 「この操作は許可されていません」 | false | error | MUST return 400 |
+| RAW_SQL_DETECTED | 500 | $queryRaw/$executeRaw の使用を CI で検出 | （ユーザー非表示、CI のみ） | false | error | MUST return error |
+
+---
+
+## §3-H Gherkin シナリオ
+
+> MUST 要件に基づく受入テストシナリオ。Given/When/Then 形式で記述する。
+
+### H-1. 週間ボード表示（認証済みユーザー）
+
+```gherkin
+Feature: 週間ボード表示
+  週間スケジュールボードの表示機能
+
+  Scenario: 認証済みユーザーが今週のスケジュールを取得する
+    Given ユーザー「田中太郎」が organizationId "org-001" で認証済みである
+    And organizationId "org-001" に以下のスケジュールが登録されている:
+      | title            | start                   | end                     | authorId      |
+      | ◯◯ホテル LAN工事  | 2026-02-16T09:00:00Z    | 2026-02-16T18:00:00Z    | user-uuid-001 |
+      | △△旅館 打合せ      | 2026-02-18T10:00:00Z    | 2026-02-18T16:00:00Z    | user-uuid-001 |
+    When GET /api/schedules/weekly-board?startDate=2026-02-16 を実行する
+    Then レスポンスステータスは 200 である
+    And レスポンスの success は true である
+    And レスポンスの employees 配列に「田中太郎」が含まれる
+    And 「田中太郎」の monday.displayText に "9-18" が含まれる
+    And 「田中太郎」の wednesday.displayText に "10-16" が含まれる
+```
+
+### H-2. マルチテナント境界（クロステナントアクセス拒否）
+
+```gherkin
+Feature: マルチテナント境界
+  テナント間のデータ分離を保証する
+
+  Scenario: 他テナントのスケジュールにアクセスできないことを確認する
+    Given ユーザー「佐藤花子」が organizationId "org-002" で認証済みである
+    And organizationId "org-001" に以下のスケジュールが登録されている:
+      | title              | start                   | end                     |
+      | ◯◯ホテル LAN工事    | 2026-02-16T09:00:00Z    | 2026-02-16T18:00:00Z    |
+    When GET /api/schedules/weekly-board?startDate=2026-02-16 を実行する
+    Then レスポンスステータスは 200 である
+    And レスポンスの employees 配列は空（要素数 0）である
+    And organizationId "org-001" のスケジュールは response に含まれない
+```
+
+### H-3. スケジュール作成のバリデーション
+
+```gherkin
+Feature: スケジュール作成バリデーション
+  スケジュール作成時の入力検証
+
+  Scenario: title が空文字の場合 400 エラーを返す
+    Given ユーザーが organizationId "org-001" で認証済みである
+    When POST /api/schedules に以下のリクエストを送信する:
+      | title | start                   | end                     |
+      |       | 2026-02-18T09:00:00Z    | 2026-02-18T18:00:00Z    |
+    Then レスポンスステータスは 400 である
+    And エラーコードは "TITLE_REQUIRED" である
+    And error message は「タイトルは必須です」である
+
+  Scenario: start >= end の場合 400 エラーを返す
+    Given ユーザーが organizationId "org-001" で認証済みである
+    When POST /api/schedules に以下のリクエストを送信する:
+      | title          | start                   | end                     |
+      | ◯◯ホテル 保守   | 2026-02-18T18:00:00Z    | 2026-02-18T09:00:00Z    |
+    Then レスポンスステータスは 400 である
+    And エラーコードは "INVALID_RANGE" である
+    And error message は「開始日時は終了日時より前である必要があります」である
+```
+
+### H-4. 未認証アクセスの拒否
+
+```gherkin
+Feature: 認証必須
+  全APIエンドポイントで認証が必須であることを保証する
+
+  Scenario: 未認証で週間ボードにアクセスすると 401 を返す
+    Given ユーザーは未認証である（Cookie なし）
+    When GET /api/schedules/weekly-board?startDate=2026-02-16 を実行する
+    Then レスポンスステータスは 401 である
+    And エラーコードは "AUTH_REQUIRED" である
+    And response の success は false である
+
+  Scenario: 未認証でスケジュールを作成しようとすると 401 を返す
+    Given ユーザーは未認証である（Cookie なし）
+    When POST /api/schedules に以下のリクエストを送信する:
+      | title        | start                   | end                     |
+      | テスト予定    | 2026-02-18T09:00:00Z    | 2026-02-18T18:00:00Z    |
+    Then レスポンスステータスは 401 である
+    And エラーコードは "AUTH_REQUIRED" である
+    And response の success は false である
+```
+
+### H-5. 権限不足による編集拒否
+
+```gherkin
+Feature: 権限制御
+  ロールに基づくスケジュール編集権限の制御
+
+  Scenario: MEMBER ロールのユーザーが他人のスケジュールを編集しようとすると 403 を返す
+    Given ユーザー「山田次郎」が MEMBER ロールで organizationId "org-001" に認証済みである
+    And ユーザー「田中太郎」のスケジュール "sched-uuid-100" が存在する
+    When PATCH /api/schedules/sched-uuid-100 に以下のリクエストを送信する:
+      | title          |
+      | 変更後タイトル   |
+    Then レスポンスステータスは 403 である
+    And エラーコードは "FORBIDDEN" である
+    And response の success は false である
+```
 
 ---
 

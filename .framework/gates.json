@@ -33,7 +33,7 @@
         "message": "Framework management (.framework/): found"
       }
     ],
-    "checkedAt": "2026-02-13T06:27:45.656Z"
+    "checkedAt": "2026-02-16T08:28:29.661Z"
   },
   "gateB": {
     "status": "passed",
@@ -54,27 +54,111 @@
         "message": "Project profile found"
       }
     ],
-    "checkedAt": "2026-02-13T06:38:25.656Z"
+    "checkedAt": "2026-02-16T08:28:29.662Z"
   },
   "gateC": {
     "status": "passed",
     "checks": [
       {
-        "name": "docs/ssot/SSOT-0_PRD.md",
+        "name": "docs/SSOT_APP_HEADER.md",
         "passed": true,
-        "message": "docs/ssot/SSOT-0_PRD.md: All §3-E/F/G/H sections present",
-        "filePath": "docs/ssot/SSOT-0_PRD.md",
+        "message": "docs/SSOT_APP_HEADER.md: All required sections present",
+        "filePath": "docs/SSOT_APP_HEADER.md",
         "missingSections": []
       },
       {
-        "name": "docs/ssot/SSOT-1_FEATURE_CATALOG.md",
+        "name": "docs/SSOT_BILLING.md",
         "passed": true,
-        "message": "docs/ssot/SSOT-1_FEATURE_CATALOG.md: All §3-E/F/G/H sections present",
-        "filePath": "docs/ssot/SSOT-1_FEATURE_CATALOG.md",
+        "message": "docs/SSOT_BILLING.md: All required sections present",
+        "filePath": "docs/SSOT_BILLING.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_BRAND.md",
+        "passed": true,
+        "message": "docs/SSOT_BRAND.md: All required sections present",
+        "filePath": "docs/SSOT_BRAND.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_CALENDAR_SYNC.md",
+        "passed": true,
+        "message": "docs/SSOT_CALENDAR_SYNC.md: All required sections present",
+        "filePath": "docs/SSOT_CALENDAR_SYNC.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_ERROR_PAGES.md",
+        "passed": true,
+        "message": "docs/SSOT_ERROR_PAGES.md: All required sections present",
+        "filePath": "docs/SSOT_ERROR_PAGES.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_EXIT_STRATEGY.md",
+        "passed": true,
+        "message": "docs/SSOT_EXIT_STRATEGY.md: All required sections present",
+        "filePath": "docs/SSOT_EXIT_STRATEGY.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_GENBA_WEEK.md",
+        "passed": true,
+        "message": "docs/SSOT_GENBA_WEEK.md: All required sections present",
+        "filePath": "docs/SSOT_GENBA_WEEK.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_MARKETING.md",
+        "passed": true,
+        "message": "docs/SSOT_MARKETING.md: All required sections present",
+        "filePath": "docs/SSOT_MARKETING.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_MEETING_SCHEDULER.md",
+        "passed": true,
+        "message": "docs/SSOT_MEETING_SCHEDULER.md: All required sections present",
+        "filePath": "docs/SSOT_MEETING_SCHEDULER.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_MIEL_FILE.md",
+        "passed": true,
+        "message": "docs/SSOT_MIEL_FILE.md: All required sections present",
+        "filePath": "docs/SSOT_MIEL_FILE.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_MVP_EXTEND.md",
+        "passed": true,
+        "message": "docs/SSOT_MVP_EXTEND.md: All required sections present",
+        "filePath": "docs/SSOT_MVP_EXTEND.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_PRICING.md",
+        "passed": true,
+        "message": "docs/SSOT_PRICING.md: All required sections present",
+        "filePath": "docs/SSOT_PRICING.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_TEMPLATE_GENERIC.md",
+        "passed": true,
+        "message": "docs/SSOT_TEMPLATE_GENERIC.md: All required sections present",
+        "filePath": "docs/SSOT_TEMPLATE_GENERIC.md",
+        "missingSections": []
+      },
+      {
+        "name": "docs/SSOT_UI_NAVIGATION.md",
+        "passed": true,
+        "message": "docs/SSOT_UI_NAVIGATION.md: All required sections present",
+        "filePath": "docs/SSOT_UI_NAVIGATION.md",
         "missingSections": []
       }
     ],
-    "checkedAt": "2026-02-13T06:50:06.171Z"
+    "checkedAt": "2026-02-16T08:28:29.675Z"
   },
-  "updatedAt": "2026-02-13T06:50:06.172Z"
+  "updatedAt": "2026-02-16T08:28:29.676Z"
 }

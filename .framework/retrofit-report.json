@@ -1,7 +1,7 @@
 {
   "projectDir": "/Users/kaneko/wbs",
   "projectName": "wbs",
-  "scannedAt": "2026-02-13T00:07:26.132Z",
+  "scannedAt": "2026-02-15T22:55:11.614Z",
   "directory": {
     "hasSrc": false,
     "hasDocs": true,
@@ -11,6 +11,7 @@
     "hasClaudeMd": true,
     "hasPackageJson": true,
     "topLevelDirs": [
+      "backups",
       "components",
       "composables",
       "docs",
@@ -54,14 +55,14 @@
     }
   ],
   "fileStats": {
-    "totalFiles": 683,
-    "totalLines": 96379,
+    "totalFiles": 689,
+    "totalLines": 92911,
     "byExtension": {
-      ".md": 223,
-      ".json": 115,
-      ".ts": 149,
-      ".js": 140,
-      ".css": 56
+      ".md": 190,
+      ".json": 124,
+      ".ts": 156,
+      ".js": 159,
+      ".css": 60
     }
   },
   "existingDocs": [
@@ -384,6 +385,24 @@
       "category": "docs"
     },
     {
+      "path": "docs/reports/GAP_ANALYSIS_REPORT.md",
+      "name": "GAP_ANALYSIS_REPORT.md",
+      "sizeBytes": 11041,
+      "category": "reports"
+    },
+    {
+      "path": "docs/reports/NEXT_ACTIONS.md",
+      "name": "NEXT_ACTIONS.md",
+      "sizeBytes": 7545,
+      "category": "reports"
+    },
+    {
+      "path": "docs/reports/SSOT_AUDIT_REPORT.md",
+      "name": "SSOT_AUDIT_REPORT.md",
+      "sizeBytes": 29713,
+      "category": "reports"
+    },
+    {
       "path": "docs/reviews/2026-01-23_WBS-14-15-16_review.md",
       "name": "2026-01-23_WBS-14-15-16_review.md",
       "sizeBytes": 3440,
@@ -414,33 +433,15 @@
       "category": "docs"
     },
     {
-      "path": "docs/ssot/GAP_ANALYSIS_REPORT.md",
-      "name": "GAP_ANALYSIS_REPORT.md",
-      "sizeBytes": 11041,
-      "category": "ssot"
-    },
-    {
-      "path": "docs/ssot/NEXT_ACTIONS.md",
-      "name": "NEXT_ACTIONS.md",
-      "sizeBytes": 7545,
-      "category": "ssot"
-    },
-    {
       "path": "docs/ssot/SSOT-0_PRD.md",
       "name": "SSOT-0_PRD.md",
-      "sizeBytes": 12078,
+      "sizeBytes": 19216,
       "category": "ssot"
     },
     {
       "path": "docs/ssot/SSOT-1_FEATURE_CATALOG.md",
       "name": "SSOT-1_FEATURE_CATALOG.md",
-      "sizeBytes": 19968,
-      "category": "ssot"
-    },
-    {
-      "path": "docs/ssot/SSOT_AUDIT_REPORT.md",
-      "name": "SSOT_AUDIT_REPORT.md",
-      "sizeBytes": 29713,
+      "sizeBytes": 27424,
       "category": "ssot"
     },
     {
@@ -501,6 +502,12 @@
       "path": "docs/standards/RISKS.md",
       "name": "RISKS.md",
       "sizeBytes": 7905,
+      "category": "standards"
+    },
+    {
+      "path": "docs/standards/SECURITY_STRIPE.md",
+      "name": "SECURITY_STRIPE.md",
+      "sizeBytes": 13419,
       "category": "standards"
     },
     {
@@ -584,7 +591,7 @@
     {
       "path": "docs/standards/project/CLAUDE.md",
       "name": "CLAUDE.md",
-      "sizeBytes": 12341,
+      "sizeBytes": 14322,
       "category": "project"
     },
     {
@@ -608,74 +615,32 @@
     {
       "path": "docs/standards/skills/SKILLS_INDEX.md",
       "name": "SKILLS_INDEX.md",
-      "sizeBytes": 16285,
+      "sizeBytes": 1934,
       "category": "skills"
     },
     {
-      "path": "docs/standards/skills/_deliberation/DELIBERATION_PROTOCOL.md",
-      "name": "DELIBERATION_PROTOCOL.md",
-      "sizeBytes": 7094,
-      "category": "_deliberation"
-    },
-    {
-      "path": "docs/standards/skills/business-design/SKILL.md",
+      "path": "docs/standards/skills/design/SKILL.md",
       "name": "SKILL.md",
-      "sizeBytes": 2935,
-      "category": "business-design"
-    },
-    {
-      "path": "docs/standards/skills/code-audit/SKILL.md",
-      "name": "SKILL.md",
-      "sizeBytes": 3719,
-      "category": "code-audit"
+      "sizeBytes": 7355,
+      "category": "design"
     },
     {
       "path": "docs/standards/skills/discovery/SKILL.md",
       "name": "SKILL.md",
-      "sizeBytes": 5279,
+      "sizeBytes": 6527,
       "category": "discovery"
     },
     {
-      "path": "docs/standards/skills/feature-spec/SKILL.md",
+      "path": "docs/standards/skills/implement/SKILL.md",
       "name": "SKILL.md",
-      "sizeBytes": 8594,
-      "category": "feature-spec"
+      "sizeBytes": 5226,
+      "category": "implement"
     },
     {
-      "path": "docs/standards/skills/implementation/SKILL.md",
+      "path": "docs/standards/skills/review/SKILL.md",
       "name": "SKILL.md",
-      "sizeBytes": 5964,
-      "category": "implementation"
-    },
-    {
-      "path": "docs/standards/skills/orchestrator/SKILL.md",
-      "name": "SKILL.md",
-      "sizeBytes": 6788,
-      "category": "orchestrator"
-    },
-    {
-      "path": "docs/standards/skills/product-design/SKILL.md",
-      "name": "SKILL.md",
-      "sizeBytes": 3077,
-      "category": "product-design"
-    },
-    {
-      "path": "docs/standards/skills/review-council/SKILL.md",
-      "name": "SKILL.md",
-      "sizeBytes": 8261,
-      "category": "review-council"
-    },
-    {
-      "path": "docs/standards/skills/ssot-audit/SKILL.md",
-      "name": "SKILL.md",
-      "sizeBytes": 3575,
-      "category": "ssot-audit"
-    },
-    {
-      "path": "docs/standards/skills/technical-design/SKILL.md",
-      "name": "SKILL.md",
-      "sizeBytes": 5476,
-      "category": "technical-design"
+      "sizeBytes": 6217,
+      "category": "review"
     },
     {
       "path": "docs/task_matrix.md",
@@ -735,6 +700,12 @@
       "path": "CLAUDE.md",
       "name": "CLAUDE.md",
       "sizeBytes": 21089,
+      "category": "root"
+    },
+    {
+      "path": "GATE_PROMPTS.md",
+      "name": "GATE_PROMPTS.md",
+      "sizeBytes": 2409,
       "category": "root"
     },
     {
