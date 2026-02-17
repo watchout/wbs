@@ -7,6 +7,8 @@
 import { readBody, createError, getRouterParam } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth, requireScheduleEditPermission } from '~/server/utils/authMiddleware'
+import { emitScheduleUpdated } from '~/server/utils/socket'
+import { createAuditLog, AUDIT_ACTIONS } from '~/server/utils/auditLog'
 
 interface UpdateScheduleRequest {
   title?: string
@@ -137,6 +139,22 @@ export default defineEventHandler(async (event): Promise<UpdateScheduleResponse>
       ...(body.authorId !== undefined && { authorId: body.authorId }),
       ...(body.color !== undefined && { color: body.color })
     }
+  })
+
+  // リアルタイム通知（WBS-008）
+  emitScheduleUpdated({
+    scheduleId: schedule.id,
+    organizationId: auth.organizationId,
+    employeeId: schedule.authorId ?? undefined,
+  })
+
+  // 操作ログ（AUDIT-001）
+  await createAuditLog({
+    organizationId: auth.organizationId,
+    userId: auth.userId,
+    action: AUDIT_ACTIONS.SCHEDULE_UPDATE,
+    targetId: schedule.id,
+    meta: { title: schedule.title },
   })
 
   return {
