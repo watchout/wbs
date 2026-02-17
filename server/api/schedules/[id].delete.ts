@@ -7,6 +7,8 @@
 import { createError, getRouterParam } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth, requireScheduleEditPermission } from '~/server/utils/authMiddleware'
+import { emitScheduleDeleted } from '~/server/utils/socket'
+import { createAuditLog, AUDIT_ACTIONS } from '~/server/utils/auditLog'
 
 interface DeleteScheduleResponse {
   success: boolean
@@ -63,6 +65,22 @@ export default defineEventHandler(async (event): Promise<DeleteScheduleResponse>
   await prisma.schedule.update({
     where: { id },
     data: { deletedAt: new Date() }
+  })
+
+  // リアルタイム通知（WBS-008）
+  emitScheduleDeleted({
+    scheduleId: id,
+    organizationId: auth.organizationId,
+    employeeId: existing.authorId ?? undefined,
+  })
+
+  // 操作ログ（AUDIT-001）
+  await createAuditLog({
+    organizationId: auth.organizationId,
+    userId: auth.userId,
+    action: AUDIT_ACTIONS.SCHEDULE_DELETE,
+    targetId: id,
+    meta: { title: existing.title },
   })
 
   return {

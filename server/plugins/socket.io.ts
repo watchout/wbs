@@ -17,10 +17,26 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
     const server = socket?.server
     if (!server) return
 
+    // CORS設定: 許可オリジンを明示指定（SEC-002）
+    const allowedOrigins: string[] = []
+    const envOrigins = process.env.ALLOWED_ORIGINS
+    if (envOrigins) {
+      allowedOrigins.push(...envOrigins.split(',').map((o) => o.trim()))
+    }
+    if (process.env.NODE_ENV !== 'production') {
+      allowedOrigins.push(
+        'http://localhost:6001',
+        'http://localhost:3000',
+        'http://127.0.0.1:6001',
+        'http://127.0.0.1:3000'
+      )
+    }
+
     io = new SocketIOServer(server, {
       cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
+        origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+        methods: ['GET', 'POST'],
+        credentials: true
       },
       path: '/socket.io'
     })

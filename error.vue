@@ -57,6 +57,7 @@ onMounted(() => {
 
 const errorType = computed(() => {
   const code = props.error?.statusCode || 500
+  if (code === 403) return 'forbidden'
   if (code === 404) return 'not-found'
   if (code >= 500) return 'server-error'
   return 'unknown'
@@ -68,6 +69,8 @@ const isServerError = computed(() => {
 
 const errorIcon = computed(() => {
   switch (errorType.value) {
+    case 'forbidden':
+      return '🔒'
     case 'not-found':
       return '🔍'
     case 'server-error':
@@ -79,6 +82,8 @@ const errorIcon = computed(() => {
 
 const errorTitle = computed(() => {
   switch (errorType.value) {
+    case 'forbidden':
+      return 'アクセス権限がありません'
     case 'not-found':
       return 'ページが見つかりません'
     case 'server-error':
@@ -90,6 +95,8 @@ const errorTitle = computed(() => {
 
 const errorDescription = computed(() => {
   switch (errorType.value) {
+    case 'forbidden':
+      return 'このページを表示する権限がありません。管理者にお問い合わせください。'
     case 'not-found':
       return 'お探しのページは存在しないか、移動した可能性があります。'
     case 'server-error':

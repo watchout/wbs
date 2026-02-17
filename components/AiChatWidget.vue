@@ -36,7 +36,7 @@
         >
           <span v-if="msg.type === 'ai'" class="msg-avatar">🤖</span>
           <div class="msg-content">
-            <div class="msg-bubble" v-html="msg.content"></div>
+            <div class="msg-bubble" v-html="sanitizedContent(msg.content)"></div>
             <div class="msg-time">{{ msg.time }}</div>
           </div>
         </div>
@@ -82,6 +82,12 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted } from 'vue'
+import { sanitizeHtml } from '~/utils/sanitize'
+
+// XSS対策: v-html に渡す前にサニタイズ（SEC-006）
+function sanitizedContent(content: string): string {
+  return sanitizeHtml(content)
+}
 
 interface Message {
   type: 'user' | 'ai'
