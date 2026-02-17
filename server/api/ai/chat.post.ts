@@ -9,15 +9,55 @@ import { ASSISTANT_TOOLS, BUSINESS_SYSTEM_PROMPT, executeTool } from '../../util
 import type { LlmMessage } from '../../utils/llm/provider'
 
 const MAX_MESSAGE_LENGTH = 2000
+const MAX_TOOL_CALLS = 3
+
+// レート制限（組織単位: 30回/分）
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_PER_MINUTE = 30
+const RATE_LIMIT_WINDOW_MS = 60 * 1000
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(key)
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return true
+  }
+
+  if (entry.count >= RATE_LIMIT_PER_MINUTE) {
+    return false
+  }
+
+  entry.count++
+  return true
+}
+
+// 定期クリーンアップ
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetAt) {
+      rateLimitMap.delete(key)
+    }
+  }
+}, 5 * 60 * 1000)
 
 export default defineEventHandler(async (event) => {
   // 認証
   const auth = await requireAuth(event)
 
+  // レート制限チェック（組織単位）
+  if (!checkRateLimit(`chat:${auth.organizationId}`)) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: 'リクエスト回数の上限に達しました。しばらくお待ちください。',
+    })
+  }
+
   // リクエスト解析
   const body = await readBody(event)
   const message = typeof body?.message === 'string' ? body.message.trim() : ''
-  const conversationId = typeof body?.conversationId === 'string' ? body.conversationId : undefined
 
   // バリデーション
   if (!message) {
@@ -47,7 +87,7 @@ export default defineEventHandler(async (event) => {
   let provider
   try {
     provider = await createLlmProvider(auth.organizationId)
-  } catch (err) {
+  } catch {
     throw createError({
       statusCode: 503,
       statusMessage: 'AIサービスが利用できません。管理者にお問い合わせください。',
@@ -67,11 +107,12 @@ export default defineEventHandler(async (event) => {
       temperature: 0.7,
     })
 
-    // ツール呼び出しがあれば実行して再度LLMに渡す（1回のみ）
+    // ツール呼び出しがあれば実行して再度LLMに渡す（1回のみ、最大3ツール）
     if (response.toolCalls && response.toolCalls.length > 0) {
       const toolResults: string[] = []
+      const toolsToExecute = response.toolCalls.slice(0, MAX_TOOL_CALLS)
 
-      for (const tc of response.toolCalls) {
+      for (const tc of toolsToExecute) {
         const result = await executeTool(
           tc.name,
           tc.arguments,
@@ -108,12 +149,11 @@ export default defineEventHandler(async (event) => {
       creditsRemaining: creditResult.balanceAfter,
       provider: provider.type,
     }
-  } catch (err) {
-    // LLMプロバイダーのエラー
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+  } catch {
+    // エラー詳細はクライアントに漏洩させない
     throw createError({
       statusCode: 503,
-      statusMessage: `AIサービスでエラーが発生しました: ${errorMessage}`,
+      statusMessage: 'AIサービスでエラーが発生しました。しばらくお待ちください。',
     })
   }
 })

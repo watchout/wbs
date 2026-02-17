@@ -147,9 +147,7 @@ async function executeSearchUsers(
   const users = await prisma.user.findMany({
     where,
     select: {
-      id: true,
       name: true,
-      email: true,
       role: true,
       department: { select: { name: true } },
     },
