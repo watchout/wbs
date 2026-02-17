@@ -19,11 +19,14 @@
     "perf:api": "npx tsx scripts/perf-api.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.0.0",
     "@sentry/nuxt": "^10.38.0",
     "@stripe/stripe-js": "^8.7.0",
     "bcrypt": "^6.0.0",
     "googleapis": "^170.1.0",
+    "openai": "^6.22.0",
     "resend": "^6.9.2",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
