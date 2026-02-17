@@ -79,6 +79,10 @@ model Organization {
   aiCreditBalance      AiCreditBalance?
   aiCreditTransactions AiCreditTransaction[]
 
+  // AI アシスタント設定
+  llmProvider  String   @default("openai")  // "claude" | "openai" | "gemini"
+  llmModel     String?  // カスタムモデル名（null=デフォルト使用）
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

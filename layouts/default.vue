@@ -4,11 +4,13 @@
     <main class="layout-main">
       <slot />
     </main>
+    <AssistantChat />
   </div>
 </template>
 
 <script setup lang="ts">
 import AppHeader from '~/components/common/AppHeader.vue'
+import AssistantChat from '~/components/ai/AssistantChat.vue'
 </script>
 
 <style scoped>
