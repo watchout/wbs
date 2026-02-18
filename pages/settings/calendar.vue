@@ -220,8 +220,9 @@ async function handleConnect() {
     const response = await $fetch<{ redirectUrl: string }>('/api/calendar/google/connect')
     // Redirect to Google OAuth
     window.location.href = response.redirectUrl
-  } catch (error: any) {
-    errorMessage.value = error.data?.statusMessage || 'カレンダー連携の開始に失敗しました'
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    errorMessage.value = (errData?.statusMessage as string) || 'カレンダー連携の開始に失敗しました'
     connecting.value = false
   }
 }
@@ -250,8 +251,9 @@ async function handleSync() {
 
     // Refresh connection data
     await fetchConnection()
-  } catch (error: any) {
-    errorMessage.value = error.data?.statusMessage || '同期に失敗しました'
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    errorMessage.value = (errData?.statusMessage as string) || '同期に失敗しました'
   } finally {
     syncing.value = false
   }
@@ -275,8 +277,9 @@ async function handleDisconnect() {
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
-  } catch (error: any) {
-    errorMessage.value = error.data?.statusMessage || '連携の解除に失敗しました'
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    errorMessage.value = (errData?.statusMessage as string) || '連携の解除に失敗しました'
   } finally {
     disconnecting.value = false
   }

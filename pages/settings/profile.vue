@@ -183,8 +183,9 @@ async function handleSubmit() {
         successMessage.value = ''
       }, 3000)
     }
-  } catch (error: any) {
-    errorMessage.value = error.data?.statusMessage || '更新に失敗しました'
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    errorMessage.value = (errData?.statusMessage as string) || '更新に失敗しました'
   } finally {
     submitting.value = false
   }

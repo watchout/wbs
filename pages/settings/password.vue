@@ -169,8 +169,9 @@ async function handleSubmit() {
         confirmPassword: ''
       }
     }
-  } catch (error: any) {
-    errorMessage.value = error.data?.statusMessage || 'パスワードの変更に失敗しました'
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    errorMessage.value = (errData?.statusMessage as string) || 'パスワードの変更に失敗しました'
   } finally {
     submitting.value = false
   }

@@ -156,8 +156,9 @@ async function saveDepartment() {
     }
     closeModal()
     await fetchDepartments()
-  } catch (error: any) {
-    modalError.value = error.data?.message || '保存に失敗しました'
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    modalError.value = (errData?.message as string) || '保存に失敗しました'
   } finally {
     submitting.value = false
   }
@@ -175,8 +176,9 @@ async function deleteDepartment(dept: Department) {
   try {
     await $fetch(`/api/departments/${dept.id}`, { method: 'DELETE' })
     await fetchDepartments()
-  } catch (error: any) {
-    alert(error.data?.message || '削除に失敗しました')
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    alert(errData?.message || '削除に失敗しました')
   }
 }
 
