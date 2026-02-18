@@ -6,6 +6,9 @@
  */
 
 import nodemailer from 'nodemailer'
+import { createLogger } from './logger'
+
+const log = createLogger('mailer')
 
 interface MailOptions {
   to: string | string[]
@@ -53,8 +56,7 @@ export async function sendMail(options: MailOptions): Promise<MailResult> {
   if (!transporter) {
     // SMTP未設定 → 開発環境ではログのみ
     if (process.env.NODE_ENV !== 'production') {
-      console.info('[Mailer] SMTP not configured. Skipping email:', {
-        to: options.to,
+      log.info('SMTP not configured, skipping email', {
         subject: options.subject,
       })
       return { success: true, messageId: 'dev-skip' }
@@ -74,7 +76,7 @@ export async function sendMail(options: MailOptions): Promise<MailResult> {
     return { success: true, messageId: result.messageId }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    console.error('[Mailer] Failed to send email:', message)
+    log.error('Failed to send email', { error: new Error(message) })
     return { success: false, error: message }
   }
 }

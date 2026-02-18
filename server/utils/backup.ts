@@ -7,9 +7,12 @@
  * - リストア機能（管理者のみ）
  */
 
+import { createLogger } from './logger'
 import { execSync } from 'child_process'
 import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'fs'
 import { join, basename } from 'path'
+
+const log = createLogger('backup')
 
 const BACKUP_DIR = process.env.BACKUP_DIR || join(process.cwd(), 'backups')
 const MAX_BACKUPS = parseInt(process.env.MAX_BACKUPS || '30', 10)
@@ -89,7 +92,7 @@ export function createBackup(type: 'auto' | 'manual' = 'manual'): BackupInfo | n
     if (existsSync(filepath)) {
       unlinkSync(filepath)
     }
-    console.error('[Backup] Failed to create backup:', error)
+    log.error('Failed to create backup', { error: error instanceof Error ? error : new Error(String(error)) })
     return null
   }
 }

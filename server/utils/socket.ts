@@ -1,4 +1,7 @@
 import { EVENTS, type ScheduleEventPayload } from '../events'
+import { createLogger } from './logger'
+
+const log = createLogger('socket.io')
 
 // グローバルにSocket.IOインスタンスを保持
 let ioInstance: unknown = null
@@ -15,12 +18,12 @@ export function getIOInstance(): unknown {
 export function emitToOrganization(organizationId: string, event: string, data: unknown): void {
   const io = ioInstance as { to: (room: string) => { emit: (event: string, data: unknown) => void } } | null
   if (!io) {
-    console.warn('[Socket.IO] Server not initialized, cannot emit')
+    log.warn('Server not initialized, cannot emit')
     return
   }
   const room = `org:${organizationId}`
   io.to(room).emit(event, data)
-  console.log(`[Socket.IO] Emitted ${event} to ${room}`)
+  log.debug('Emitted event', { event, room })
 }
 
 // スケジュール作成通知

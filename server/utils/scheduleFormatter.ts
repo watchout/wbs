@@ -17,6 +17,10 @@
  * - その際は既存 description データの移行が必要
  */
 
+import { createLogger } from './logger'
+
+const log = createLogger('schedule-formatter')
+
 interface ScheduleMetadata {
   siteName?: string      // 現場名（例: "◯◯ホテル"）
   activityType?: string  // 用件（例: "工事", "打合せ", "保守"）
@@ -61,7 +65,7 @@ export function parseScheduleMetadata(description?: string | null): ScheduleMeta
       }
     } catch (error) {
       // JSONパースに失敗した場合は空のメタデータを返す
-      console.warn('Failed to parse schedule metadata:', error)
+      log.warn('Failed to parse schedule metadata', { error: error instanceof Error ? error : new Error(String(error)) })
       return {}
     }
   }

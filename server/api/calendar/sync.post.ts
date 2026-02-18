@@ -2,9 +2,12 @@
  * POST /api/calendar/sync
  * Manual synchronization with Google Calendar
  */
+import { createLogger } from '~/server/utils/logger'
 import { requireAuth } from '~/server/utils/authMiddleware'
 import { prisma } from '~/server/utils/prisma'
 import { syncCalendar } from '~/server/utils/calendarSync'
+
+const log = createLogger('calendar-sync-api')
 
 interface SyncRequest {
   direction?: 'import' | 'export' | 'both'
@@ -77,7 +80,7 @@ export default defineEventHandler(async (event): Promise<SyncResponse> => {
       errors: result.errors.length > 0 ? result.errors : undefined
     }
   } catch (err) {
-    console.error('[Calendar Sync] Failed:', err)
+    log.error('Calendar sync failed', { error: err instanceof Error ? err : new Error(String(err)) })
 
     throw createError({
       statusCode: 500,

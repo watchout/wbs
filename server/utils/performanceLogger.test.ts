@@ -61,7 +61,7 @@ describe('performanceLogger', () => {
 
   describe('logPerformanceMetrics', () => {
     it('should output metrics as JSON', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
 
       const metrics: PerformanceMetrics = {
         endpoint: '/api/test',
@@ -83,7 +83,7 @@ describe('performanceLogger', () => {
     })
 
     it('should include organizationId in output when present', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
 
       const metrics: PerformanceMetrics = {
         endpoint: '/api/test',

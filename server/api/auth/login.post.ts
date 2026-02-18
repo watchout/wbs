@@ -10,11 +10,14 @@
  * - SEC-003: IPベースのレート制限（10 req/分）
  */
 
+import { createLogger } from '~/server/utils/logger'
 import { readBody, setCookie, createError, setHeader } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { createSession, sessionCookieOptions } from '~/server/utils/session'
 import { verifyPassword } from '~/server/utils/password'
 import { checkRateLimit, getClientIp, LOGIN_RATE_LIMIT } from '~/server/utils/rateLimit'
+
+const log = createLogger('auth-login')
 
 // アカウントロック設定
 const MAX_LOGIN_ATTEMPTS = 5
@@ -48,7 +51,7 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
 
   if (!rateLimitResult.allowed) {
     setHeader(event, 'Retry-After', rateLimitResult.retryAfterSeconds)
-    console.warn(`[login] Rate limit exceeded for IP: ${clientIp}`)
+    log.warn('Rate limit exceeded', { ip: clientIp })
     throw createError({
       statusCode: 429,
       statusMessage: `リクエストが多すぎます。${rateLimitResult.retryAfterSeconds}秒後に再試行してください`
@@ -97,7 +100,7 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
   // パスワード検証
   if (!user.passwordHash) {
     // 内部ログのみ（本番ではログレベル調整）
-    console.info(`[login] User ${user.id} has no password set`)
+    log.info('User has no password set', { userId: user.id })
     throw createError({
       statusCode: 401,
       statusMessage: '認証に失敗しました'
@@ -122,7 +125,7 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
     // 5回目の失敗でアカウントロック
     if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
       updateData.lockedUntil = new Date(Date.now() + LOCK_DURATION_MINUTES * 60 * 1000)
-      console.warn(`[login] Account locked: ${user.email} after ${newAttempts} failed attempts`)
+      log.warn('Account locked after failed attempts', { userId: user.id, attempts: newAttempts })
     }
 
     await prisma.user.update({
