@@ -186,8 +186,9 @@ async function submitResponse() {
       body: { candidateIds: selectedCandidates.value }
     })
     await fetchMeeting()
-  } catch (error: any) {
-    alert(error.data?.message || '回答の送信に失敗しました')
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    alert(errData?.message || '回答の送信に失敗しました')
   } finally {
     submitting.value = false
   }
@@ -205,8 +206,9 @@ async function confirmMeeting() {
       body: { candidateId: selectedCandidateForConfirm.value }
     })
     await fetchMeeting()
-  } catch (error: any) {
-    alert(error.data?.message || '確定に失敗しました')
+  } catch (error: unknown) {
+    const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined
+    alert(errData?.message || '確定に失敗しました')
   } finally {
     submitting.value = false
   }

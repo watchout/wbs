@@ -208,11 +208,11 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
       organizationId: authContext.organizationId
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     log.error('Failed to fetch weekly board', { error: error instanceof Error ? error : new Error(String(error)) })
 
     // 認証エラーの場合はそのまま返す
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
