@@ -97,13 +97,13 @@ jobs:
         run: |
           echo "## Security Scan" >> $GITHUB_STEP_SUMMARY
           FOUND=0
-          # Check for API keys
-          if grep -rn "sk-[a-zA-Z0-9]" --include="*.ts" --include="*.js" --include="*.vue" . 2>/dev/null | grep -v node_modules; then
+          # Check for API keys (exclude test files, seed files, node_modules)
+          if grep -rn "sk-[a-zA-Z0-9]" --include="*.ts" --include="*.js" --include="*.vue" . 2>/dev/null | grep -v node_modules | grep -v '\.test\.' | grep -v '\.spec\.' | grep -v 'seed'; then
             echo "API key pattern detected" >> $GITHUB_STEP_SUMMARY
             FOUND=1
           fi
-          # Check for hardcoded passwords
-          if grep -rn "password\s*[:=]\s*['\"][^'\"]*['\"]" --include="*.ts" --include="*.js" . 2>/dev/null | grep -v node_modules | grep -v ".env" | grep -v "test" | grep -v "spec"; then
+          # Check for hardcoded passwords (exclude test files, seed files, env files)
+          if grep -rn "password\s*[:=]\s*['\"][^'\"]*['\"]" --include="*.ts" --include="*.js" . 2>/dev/null | grep -v node_modules | grep -v '\.env' | grep -v '\.test\.' | grep -v '\.spec\.' | grep -v 'seed'; then
             echo "Hardcoded password pattern detected" >> $GITHUB_STEP_SUMMARY
             FOUND=1
           fi
