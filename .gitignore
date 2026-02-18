@@ -22,7 +22,7 @@ tests/visual/current/
 tests/visual/diff/
 
 # Backups (contains production DB dumps)
-backups/
+/backups/
 
 # Progress reports (local only)
 進捗報告/

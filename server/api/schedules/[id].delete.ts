@@ -9,6 +9,7 @@ import { prisma } from '~/server/utils/prisma'
 import { requireAuth, requireScheduleEditPermission } from '~/server/utils/authMiddleware'
 import { emitScheduleDeleted } from '~/server/utils/socket'
 import { createAuditLog, AUDIT_ACTIONS } from '~/server/utils/auditLog'
+import { notifyScheduleChange } from '~/server/utils/scheduleNotifier'
 
 interface DeleteScheduleResponse {
   success: boolean
@@ -81,6 +82,15 @@ export default defineEventHandler(async (event): Promise<DeleteScheduleResponse>
     action: AUDIT_ACTIONS.SCHEDULE_DELETE,
     targetId: id,
     meta: { title: existing.title },
+  })
+
+  // メール通知（NOTIF-001）
+  notifyScheduleChange({
+    scheduleId: id,
+    scheduleTitle: existing.title,
+    changeType: 'deleted',
+    changedByUserId: auth.userId,
+    organizationId: auth.organizationId,
   })
 
   return {
