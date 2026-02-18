@@ -24,5 +24,9 @@ tests/visual/diff/
 # Backups (contains production DB dumps)
 /backups/
 
+# Playwright
+playwright-report/
+tests/e2e/artifacts/
+
 # Progress reports (local only)
 進捗報告/
