@@ -9,6 +9,7 @@ import { prisma } from '~/server/utils/prisma'
 import { requireAuth, requireScheduleEditPermission } from '~/server/utils/authMiddleware'
 import { emitScheduleCreated } from '~/server/utils/socket'
 import { createAuditLog, AUDIT_ACTIONS } from '~/server/utils/auditLog'
+import { notifyScheduleChange } from '~/server/utils/scheduleNotifier'
 
 interface CreateScheduleRequest {
   title: string
@@ -131,6 +132,17 @@ export default defineEventHandler(async (event): Promise<CreateScheduleResponse>
     action: AUDIT_ACTIONS.SCHEDULE_CREATE,
     targetId: schedule.id,
     meta: { title: schedule.title },
+  })
+
+  // メール通知（NOTIF-001）
+  notifyScheduleChange({
+    scheduleId: schedule.id,
+    scheduleTitle: schedule.title,
+    changeType: 'created',
+    changedByUserId: auth.userId,
+    organizationId: auth.organizationId,
+    start: schedule.start.toISOString(),
+    end: schedule.end.toISOString(),
   })
 
   return {

@@ -9,6 +9,8 @@ import { prisma } from '~/server/utils/prisma'
 import { requireAuth, requireScheduleEditPermission } from '~/server/utils/authMiddleware'
 import { emitScheduleUpdated } from '~/server/utils/socket'
 import { createAuditLog, AUDIT_ACTIONS } from '~/server/utils/auditLog'
+import { createScheduleSnapshot, computeScheduleDiff, createScheduleVersion } from '~/server/utils/scheduleVersion'
+import { notifyScheduleChange } from '~/server/utils/scheduleNotifier'
 
 interface UpdateScheduleRequest {
   title?: string
@@ -129,6 +131,9 @@ export default defineEventHandler(async (event): Promise<UpdateScheduleResponse>
     }
   }
 
+  // 変更前のスナップショット（AUDIT-003）
+  const beforeSnapshot = createScheduleSnapshot(existing)
+
   const schedule = await prisma.schedule.update({
     where: { id },
     data: {
@@ -140,6 +145,11 @@ export default defineEventHandler(async (event): Promise<UpdateScheduleResponse>
       ...(body.color !== undefined && { color: body.color })
     }
   })
+
+  // 変更後のスナップショット + バージョン記録（AUDIT-003）
+  const afterSnapshot = createScheduleSnapshot(schedule)
+  const diff = computeScheduleDiff(beforeSnapshot, afterSnapshot)
+  await createScheduleVersion(schedule.id, diff)
 
   // リアルタイム通知（WBS-008）
   emitScheduleUpdated({
@@ -155,6 +165,17 @@ export default defineEventHandler(async (event): Promise<UpdateScheduleResponse>
     action: AUDIT_ACTIONS.SCHEDULE_UPDATE,
     targetId: schedule.id,
     meta: { title: schedule.title },
+  })
+
+  // メール通知（NOTIF-001）
+  notifyScheduleChange({
+    scheduleId: schedule.id,
+    scheduleTitle: schedule.title,
+    changeType: 'updated',
+    changedByUserId: auth.userId,
+    organizationId: auth.organizationId,
+    start: schedule.start.toISOString(),
+    end: schedule.end.toISOString(),
   })
 
   return {
