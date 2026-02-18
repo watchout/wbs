@@ -7,6 +7,9 @@ import { encrypt } from '~/server/utils/encryption'
 import { prisma } from '~/server/utils/prisma'
 import { getSession } from '~/server/utils/session'
 import { syncCalendar } from '~/server/utils/calendarSync'
+import { createLogger } from '~/server/utils/logger'
+
+const log = createLogger('calendar-oauth')
 
 interface StateData {
   sessionId: string
@@ -24,7 +27,7 @@ export default defineEventHandler(async (event) => {
 
   // 2. Handle OAuth errors
   if (error) {
-    console.error('[Calendar OAuth] Error:', error)
+    log.error('OAuth error', { error: new Error(String(error)) })
     return sendRedirect(event, '/settings/calendar?error=auth_failed')
   }
 
@@ -125,12 +128,10 @@ export default defineEventHandler(async (event) => {
       // 12a. Initial sync — import events from Google Calendar
       try {
         const syncResult = await syncCalendar(savedConnection, 'import')
-        console.log(
-          `[Calendar OAuth] Initial sync completed: imported=${syncResult.imported}, errors=${syncResult.errors.length}`
-        )
+        log.info('Initial sync completed', { imported: syncResult.imported, errors: syncResult.errors.length })
       } catch (syncErr) {
         // 初期同期の失敗は接続成功を妨げない（次回手動同期で対応可能）
-        console.error('[Calendar OAuth] Initial sync failed:', syncErr)
+        log.error('Initial sync failed', { error: syncErr instanceof Error ? syncErr : new Error(String(syncErr)) })
       }
 
       // 12b. Setup webhook for real-time sync (production only — localhost cannot receive webhooks)
@@ -154,12 +155,10 @@ export default defineEventHandler(async (event) => {
             }
           })
 
-          console.log(
-            `[Calendar OAuth] Webhook registered: channelId=${webhook.channelId}, expires=${webhook.expiration.toISOString()}`
-          )
+          log.info('Webhook registered', { channelId: webhook.channelId, expires: webhook.expiration.toISOString() })
         } catch (webhookErr) {
           // Webhook登録の失敗は接続成功を妨げない（手動同期で対応可能）
-          console.error('[Calendar OAuth] Webhook setup failed:', webhookErr)
+          log.error('Webhook setup failed', { error: webhookErr instanceof Error ? webhookErr : new Error(String(webhookErr)) })
         }
       }
     }
@@ -167,7 +166,7 @@ export default defineEventHandler(async (event) => {
     // 13. Redirect to settings page with success
     return sendRedirect(event, '/settings/calendar?success=connected')
   } catch (err) {
-    console.error('[Calendar OAuth] Token exchange failed:', err)
+    log.error('Token exchange failed', { error: err instanceof Error ? err : new Error(String(err)) })
     return sendRedirect(event, '/settings/calendar?error=token_failed')
   }
 })

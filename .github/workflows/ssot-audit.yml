@@ -1,0 +1,117 @@
+# SSOT準拠監査ワークフロー
+# ai-dev-framework標準: PR時の自動SSOT監査
+
+name: SSOT Audit
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'docs/**'
+
+jobs:
+  ssot-compliance-check:
+    name: SSOT Compliance Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 1. SSOTファイル構造チェック
+      - name: SSOT Structure Check
+        run: |
+          echo "## SSOT Structure Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Core SSOTs (Tier 1-2)
+          CORE_COUNT=0
+          for f in docs/ssot/SSOT-*.md docs/core/SSOT-*.md; do
+            [ -f "$f" ] && CORE_COUNT=$((CORE_COUNT + 1))
+          done
+          echo "Core SSOTs: $CORE_COUNT" >> $GITHUB_STEP_SUMMARY
+
+          # Detail SSOTs (Tier 3)
+          DETAIL_COUNT=$(find docs -maxdepth 1 -name "SSOT_*.md" | wc -l | tr -d ' ')
+          echo "Detail SSOTs: $DETAIL_COUNT" >> $GITHUB_STEP_SUMMARY
+
+          # Check creation rules exist
+          if [ -f "docs/_SSOT_CREATION_RULES.md" ]; then
+            echo "SSOT Creation Rules: Present" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "SSOT Creation Rules: MISSING" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All SSOTs:" >> $GITHUB_STEP_SUMMARY
+          find docs -name "SSOT*.md" -o -name "SSOT-*.md" | sort >> $GITHUB_STEP_SUMMARY
+
+      # 2. SSOT必須セクション検証
+      - name: SSOT Required Sections Check
+        run: |
+          echo "## SSOT Required Sections" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          FAILED=0
+          for ssot in $(find docs -name "SSOT_*.md" -o -name "SSOT-*.md" | grep -v "_SSOT_"); do
+            MISSING=""
+            # Check for key sections (adapted from Gate C logic)
+            grep -qi "acceptance\|受け入れ\|§3-E\|入出力例\|input.*output" "$ssot" || MISSING="$MISSING §3-E(IO)"
+            grep -qi "exception\|例外\|§3-G\|エラー" "$ssot" || MISSING="$MISSING §3-G(Error)"
+            grep -qi "Scenario:\|§3-H\|Gherkin\|テスト" "$ssot" || MISSING="$MISSING §3-H(Test)"
+
+            if [ -n "$MISSING" ]; then
+              echo "- $(basename $ssot): Missing$MISSING" >> $GITHUB_STEP_SUMMARY
+              FAILED=$((FAILED + 1))
+            fi
+          done
+
+          if [ $FAILED -eq 0 ]; then
+            echo "All SSOTs have required sections" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "$FAILED SSOT(s) have missing sections" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # 3. PR変更とSSO T整合性
+      - name: Changed Files SSOT Coverage
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "## Changed Files Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # List changed source files
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.ts' '*.vue' | head -30)
+          if [ -n "$CHANGED" ]; then
+            echo "Changed source files:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$CHANGED" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No source files changed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Check if SSOT docs were also changed
+          SSOT_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'docs/SSOT_*.md' 'docs/ssot/*.md' 'docs/core/*.md')
+          if [ -n "$SSOT_CHANGED" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "SSOT docs updated:" >> $GITHUB_STEP_SUMMARY
+            echo "$SSOT_CHANGED" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # 4. Sensitive data check
+      - name: Sensitive Data Check
+        run: |
+          echo "## Security Check" >> $GITHUB_STEP_SUMMARY
+          if grep -rn "sk-\|PRIVATE_KEY\|password.*=.*['\"]" --include="*.ts" --include="*.js" --include="*.vue" . 2>/dev/null | grep -v node_modules | grep -v ".env.example"; then
+            echo "Potential sensitive data found" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "No sensitive data detected" >> $GITHUB_STEP_SUMMARY

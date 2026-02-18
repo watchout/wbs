@@ -51,9 +51,6 @@ export async function measureApiPerformance<T>(
  * @param metrics パフォーマンスメトリクス
  */
 export function logPerformanceMetrics(metrics: PerformanceMetrics): void {
-  const output = {
-    type: 'performance',
-    metrics
-  }
-  console.log(JSON.stringify(output))
+  // eslint-disable-next-line no-console
+  console.info(JSON.stringify({ type: 'performance', metrics }))
 }

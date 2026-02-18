@@ -5,7 +5,10 @@
  * 全ログは organizationId でスコープされる
  */
 
+import { createLogger } from './logger'
 import { prisma } from './prisma'
+
+const log = createLogger('audit-log')
 
 // 操作アクション定義
 export const AUDIT_ACTIONS = {
@@ -68,7 +71,7 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
     })
   } catch (error) {
     // ログ記録失敗は握り潰さず stderr に出力（本番は Sentry に送信）
-    console.error('[AuditLog] Failed to create audit log:', error)
+    log.error('Failed to create audit log', { error: error instanceof Error ? error : new Error(String(error)) })
   }
 }
 
@@ -123,13 +126,13 @@ export async function getAuditLogs(
   ])
 
   return {
-    logs: logs.map((log) => ({
-      id: log.id,
-      action: log.action,
-      targetId: log.targetId,
-      meta: log.meta,
-      userName: log.user?.name ?? 'システム',
-      createdAt: log.createdAt.toISOString(),
+    logs: logs.map((entry) => ({
+      id: entry.id,
+      action: entry.action,
+      targetId: entry.targetId,
+      meta: entry.meta,
+      userName: entry.user?.name ?? 'システム',
+      createdAt: entry.createdAt.toISOString(),
     })),
     total,
     page,

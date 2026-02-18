@@ -10,6 +10,7 @@
  * - departmentId: 部門ID（optional）
  */
 
+import { createLogger } from '~/server/utils/logger'
 import { requireAuth } from '~/server/utils/authMiddleware'
 import { prisma } from '~/server/utils/prisma'
 import {
@@ -18,6 +19,8 @@ import {
   getWeekEnd,
   isHoliday
 } from '~/server/utils/scheduleFormatter'
+
+const log = createLogger('weekly-board')
 
 interface DaySchedule {
   scheduleId: string
@@ -206,7 +209,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
     }
 
   } catch (error: any) {
-    console.error('[weekly-board] Error:', error instanceof Error ? error.message : 'Unknown error')
+    log.error('Failed to fetch weekly board', { error: error instanceof Error ? error : new Error(String(error)) })
 
     // 認証エラーの場合はそのまま返す
     if (error.statusCode) {

@@ -7,6 +7,9 @@
  */
 import { prisma } from '~/server/utils/prisma'
 import { syncCalendar } from '~/server/utils/calendarSync'
+import { createLogger } from '~/server/utils/logger'
+
+const log = createLogger('calendar-webhook')
 
 export default defineEventHandler(async (event) => {
   // 1. Get Google webhook headers
@@ -16,7 +19,7 @@ export default defineEventHandler(async (event) => {
 
   // 2. Validate required headers
   if (!channelId) {
-    console.warn('[Calendar Webhook] Missing X-Goog-Channel-ID')
+    log.warn('Missing X-Goog-Channel-ID')
     throw createError({
       statusCode: 400,
       statusMessage: 'Missing channel ID'
@@ -38,7 +41,7 @@ export default defineEventHandler(async (event) => {
   })
 
   if (!connection) {
-    console.warn(`[Calendar Webhook] Unknown channel ID: ${channelId}`)
+    log.warn('Unknown channel ID', { channelId })
     throw createError({
       statusCode: 404,
       statusMessage: 'Channel not found'
@@ -47,7 +50,7 @@ export default defineEventHandler(async (event) => {
 
   // 5. Verify channel token
   if (connection.webhookToken && connection.webhookToken !== channelToken) {
-    console.warn(`[Calendar Webhook] Token mismatch for channel ${channelId}`)
+    log.warn('Token mismatch', { channelId })
     throw createError({
       statusCode: 403,
       statusMessage: 'Invalid channel token'
@@ -56,7 +59,7 @@ export default defineEventHandler(async (event) => {
 
   // 6. Check if connection is active
   if (connection.status === 'disconnected') {
-    console.warn(`[Calendar Webhook] Connection disconnected for channel ${channelId}`)
+    log.warn('Connection disconnected', { channelId })
     return { success: false, message: 'Connection disconnected' }
   }
 
@@ -64,14 +67,12 @@ export default defineEventHandler(async (event) => {
   if (resourceState === 'exists' || resourceState === 'update') {
     // Calendar has been updated - trigger import sync
     try {
-      console.log(`[Calendar Webhook] Syncing for user ${connection.userId}`)
+      log.info('Syncing for user', { userId: connection.userId })
 
       // Only import (don't export during webhook to avoid loops)
       const result = await syncCalendar(connection, 'import')
 
-      console.log(
-        `[Calendar Webhook] Sync completed: imported=${result.imported}, errors=${result.errors.length}`
-      )
+      log.info('Sync completed', { imported: result.imported, errors: result.errors.length })
 
       return {
         success: true,
@@ -79,7 +80,7 @@ export default defineEventHandler(async (event) => {
         errors: result.errors.length
       }
     } catch (err) {
-      console.error('[Calendar Webhook] Sync failed:', err)
+      log.error('Sync failed', { error: err instanceof Error ? err : new Error(String(err)) })
       return { success: false, error: 'Sync failed' }
     }
   }
@@ -87,7 +88,7 @@ export default defineEventHandler(async (event) => {
   // 8. Handle channel expiration or other states
   if (resourceState === 'not_exists') {
     // Resource was deleted or channel expired
-    console.log(`[Calendar Webhook] Channel ${channelId} resource no longer exists`)
+    log.info('Channel resource no longer exists', { channelId })
 
     await prisma.userCalendarConnection.update({
       where: { id: connection.id },

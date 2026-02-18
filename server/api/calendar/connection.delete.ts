@@ -6,6 +6,9 @@ import { requireAuth } from '~/server/utils/authMiddleware'
 import { prisma } from '~/server/utils/prisma'
 import { decrypt } from '~/server/utils/encryption'
 import { revokeToken, getCalendarClient, stopWebhook } from '~/server/utils/googleCalendar'
+import { createLogger } from '~/server/utils/logger'
+
+const log = createLogger('calendar-disconnect')
 
 interface DisconnectResponse {
   success: boolean
@@ -38,9 +41,9 @@ export default defineEventHandler(async (event): Promise<DisconnectResponse> => 
         const calendar = await getCalendarClient(connection.id)
         // Note: We need resourceId to stop the webhook, but we don't store it
         // For now, just mark it as expired and Google will clean up
-        console.log(`[Calendar Disconnect] Webhook channel ${connection.webhookChannelId} will expire`)
+        log.info('Webhook channel will expire', { channelId: connection.webhookChannelId })
       } catch (err) {
-        console.warn('[Calendar Disconnect] Failed to stop webhook:', err)
+        log.warn('Failed to stop webhook', { error: err instanceof Error ? err : new Error(String(err)) })
         // Continue with disconnection even if webhook stop fails
       }
     }
@@ -50,7 +53,7 @@ export default defineEventHandler(async (event): Promise<DisconnectResponse> => 
       const accessToken = decrypt(connection.accessToken)
       await revokeToken(accessToken)
     } catch (err) {
-      console.warn('[Calendar Disconnect] Failed to revoke token:', err)
+      log.warn('Failed to revoke token', { error: err instanceof Error ? err : new Error(String(err)) })
       // Continue with disconnection even if revoke fails
     }
 
@@ -72,7 +75,7 @@ export default defineEventHandler(async (event): Promise<DisconnectResponse> => 
 
     return { success: true }
   } catch (err) {
-    console.error('[Calendar Disconnect] Failed:', err)
+    log.error('Disconnection failed', { error: err instanceof Error ? err : new Error(String(err)) })
     throw createError({
       statusCode: 500,
       statusMessage: 'カレンダー連携の解除に失敗しました'

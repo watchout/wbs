@@ -4,7 +4,10 @@
  * スケジュールの更新時にdiff（before/after）を ScheduleVersion に記録する
  */
 
+import { createLogger } from './logger'
 import { prisma } from './prisma'
+
+const log = createLogger('schedule-version')
 
 interface ScheduleSnapshot {
   title: string
@@ -96,7 +99,7 @@ export async function createScheduleVersion(
       },
     })
   } catch (error) {
-    console.error('[ScheduleVersion] Failed to create version:', error)
+    log.error('Failed to create version', { error: error instanceof Error ? error : new Error(String(error)) })
   }
 }
 

@@ -3,6 +3,9 @@ import type { Server as HttpServer } from 'http'
 import type { NitroApp } from 'nitropack'
 import { EVENTS } from '../events'
 import { setIOInstance } from '../utils/socket'
+import { createLogger } from '../utils/logger'
+
+const log = createLogger('socket.io')
 
 let io: SocketIOServer | null = null
 
@@ -45,27 +48,27 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
     setIOInstance(io)
 
     io.on('connection', (socket) => {
-      console.log(`[Socket.IO] Client connected: ${socket.id}`)
+      log.info('Client connected', { socketId: socket.id })
 
       // 組織別ルームに参加
       socket.on(EVENTS.ROOM_JOIN, (data: { organizationId: string }) => {
         const room = `org:${data.organizationId}`
         socket.join(room)
-        console.log(`[Socket.IO] ${socket.id} joined room: ${room}`)
+        log.info('Client joined room', { socketId: socket.id, room })
       })
 
       // ルームから退出
       socket.on(EVENTS.ROOM_LEAVE, (data: { organizationId: string }) => {
         const room = `org:${data.organizationId}`
         socket.leave(room)
-        console.log(`[Socket.IO] ${socket.id} left room: ${room}`)
+        log.info('Client left room', { socketId: socket.id, room })
       })
 
       socket.on('disconnect', (reason) => {
-        console.log(`[Socket.IO] Client disconnected: ${socket.id}, reason: ${reason}`)
+        log.info('Client disconnected', { socketId: socket.id, reason })
       })
     })
 
-    console.log('[Socket.IO] Server initialized')
+    log.info('Server initialized')
   })
 })

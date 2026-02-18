@@ -10,6 +10,9 @@
 import { prisma } from './prisma'
 import { sendMail } from './mailer'
 import { scheduleChangeText, scheduleChangeHtml } from './notificationTemplates'
+import { createLogger } from './logger'
+
+const log = createLogger('notification')
 
 interface NotifyScheduleChangeParams {
   scheduleId: string
@@ -86,6 +89,6 @@ export async function notifyScheduleChange(params: NotifyScheduleChangeParams): 
     })
   } catch (error) {
     // 通知失敗は業務フローを止めない
-    console.error('[Notification] Failed to send schedule change notification:', error)
+    log.error('Failed to send schedule change notification', { error: error instanceof Error ? error : new Error(String(error)) })
   }
 }

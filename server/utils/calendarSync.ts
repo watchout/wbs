@@ -3,6 +3,7 @@
  * Handles import from Google Calendar and export to Google Calendar
  */
 import { calendar_v3 } from 'googleapis'
+import { createLogger } from './logger'
 import {
   getCalendarClient,
   fetchEvents,
@@ -13,6 +14,8 @@ import {
 } from './googleCalendar'
 import { prisma } from './prisma'
 import type { Schedule, UserCalendarConnection } from '@prisma/client'
+
+const log = createLogger('calendar-sync')
 
 interface SyncResult {
   imported: number
@@ -297,6 +300,6 @@ export async function handleScheduleDeleted(
     const calendar = await getCalendarClient(connectionId)
     await deleteEvent(calendar, 'primary', schedule.externalId)
   } catch (err) {
-    console.error(`Failed to delete Google event ${schedule.externalId}:`, err)
+    log.error('Failed to delete Google event', { externalId: schedule.externalId, error: err instanceof Error ? err : new Error(String(err)) })
   }
 }
