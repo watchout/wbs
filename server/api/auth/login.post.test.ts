@@ -98,8 +98,8 @@ describe('POST /api/auth/login', () => {
 
       try {
         await loginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(400)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(400)
       }
     })
 
@@ -110,8 +110,8 @@ describe('POST /api/auth/login', () => {
 
       try {
         await loginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(400)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(400)
       }
     })
   })
@@ -126,8 +126,8 @@ describe('POST /api/auth/login', () => {
 
       try {
         await loginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(401)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(401)
       }
     })
 
@@ -226,8 +226,8 @@ describe('POST /api/auth/login', () => {
 
       try {
         await loginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(401)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(401)
       }
 
       const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
@@ -248,9 +248,9 @@ describe('POST /api/auth/login', () => {
 
       try {
         await loginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(423)
-        expect(error.statusMessage).toContain('アカウントがロックされました')
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(423)
+        expect((error as { statusMessage?: string }).statusMessage).toContain('アカウントがロックされました')
       }
 
       const user = await prisma.user.findUnique({ where: { id: ctx.user.id } })
@@ -275,9 +275,9 @@ describe('POST /api/auth/login', () => {
 
       try {
         await loginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(423)
-        expect(error.statusMessage).toContain('アカウントがロックされています')
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(423)
+        expect((error as { statusMessage?: string }).statusMessage).toContain('アカウントがロックされています')
       }
     })
 
@@ -363,9 +363,9 @@ describe('POST /api/auth/login', () => {
       try {
         await loginHandler(event)
         expect.fail('Should have thrown error')
-      } catch (error: any) {
-        expect(error.statusCode).toBe(429)
-        expect(error.statusMessage).toContain('リクエストが多すぎます')
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(429)
+        expect((error as { statusMessage?: string }).statusMessage).toContain('リクエストが多すぎます')
       }
     })
 
@@ -387,8 +387,8 @@ describe('POST /api/auth/login', () => {
 
       try {
         await loginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(429)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(429)
         // setHeaderが呼ばれたことを確認
         const calls = event.node.res.setHeader.mock.calls
         const retryAfterCall = calls.find((call: string[]) => call[0] === 'Retry-After')
