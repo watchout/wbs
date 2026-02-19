@@ -83,8 +83,8 @@ describe('PATCH /api/users/me', () => {
 
       try {
         await profileUpdateHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(401)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(401)
       }
     })
   })
@@ -97,8 +97,8 @@ describe('PATCH /api/users/me', () => {
 
       try {
         await profileUpdateHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(400)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(400)
       }
     })
 
@@ -109,8 +109,8 @@ describe('PATCH /api/users/me', () => {
 
       try {
         await profileUpdateHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(400)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(400)
       }
     })
 
@@ -121,8 +121,8 @@ describe('PATCH /api/users/me', () => {
 
       try {
         await profileUpdateHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(400)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(400)
       }
     })
   })

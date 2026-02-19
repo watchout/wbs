@@ -70,8 +70,8 @@ describe('POST /api/auth/device-login', () => {
 
       try {
         await deviceLoginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(400)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(400)
       }
     })
 
@@ -82,8 +82,8 @@ describe('POST /api/auth/device-login', () => {
 
       try {
         await deviceLoginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(400)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(400)
       }
     })
   })
@@ -98,8 +98,8 @@ describe('POST /api/auth/device-login', () => {
 
       try {
         await deviceLoginHandler(event)
-      } catch (error: any) {
-        expect(error.statusCode).toBe(401)
+      } catch (error: unknown) {
+        expect((error as { statusCode?: number }).statusCode).toBe(401)
       }
     })
 
