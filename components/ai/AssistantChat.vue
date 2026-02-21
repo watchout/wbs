@@ -1,9 +1,9 @@
 <template>
   <div class="assistant-chat">
-    <!-- フローティングボタン（アイコン + ラベル） -->
+    <!-- フローティングボタン（常に右下に表示） -->
     <button
-      v-if="!isOpen"
       class="chat-fab"
+      :class="{ 'chat-fab--hidden': isOpen }"
       @click="isOpen = true"
       aria-label="AIアシスタントを開く"
     >
@@ -195,8 +195,12 @@ watch(isOpen, async (val) => {
 </script>
 
 <style scoped>
-/* フローティングボタン（テキスト付き） */
+/* フローティングボタン（常に右下に固定表示） */
 .chat-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -207,7 +211,7 @@ watch(isOpen, async (val) => {
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
@@ -216,6 +220,13 @@ watch(isOpen, async (val) => {
 .chat-fab:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+}
+
+/* パネル表示中はボタンを非表示 */
+.chat-fab--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
 }
 
 .chat-fab-label {
@@ -424,6 +435,11 @@ watch(isOpen, async (val) => {
 
 /* モバイル対応 */
 @media (max-width: 480px) {
+  .chat-fab {
+    bottom: 16px;
+    right: 16px;
+  }
+
   .chat-panel {
     width: 100vw;
   }
