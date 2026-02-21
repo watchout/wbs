@@ -1,20 +1,21 @@
 <template>
   <div class="assistant-chat">
-    <!-- フローティングボタン -->
+    <!-- フローティングボタン（アイコン + ラベル） -->
     <button
       v-if="!isOpen"
       class="chat-fab"
       @click="isOpen = true"
       aria-label="AIアシスタントを開く"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2a8 8 0 0 1 8 8c0 3.4-2.1 6.3-5 7.5V20a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-2.5C6.1 16.3 4 13.4 4 10a8 8 0 0 1 8-8z"/>
         <circle cx="10" cy="10" r="1"/>
         <circle cx="14" cy="10" r="1"/>
       </svg>
+      <span class="chat-fab-label">AIアシスタント</span>
     </button>
 
-    <!-- チャットパネル -->
+    <!-- チャットパネル（右側上下いっぱい） -->
     <div v-if="isOpen" class="chat-panel">
       <!-- ヘッダー -->
       <div class="chat-header">
@@ -62,7 +63,9 @@
           placeholder="メッセージを入力..."
           rows="1"
           :disabled="isLoading"
-          @keydown.enter.exact.prevent="sendMessage"
+          @keydown.enter.exact="handleEnter"
+          @compositionstart="isComposing = true"
+          @compositionend="isComposing = false"
           @input="autoResize"
         />
         <button
@@ -87,11 +90,14 @@
 
 <script setup lang="ts">
 import { ref, nextTick, watch } from 'vue'
+import { useCsrf } from '~/composables/useCsrf'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
 }
+
+const { csrfFetch } = useCsrf()
 
 const isOpen = ref(false)
 const isLoading = ref(false)
@@ -101,8 +107,21 @@ const creditsRemaining = ref<number | null>(null)
 const messages = ref<ChatMessage[]>([])
 const messagesContainer = ref<HTMLDivElement | null>(null)
 
+// IME変換中フラグ（日本語入力のEnter誤送信防止）
+const isComposing = ref(false)
+
 // 会話ID（セッション中は固定）
 const conversationId = ref(crypto.randomUUID())
+
+/**
+ * Enter キー押下ハンドラー
+ * IME変換中（composing）の場合はスキップし、変換確定のEnterを無視する
+ */
+function handleEnter(event: KeyboardEvent) {
+  if (isComposing.value) return
+  event.preventDefault()
+  sendMessage()
+}
 
 async function sendMessage() {
   const text = inputMessage.value.trim()
@@ -116,7 +135,7 @@ async function sendMessage() {
   await scrollToBottom()
 
   try {
-    const response = await $fetch<{
+    const response = await csrfFetch<{
       success: boolean
       reply: string
       creditsRemaining: number
@@ -176,44 +195,46 @@ watch(isOpen, async (val) => {
 </script>
 
 <style scoped>
-.assistant-chat {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 9999;
-}
-
-/* フローティングボタン */
+/* フローティングボタン（テキスト付き） */
 .chat-fab {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 28px;
   background: #3b82f6;
   color: white;
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   transition: transform 0.2s, box-shadow 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .chat-fab:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
 }
 
-/* チャットパネル */
+.chat-fab-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* チャットパネル（右側上下いっぱい） */
 .chat-panel {
-  width: 380px;
-  max-height: 520px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  z-index: 10000;
 }
 
 /* ヘッダー */
@@ -224,6 +245,7 @@ watch(isOpen, async (val) => {
   padding: 14px 16px;
   background: #3b82f6;
   color: white;
+  flex-shrink: 0;
 }
 
 .chat-header-title {
@@ -253,13 +275,11 @@ watch(isOpen, async (val) => {
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* メッセージ一覧 */
+/* メッセージ一覧（上下いっぱいに伸びる） */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  min-height: 280px;
-  max-height: 340px;
 }
 
 .chat-empty {
@@ -347,6 +367,7 @@ watch(isOpen, async (val) => {
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .chat-input {
@@ -398,18 +419,13 @@ watch(isOpen, async (val) => {
   color: #dc2626;
   font-size: 12px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 /* モバイル対応 */
 @media (max-width: 480px) {
-  .assistant-chat {
-    bottom: 16px;
-    right: 16px;
-  }
-
   .chat-panel {
-    width: calc(100vw - 32px);
-    max-height: calc(100vh - 100px);
+    width: 100vw;
   }
 }
 </style>
