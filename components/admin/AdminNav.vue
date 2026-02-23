@@ -25,9 +25,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useCsrf } from '~/composables/useCsrf'
 
 const route = useRoute()
 const router = useRouter()
+const { csrfFetch } = useCsrf()
 const userName = ref('')
 
 function isActive(path: string): boolean {
@@ -36,7 +38,7 @@ function isActive(path: string): boolean {
 
 async function logout() {
   try {
-    await $fetch('/api/auth/logout', { method: 'POST' })
+    await csrfFetch('/api/auth/logout', { method: 'POST' })
   } catch {
     // ignore
   }
