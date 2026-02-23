@@ -71,6 +71,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useCsrf } from '~/composables/useCsrf'
 definePageMeta({
   middleware: 'admin'
 })
@@ -82,6 +83,8 @@ interface Department {
   sortOrder: number
   userCount: number
 }
+
+const { csrfFetch } = useCsrf()
 
 const departments = ref<Department[]>([])
 const loading = ref(true)
@@ -174,7 +177,7 @@ async function deleteDepartment(dept: Department) {
   }
 
   try {
-    await $fetch(`/api/departments/${dept.id}`, { method: 'DELETE' })
+    await csrfFetch(`/api/departments/${dept.id}`, { method: 'DELETE' })
     await fetchDepartments()
   } catch (error: unknown) {
     const errData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> | undefined : undefined

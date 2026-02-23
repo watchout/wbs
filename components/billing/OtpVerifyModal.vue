@@ -51,6 +51,10 @@
 </template>
 
 <script setup lang="ts">
+import { useCsrf } from '~/composables/useCsrf'
+
+const { csrfFetch } = useCsrf()
+
 const props = defineProps<{
   visible: boolean
 }>()
@@ -83,7 +87,7 @@ async function sendCode() {
   sending.value = true
   errorMsg.value = ''
   try {
-    await $fetch('/api/auth/otp/send', { method: 'POST' })
+    await csrfFetch('/api/auth/otp/send', { method: 'POST' })
     step.value = 'verify'
     startCooldown()
     nextTick(() => codeInput.value?.focus())

@@ -229,10 +229,12 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
+import { useCsrf } from '~/composables/useCsrf'
 
 const route = useRoute()
 const router = useRouter()
 const { user: authUser, isAuthenticated, fetchMe } = useAuth()
+const { csrfFetch } = useCsrf()
 
 // Product menu
 const productMenuOpen = ref(false)
@@ -336,7 +338,7 @@ function handleClickOutside(event: MouseEvent) {
 async function handleLogout() {
   closeMenu()
   try {
-    await $fetch('/api/auth/logout', { method: 'POST' })
+    await csrfFetch('/api/auth/logout', { method: 'POST' })
   } catch {
     // ignore
   }
@@ -348,7 +350,7 @@ async function handleLogout() {
 async function handleMobileLogout() {
   closeMobileMenu()
   try {
-    await $fetch('/api/auth/logout', { method: 'POST' })
+    await csrfFetch('/api/auth/logout', { method: 'POST' })
   } catch {
     // ignore
   }

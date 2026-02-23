@@ -88,9 +88,11 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useCsrf } from '~/composables/useCsrf'
 
 const route = useRoute()
 const router = useRouter()
+const { csrfFetch } = useCsrf()
 
 const { data: authData } = await useFetch('/api/auth/me')
 const user = computed(() => authData.value?.user)
@@ -112,7 +114,7 @@ function closeSidebar() {
 }
 
 async function logout() {
-  await $fetch('/api/auth/logout', { method: 'POST' })
+  await csrfFetch('/api/auth/logout', { method: 'POST' })
   router.push('/login')
 }
 
