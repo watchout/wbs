@@ -104,7 +104,7 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
       if (isNaN(baseDate.getTime())) {
         throw createError({
           statusCode: 400,
-          statusMessage: '有効な日付を指定してください（YYYY-MM-DD）',
+          message: '有効な日付を指定してください（YYYY-MM-DD）',
         })
       }
     } else {
@@ -226,11 +226,11 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
 
     // ソート
     if (sort === 'count') {
-      // 配置人数合計の降順
+      // 配置人数合計の降順（同数時は現場名の昇順でタイブレーク）
       sites.sort((a, b) => {
         const aTotal = a.days.reduce((sum, d) => sum + d.allocated, 0)
         const bTotal = b.days.reduce((sum, d) => sum + d.allocated, 0)
-        return bTotal - aTotal
+        return bTotal - aTotal || a.siteName.localeCompare(b.siteName, 'ja')
       })
     } else {
       // 現場名の昇順（デフォルト）
@@ -282,7 +282,7 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
 
     throw createError({
       statusCode: 500,
-      statusMessage: '現場配置サマリーの取得に失敗しました',
+      message: '現場配置サマリーの取得に失敗しました',
     })
   }
 })
