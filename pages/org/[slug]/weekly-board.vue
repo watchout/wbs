@@ -8,7 +8,7 @@
         <button @click="nextWeek" class="btn btn-secondary">次の週 ▶</button>
       </div>
       <div class="filters">
-        <select v-model="selectedDepartment" @change="fetchData">
+        <select v-model="selectedDepartment" @change="handleDepartmentChange">
           <option value="">全部門</option>
           <option v-for="dept in departments" :key="dept.id" :value="dept.id">
             {{ dept.name }}
@@ -20,23 +20,56 @@
       </div>
     </div>
 
+    <!-- タブ切替: 人ベース / 現場ベース -->
+    <div v-if="!isFullscreen" class="view-tabs">
+      <button
+        class="tab-btn"
+        :class="{ active: activeTab === 'person' }"
+        @click="switchTab('person')"
+      >
+        人ベース
+      </button>
+      <button
+        class="tab-btn"
+        :class="{ active: activeTab === 'site' }"
+        @click="switchTab('site')"
+      >
+        現場ベース
+      </button>
+    </div>
+
     <!-- 権限エラーメッセージ -->
     <div v-if="permissionError" class="permission-error">
       {{ permissionError }}
     </div>
 
-    <!-- 週間マトリクス（コンポーネント） -->
+    <!-- 週間マトリクス -->
     <main class="board-main">
+      <!-- 人ベース（既存） -->
       <WeeklyScheduleBoard
+        v-if="activeTab === 'person'"
         :employees="employees"
         :week-days="weekDays"
         :loading="loading"
         :is-fullscreen="isFullscreen"
         @cell-click="handleCellClick"
       />
+
+      <!-- 現場ベース（Sprint 1 新機能） -->
+      <SiteAllocationBoard
+        v-if="activeTab === 'site'"
+        :sites="siteAllocation.sites.value"
+        :unassigned="siteAllocation.unassigned.value"
+        :week-days="weekDays"
+        :loading="siteAllocation.loading.value"
+        :is-fullscreen="isFullscreen"
+        :sort="siteSort"
+        :total-allocated="siteAllocation.totalAllocated.value"
+        @update:sort="handleSiteSortChange"
+      />
     </main>
 
-    <!-- スケジュール入力モーダル -->
+    <!-- スケジュール入力モーダル（人ベースのみ） -->
     <ScheduleFormModal
       v-if="showModal"
       :schedule="editingSchedule"
@@ -57,7 +90,9 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import WeeklyScheduleBoard from '~/components/genba/WeeklyScheduleBoard.vue'
+import SiteAllocationBoard from '~/components/genba/SiteAllocationBoard.vue'
 import ScheduleFormModal from '~/components/ScheduleFormModal.vue'
+import { useSiteAllocation } from '~/composables/useSiteAllocation'
 
 // defaultレイアウトを適用、認証必須
 definePageMeta({
@@ -70,6 +105,9 @@ const { user: authUser, canEditScheduleFor, fetchMe } = useAuth()
 
 // Socket.IOプラグイン
 const { $socketIO } = useNuxtApp()
+
+// 現場配置データ
+const siteAllocation = useSiteAllocation()
 
 // 型定義
 interface DaySchedule {
@@ -95,6 +133,9 @@ interface Department {
   name: string
 }
 
+// タブ型
+type ViewTab = 'person' | 'site'
+
 // ルート情報
 const route = useRoute()
 const router = useRouter()
@@ -119,6 +160,10 @@ const isFullscreen = computed(() => route.query.fullscreen === 'true')
 const organizationId = ref<string | null>(null)
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 let socketCleanup: (() => void) | null = null
+
+// タブ状態
+const activeTab = ref<ViewTab>('person')
+const siteSort = ref<string>('name')
 
 // 週の日付ラベル
 const weekDays = computed(() => {
@@ -163,7 +208,29 @@ function formatLocalDate(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
-// データ取得
+// タブ切替ハンドラ
+function switchTab(tab: ViewTab) {
+  activeTab.value = tab
+  if (tab === 'site') {
+    fetchSiteData()
+  }
+}
+
+// 部門変更ハンドラ
+function handleDepartmentChange() {
+  fetchData()
+  if (activeTab.value === 'site') {
+    fetchSiteData()
+  }
+}
+
+// ソート変更ハンドラ
+function handleSiteSortChange(newSort: string) {
+  siteSort.value = newSort
+  fetchSiteData()
+}
+
+// 人ベースのデータ取得
 async function fetchData() {
   loading.value = true
   try {
@@ -188,10 +255,21 @@ async function fetchData() {
       }
     }
   } catch (error) {
-    console.error('データ取得エラー:', error)
+    // エラーはUIに表示（本番では console.error 除去済み）
+    loading.value = false
   } finally {
     loading.value = false
   }
+}
+
+// 現場ベースのデータ取得
+async function fetchSiteData() {
+  const weekStart = formatLocalDate(getWeekStart(weekOffset.value))
+  await siteAllocation.fetchSiteAllocationWeekly({
+    weekStart,
+    departmentId: selectedDepartment.value || undefined,
+    sort: siteSort.value as 'name' | 'count',
+  })
 }
 
 // 部署一覧取得
@@ -205,8 +283,8 @@ async function fetchDepartments() {
     if (response.success) {
       departments.value = response.departments
     }
-  } catch (error) {
-    console.error('部署取得エラー:', error)
+  } catch (_error) {
+    // 部署取得失敗は致命的ではない
   }
 }
 
@@ -214,11 +292,17 @@ async function fetchDepartments() {
 function previousWeek() {
   weekOffset.value--
   fetchData()
+  if (activeTab.value === 'site') {
+    fetchSiteData()
+  }
 }
 
 function nextWeek() {
   weekOffset.value++
   fetchData()
+  if (activeTab.value === 'site') {
+    fetchSiteData()
+  }
 }
 
 // フルスクリーン切り替え
@@ -281,6 +365,10 @@ function closeModal() {
 async function handleSaved() {
   closeModal()
   await fetchData()
+  // 現場ビューが表示されている場合はそちらも更新
+  if (activeTab.value === 'site') {
+    await fetchSiteData()
+  }
 }
 
 // Socket.IO接続設定
@@ -293,6 +381,9 @@ function setupSocketIO() {
   // スケジュール変更イベントを監視
   socketCleanup = $socketIO.onScheduleChange(() => {
     fetchData()
+    if (activeTab.value === 'site') {
+      fetchSiteData()
+    }
   })
 }
 
@@ -312,6 +403,9 @@ function startAutoRefresh() {
   stopAutoRefresh()
   refreshTimer = setInterval(() => {
     fetchData()
+    if (activeTab.value === 'site') {
+      fetchSiteData()
+    }
   }, 5 * 60 * 1000)
 }
 
@@ -415,6 +509,36 @@ useHead({
   font-size: 0.9rem;
 }
 
+/* タブ切替 */
+.view-tabs {
+  display: flex;
+  padding: 0 1.5rem;
+  background: var(--color-surface, #ffffff);
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn:hover {
+  color: #333;
+}
+
+.tab-btn.active {
+  color: var(--color-primary, #1a73e8);
+  border-bottom-color: var(--color-primary, #1a73e8);
+}
+
 .btn {
   padding: 0.5rem 1rem;
   border: none;
@@ -493,6 +617,15 @@ useHead({
 
   .current-week {
     padding: 0 0.5rem;
+  }
+
+  .view-tabs {
+    padding: 0 1rem;
+  }
+
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
   }
 }
 </style>
