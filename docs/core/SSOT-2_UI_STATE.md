@@ -53,8 +53,41 @@
 |-----------|-------|------|------|-----------|----------|
 | SCR-ADMIN-USERS | ユーザー管理 | `/admin/users` | ユーザーCRUD | OPS-002 | ADMIN |
 | SCR-ADMIN-DEPTS | 部門管理 | `/admin/departments` | 部門CRUD | WBS-005 | ADMIN |
+| SCR-ADMIN-BILLING | 課金管理 | `/admin/billing` | サブスクリプション管理 | BILLING-001 | ADMIN |
+| SCR-ADMIN-AI | AI設定 | `/admin/ai-settings` | LLMプロバイダー設定 | AI-001 | ADMIN |
 
-### 1.5 エラー画面
+### 1.5 Platform Admin（プラットフォーム管理者専用）
+
+| Screen ID | 画面名 | パス | 説明 | 関連機能ID | 必要ロール |
+|-----------|-------|------|------|-----------|----------|
+| SCR-PLATFORM-DASH | プラットフォームダッシュボード | `/platform` | 全テナント概要 | PLATFORM-001 | PlatformAdmin |
+| SCR-PLATFORM-ORGS | 組織一覧 | `/platform/organizations` | 全組織管理 | PLATFORM-001 | PlatformAdmin |
+| SCR-PLATFORM-PLANS | プラン設定 | `/platform/plans` | プラン設定管理 | PLATFORM-002 | PlatformAdmin |
+| SCR-PLATFORM-CREDITS | クレジット設定 | `/platform/credits` | パック設定管理 | PLATFORM-003 | PlatformAdmin |
+| SCR-PLATFORM-COHORTS | コーホート設定 | `/platform/cohorts` | コーホート管理 | PLATFORM-004 | PlatformAdmin |
+
+### 1.6 Phase 1: 現場配置（新規追加予定）
+
+> SSOT参照: [SSOT_SITE_ALLOCATION.md](../SSOT_SITE_ALLOCATION.md) §11
+
+| Screen ID | 画面名 | パス / 位置 | 説明 | 関連機能ID | 必要ロール | Sprint |
+|-----------|-------|------------|------|-----------|----------|--------|
+| SCR-SITE-BOARD | 現場ビュー（タブ） | `/org/[slug]/weekly-board`（タブ追加） | 現場×曜日ピボット表示 | SITE-003 | MEMBER+ | 1 |
+| SCR-SITE-MANAGE | 現場管理 | `/org/[slug]/admin/sites` | 現場マスタCRUD | SITE-001 | ADMIN | 2 |
+| SCR-SHORTAGE-LIST | 不足一覧 | `/org/[slug]/shortages` | 今週/来週の不足現場一覧 | SITE-002 | MEMBER+ | 2 |
+| SCR-PLANNING-UPLOAD | 工程表管理 | `/org/[slug]/admin/planning-documents` | 工程表アップロード・一覧 | AISITE-003 | ADMIN | 4 |
+| SCR-PLANNING-REVIEW | 工程表確認 | `/org/[slug]/admin/planning-documents/[id]/review` | AI抽出結果確認・修正 | AISITE-005 | ADMIN | 4 |
+
+### 1.7 Phase 1: 共通コンポーネント（新規追加予定）
+
+| Component ID | 名称 | 位置 | 説明 | 関連機能ID | Sprint |
+|-------------|------|------|------|-----------|--------|
+| CMP-AI-COMMAND-BAR | AIコマンドバー | AppHeader 内 | Cmd+K でフォーカス、自然言語コマンド | AISITE-001, AISITE-002 | 3 |
+| CMP-AI-PREVIEW-MODAL | AI変更プレビュー | モーダル | 配置変更のbefore/after表示 | AISITE-002 | 3 |
+| CMP-SITE-DEMAND-EDITOR | 需要インライン編集 | 現場ビュー上 | セルクリックで必要人数編集 | SITE-002 | 2 |
+| CMP-ALLOCATION-PROPOSAL | AI配置提案パネル | 不足セル内 | 候補者スコア表示、ワンタップ仮配置 | AISITE-006 | 5 |
+
+### 1.8 エラー画面
 
 | Screen ID | 画面名 | パス | 説明 | 関連機能ID |
 |-----------|-------|------|------|-----------|
@@ -116,17 +149,23 @@
 
 ## 3. ロール別アクセスマトリクス
 
-| 画面 | ADMIN | LEADER | MEMBER | DEVICE | 未認証 |
-|------|-------|--------|--------|--------|--------|
-| SCR-LANDING | o | o | o | - | o |
-| SCR-LOGIN | o | o | o | - | o |
-| SCR-WEEKLY-BOARD | o | o | o | - | x |
-| SCR-SIGNAGE | - | - | - | o | x |
-| SCR-MEETINGS | o | o | o(閲覧) | - | x |
-| SCR-MEETING-NEW | o | o | x | - | x |
-| SCR-SETTINGS | o | o | o | - | x |
-| SCR-ADMIN-USERS | o | x | x | - | x |
-| SCR-ADMIN-DEPTS | o | x | x | - | x |
+| 画面 | ADMIN | LEADER | MEMBER | DEVICE | PlatformAdmin | 未認証 |
+|------|-------|--------|--------|--------|---------------|--------|
+| SCR-LANDING | o | o | o | - | o | o |
+| SCR-LOGIN | o | o | o | - | o | o |
+| SCR-WEEKLY-BOARD | o | o | o | - | - | x |
+| SCR-SITE-BOARD (Phase 1) | o | o | o | - | - | x |
+| SCR-SIGNAGE | - | - | - | o | - | x |
+| SCR-MEETINGS | o | o | o(閲覧) | - | - | x |
+| SCR-MEETING-NEW | o | o | x | - | - | x |
+| SCR-SETTINGS | o | o | o | - | - | x |
+| SCR-ADMIN-USERS | o | x | x | - | - | x |
+| SCR-ADMIN-DEPTS | o | x | x | - | - | x |
+| SCR-ADMIN-BILLING | o | x | x | - | - | x |
+| SCR-SITE-MANAGE (Phase 1) | o | x | x | - | - | x |
+| SCR-SHORTAGE-LIST (Phase 1) | o | o | o | - | - | x |
+| SCR-PLANNING-UPLOAD (Phase 1) | o | x | x | - | - | x |
+| SCR-PLATFORM-* | - | - | - | - | o | x |
 
 凡例: `o`=アクセス可, `x`=リダイレクト, `-`=非対象
 
@@ -205,6 +244,19 @@ layouts/default.vue
 | ScheduleFormModal.vue | components/ | SCR-WEEKLY-BOARD |
 | AiChatWidget.vue | components/ | SCR-MEETINGS |
 
+### 7.3 Phase 1 追加コンポーネント
+
+| コンポーネント | 配置 | 関連画面 |
+|-------------|------|---------|
+| AiCommandBar.vue | components/ai/ | 全認証画面（AppHeader内） |
+| AiPreviewModal.vue | components/ai/ | CMP-AI-PREVIEW-MODAL |
+| SiteViewBoard.vue | components/site/ | SCR-SITE-BOARD |
+| SiteDemandEditor.vue | components/site/ | CMP-SITE-DEMAND-EDITOR |
+| ShortageList.vue | components/site/ | SCR-SHORTAGE-LIST |
+| PlanningUpload.vue | components/planning/ | SCR-PLANNING-UPLOAD |
+| PlanningReview.vue | components/planning/ | SCR-PLANNING-REVIEW |
+| AllocationProposal.vue | components/ai/ | CMP-ALLOCATION-PROPOSAL |
+
 ---
 
 ## 変更履歴
@@ -213,3 +265,4 @@ layouts/default.vue
 |------|---------|-------|
 | 2026-02-03 | ai-dev-framework v3.0 準拠で新規作成。SSOT_UI_NAVIGATION.md + UI_ROUTING_MAP.md + pages/ から統合 | AI（Claude Code） |
 | 2026-02-03 | 監査指摘修正: RFC 2119準拠（§4,§5追加）、ロール表記定義、検証方法追加 | AI（Claude Code） |
+| 2026-02-24 | Phase 1 画面追加: SITE/AISITE画面5件 + コンポーネント4件 + Platform管理画面5件 + 課金/AI管理画面2件 | AI（Claude Code） |
