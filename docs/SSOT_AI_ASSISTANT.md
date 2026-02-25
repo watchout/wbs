@@ -275,6 +275,149 @@ interface LlmSettingsUpdate {
 }
 ```
 
+### 5-3. search_site_allocation [Phase 1 — Sprint 3]
+
+```typescript
+{
+  name: 'search_site_allocation',
+  description: '現場の配置状況を検索する。指定期間の現場ごとの配置人員を取得',
+  parameters: {
+    type: 'object',
+    properties: {
+      siteName: { type: 'string', description: '現場名（部分一致）' },
+      startDate: { type: 'string', description: 'YYYY-MM-DD' },
+      endDate: { type: 'string', description: 'YYYY-MM-DD' }
+    },
+    required: ['startDate', 'endDate']
+  }
+}
+```
+
+### 5-4. search_site_demand [Phase 1 — Sprint 3]
+
+```typescript
+{
+  name: 'search_site_demand',
+  description: '現場の必要人員情報を検索する。指定期間の工種別必要人数を取得',
+  parameters: {
+    type: 'object',
+    properties: {
+      siteName: { type: 'string', description: '現場名（部分一致）' },
+      startDate: { type: 'string', description: 'YYYY-MM-DD' },
+      endDate: { type: 'string', description: 'YYYY-MM-DD' },
+      tradeType: { type: 'string', description: '工種名' }
+    },
+    required: ['startDate', 'endDate']
+  }
+}
+```
+
+### 5-5. search_shortages [Phase 1 — Sprint 3]
+
+```typescript
+{
+  name: 'search_shortages',
+  description: '指定期間内の人員不足現場を検索する',
+  parameters: {
+    type: 'object',
+    properties: {
+      startDate: { type: 'string', description: 'YYYY-MM-DD' },
+      endDate: { type: 'string', description: 'YYYY-MM-DD' }
+    },
+    required: ['startDate', 'endDate']
+  }
+}
+```
+
+### 5-6. search_available_workers [Phase 1 — Sprint 3]
+
+```typescript
+{
+  name: 'search_available_workers',
+  description: '指定日に空いている（配置がない）作業員を検索する',
+  parameters: {
+    type: 'object',
+    properties: {
+      date: { type: 'string', description: 'YYYY-MM-DD' },
+      tradeType: { type: 'string', description: '工種（任意）' },
+      departmentName: { type: 'string', description: '部署名（任意）' }
+    },
+    required: ['date']
+  }
+}
+```
+
+### 5-7. preview_assignment [Phase 1 — Sprint 3]
+
+```typescript
+{
+  name: 'preview_assignment',
+  description: '配置変更のプレビューを生成する。実際の変更は行わない',
+  parameters: {
+    type: 'object',
+    properties: {
+      action: { type: 'string', enum: ['assign', 'unassign', 'reassign'], description: '操作種別' },
+      userId: { type: 'string', description: '対象の作業員ID or 名前' },
+      siteId: { type: 'string', description: '配置先の現場ID or 名前' },
+      date: { type: 'string', description: 'YYYY-MM-DD' }
+    },
+    required: ['action', 'userId']
+  }
+}
+```
+
+> **注**: preview_assignment は読み取り専用（プレビュー生成のみ）。実行は execute_assignment で行い、execute_assignment はツール定義に含まず、AIコマンドAPIの確定エンドポイント経由でのみ呼び出される。
+
+### 5-8. propose_allocation [Phase 1 — Sprint 5]
+
+```typescript
+{
+  name: 'propose_allocation',
+  description: '不足している現場セルに対して候補人員を提案する',
+  parameters: {
+    type: 'object',
+    properties: {
+      siteId: { type: 'string', description: '現場ID' },
+      date: { type: 'string', description: 'YYYY-MM-DD' },
+      tradeType: { type: 'string', description: '工種（任意）' },
+      maxCandidates: { type: 'number', description: '最大候補数（デフォルト: 5）' }
+    },
+    required: ['siteId', 'date']
+  }
+}
+```
+
+---
+
+## 5A. AI権限境界
+
+> SSOT_SITE_ALLOCATION.md §12 より。ツールの読み書き分類と人間承認要否を定義。
+
+### ツール権限マトリクス
+
+| ツール | 種別 | AI単独実行 | MEMBER | LEADER+ | 人間確認必須 |
+|--------|------|-----------|--------|---------|-------------|
+| search_schedules | 読取 | Yes | Yes | Yes | No |
+| search_users | 読取 | Yes | Yes | Yes | No |
+| search_site_allocation | 読取 | Yes | Yes | Yes | No |
+| search_site_demand | 読取 | Yes | Yes | Yes | No |
+| search_shortages | 読取 | Yes | Yes | Yes | No |
+| search_available_workers | 読取 | Yes | Yes | Yes | No |
+| preview_assignment | 読取 | Yes | No | Yes | No |
+| propose_allocation | 読取 | Yes | No | Yes | No |
+| execute_assignment | 書込 | No | No | Yes | **Yes** | ※LLMツール定義に含まず。§5-7 note参照。APIエンドポイント経由でのみ実行 |
+
+### 書き込み系のフロー
+
+```
+1. ユーザーが自然言語で配置変更を指示
+2. AI が preview_assignment で変更内容を生成（読取）
+3. プレビューモーダルで変更前/変更後を表示
+4. ユーザーが「確定」をクリック（人間操作）
+5. execute_assignment が実行される（書込）
+6. AssignmentChangeLog に記録
+```
+
 ---
 
 ## 6. ファイル構成

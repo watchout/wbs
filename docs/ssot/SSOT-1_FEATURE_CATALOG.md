@@ -32,7 +32,11 @@
 | 11. 運用・管理（OPS） | 4/6 | 4 | 2 |
 | 12. AI特有（AI） | 1/8 | 1 | 7 |
 | 13. WBS固有（WBS） | 8/8 | 8 | 0 |
-| **合計** | **49/85** | **49** | **36** |
+| 14. 現場管理（SITE） | 3/3 | 3 | 0 |
+| 15. AI現場配置（AISITE） | 7/7 | 7 | 0 |
+| 16. 課金（BILLING） | 3/3 | 3 | 0 |
+| 17. プラットフォーム（PLATFORM） | 4/4 | 4 | 0 |
+| **合計** | **66/102** | **66** | **36** |
 
 ---
 
@@ -369,6 +373,90 @@ OPS-005:
 
 ---
 
+## 14. 現場管理（SITE） [Phase 1]
+
+> SSOT参照: [SSOT_SITE_ALLOCATION.md](../SSOT_SITE_ALLOCATION.md)
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| SITE-001 | 現場マスタCRUD | MUST | P0 | Designing | Site テーブル新設、名称/住所/元請/状態管理 |
+| SITE-002 | 必要人員管理（SiteDemand） | MUST | P0 | Designing | 日付×工種×人数の手入力、過不足表示 |
+| SITE-003 | 現場ビュー（週間ボード拡張） | MUST | P0 | Designing | 現場×曜日ピボット表示、タブ切替 |
+
+### SITE-001: 現場マスタCRUD 受入条件
+
+```
+- [ ] AC1: 現場を作成できる（名称必須、住所/元請/備考は任意）
+- [ ] AC2: 現場一覧を表示できる（状態フィルタ、名前検索）
+- [ ] AC3: 現場情報を更新できる
+- [ ] AC4: 現場を論理削除できる
+- [ ] AC5: 同一組織内で現場名が重複するとエラー
+- [ ] AC6: 全APIで organizationId スコープが適用
+```
+
+### SITE-002: 必要人員管理 受入条件
+
+```
+- [ ] AC1: 日付×工種単位で必要人数を登録できる
+- [ ] AC2: 配置人数 / 必要人数 / 差分が現場ビューに表示される
+- [ ] AC3: 不足セルが赤、充足が緑、過剰が黄で色分け
+- [ ] AC4: 不足一覧画面で今週・来週の不足現場が一覧できる
+- [ ] AC5: sourceType（手動/AI/インポート）が記録される
+```
+
+### SITE-003: 現場ビュー 受入条件
+
+```
+- [ ] AC1: 「人ベース / 現場ベース」のタブ切替が動作する
+- [ ] AC2: 現場ベースで全現場×7日が表示される
+- [ ] AC3: 各セルに配置人数と人名が表示される
+- [ ] AC4: siteName 未設定の Schedule は「未設定」行に集約
+- [ ] AC5: 既存の人ベース表示に影響がない
+```
+
+---
+
+## 15. AI現場配置（AISITE） [Phase 1]
+
+> SSOT参照: [SSOT_SITE_ALLOCATION.md](../SSOT_SITE_ALLOCATION.md)
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| AISITE-001 | AIコマンドバー（検索） | MUST | P0 | Designing | 現場別照会、空き検索、不足検索 |
+| AISITE-002 | AIコマンドバー（書き込み） | MUST | P0 | Designing | 配置変更プレビュー+確定 |
+| AISITE-003 | 工程表アップロード | MUST | P0 | Designing | PDF/画像、PlanningDocument |
+| AISITE-004 | 工程表AI解析 | MUST | P0 | Designing | Vision AI→構造化データ変換 |
+| AISITE-005 | 解析結果確認・修正 | MUST | P0 | Designing | 表形式UI、行単位修正 |
+| AISITE-006 | AI配置提案 | MUST | P0 | Designing | 不足セル候補、スコア付き |
+| AISITE-007 | 仮配置フロー | MUST | P0 | Designing | draft→confirmed 2ステップ |
+
+---
+
+## 16. 課金（BILLING）
+
+> 実装済み。Phase 0 で Stripe 統合済み。
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| BILLING-001 | サブスクリプション管理 | MUST | P0 | Done | Stripe Checkout + Portal |
+| BILLING-002 | AIクレジット管理 | MUST | P0 | Done | 月次付与 + パック購入 |
+| BILLING-003 | OTP認証（課金操作保護） | MUST | P0 | Done | 6桁コード、メール送信 |
+
+---
+
+## 17. プラットフォーム管理（PLATFORM）
+
+> 実装済み。isPlatformAdmin フラグによるプラットフォーム横断管理。
+
+| ID | 機能 | レベル | 優先度 | 状態 | 備考 |
+|----|------|--------|-------|------|------|
+| PLATFORM-001 | 全組織一覧・詳細 | MUST | P0 | Done | /platform/organizations |
+| PLATFORM-002 | プラン設定管理 | MUST | P0 | Done | PlanConfig CRUD |
+| PLATFORM-003 | クレジットパック設定管理 | MUST | P0 | Done | CreditPackConfig CRUD |
+| PLATFORM-004 | コーホート設定管理 | MUST | P0 | Done | CohortConfig CRUD |
+
+---
+
 ## 優先度定義
 
 | 優先度 | 定義 | 目安 |
@@ -400,20 +488,39 @@ OPS-005:
 
 | 状態 | 件数 | 説明 |
 |------|------|------|
-| Done | 45 | 実装・検証完了 |
+| Done | 56 | 実装・検証完了 |
+| Designing | 10 | 設計中（Phase 1 SITE/AISITE） |
 | In Progress | 0 | 実装中 |
 | Backlog | 1 | 未着手 |
-| Out of Scope | 39 | Phase 0 スコープ外 |
-| **合計** | **85** | |
+| Out of Scope | 36 | Phase 0 スコープ外 |
+| **合計** | **102** | |
 
-**Phase 0 MVP 対象機能（Out of Scope 除外）: 46件**
-**完了: 45/46（98%）**
+**Phase 0 MVP 対象機能（Out of Scope 除外）: 56件**
+**完了: 56/56（100%）**
 
-### 未完了の MUST/SHOULD 項目
+**Phase 1 対象機能（SITE/AISITE）: 10件**
+**設計中: 10/10**
+
+### 未完了の MUST/SHOULD 項目（Phase 0）
 
 | ID | 機能 | レベル | 状態 |
 |----|------|--------|------|
 | NOTIF-001 | メール通知 | SHOULD | Backlog |
+
+### Phase 1 設計中項目
+
+| ID | 機能 | レベル | 状態 | Sprint |
+|----|------|--------|------|--------|
+| SITE-001 | 現場マスタCRUD | MUST | Designing | 2 |
+| SITE-002 | 必要人員管理 | MUST | Designing | 2 |
+| SITE-003 | 現場ビュー | MUST | Designing | 1 |
+| AISITE-001 | AIコマンドバー（検索） | MUST | Designing | 3 |
+| AISITE-002 | AIコマンドバー（書き込み） | MUST | Designing | 3 |
+| AISITE-003 | 工程表アップロード | MUST | Designing | 4 |
+| AISITE-004 | 工程表AI解析 | MUST | Designing | 4 |
+| AISITE-005 | 解析結果確認・修正 | MUST | Designing | 4 |
+| AISITE-006 | AI配置提案 | MUST | Designing | 5 |
+| AISITE-007 | 仮配置フロー | MUST | Designing | 5 |
 
 ---
 
@@ -565,3 +672,4 @@ Scenario: スケジュール更新が全クライアントにリアルタイム�
 | 2026-02-05 | SEC-003（レート制限）を Done に更新。server/utils/rateLimit.ts 実装完了。完了率 89%→91% | AI（Claude Code） |
 | 2026-02-05 | AUTH-006（パスワードリセット）を Done に更新。管理者によるトークン再発行方式。完了率 91%→93% | AI（Claude Code） |
 | 2026-02-05 | AUTH-010（セッション自動更新）を Done に更新。Sliding Window方式実装。完了率 93%→96% | AI（Claude Code） |
+| 2026-02-24 | Phase 1 カテゴリ追加: SITE(3件), AISITE(7件), BILLING(3件), PLATFORM(4件)。合計 85→102件 | AI（Claude Code） |
