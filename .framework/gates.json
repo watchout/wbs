@@ -1,6 +1,6 @@
 {
   "gateA": {
-    "status": "passed",
+    "status": "failed",
     "checks": [
       {
         "name": "package.json exists",
@@ -9,13 +9,13 @@
       },
       {
         "name": "Dependencies installed (node_modules/)",
-        "passed": true,
-        "message": "Dependencies installed (node_modules/): found"
+        "passed": false,
+        "message": "node_modules/ not found. Run 'npm install' or 'pnpm install'."
       },
       {
         "name": "Environment config (.env or .env.example)",
-        "passed": true,
-        "message": "Environment config found"
+        "passed": false,
+        "message": ".env or .env.example not found. Create environment config."
       },
       {
         "name": "Docker Compose config",
@@ -33,7 +33,7 @@
         "message": "Framework management (.framework/): found"
       }
     ],
-    "checkedAt": "2026-02-16T08:28:29.661Z"
+    "checkedAt": "2026-03-05T08:28:36.289Z"
   },
   "gateB": {
     "status": "passed",
@@ -54,11 +54,23 @@
         "message": "Project profile found"
       }
     ],
-    "checkedAt": "2026-02-16T08:28:29.662Z"
+    "checkedAt": "2026-03-05T08:28:36.289Z"
   },
   "gateC": {
-    "status": "passed",
+    "status": "failed",
     "checks": [
+      {
+        "name": "docs/SSOT_AI_ASSISTANT.md",
+        "passed": false,
+        "message": "docs/SSOT_AI_ASSISTANT.md: Missing §3-E, §3-F, §3-G, §3-H",
+        "filePath": "docs/SSOT_AI_ASSISTANT.md",
+        "missingSections": [
+          "§3-E",
+          "§3-F",
+          "§3-G",
+          "§3-H"
+        ]
+      },
       {
         "name": "docs/SSOT_APP_HEADER.md",
         "passed": true,
@@ -158,7 +170,7 @@
         "missingSections": []
       }
     ],
-    "checkedAt": "2026-02-16T08:28:29.675Z"
+    "checkedAt": "2026-03-05T08:28:36.294Z"
   },
-  "updatedAt": "2026-02-16T08:28:29.676Z"
+  "updatedAt": "2026-03-05T08:28:36.294Z"
 }
