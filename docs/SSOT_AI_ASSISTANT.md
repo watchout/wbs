@@ -580,3 +580,62 @@ GOOGLE_AI_API_KEY=AI...        # Gemini用（任意）
 | 8 | ADMIN以外がLLM設定変更 | 403 |
 | 9 | ADMINがプロバイダー変更 | 200 + DB更新 |
 | 10 | 未設定プロバイダー選択 | フォールバック発動 |
+
+---
+
+## 13. 受け入れ条件・入出力例（§3-E）
+
+### 13-1. 基本チャット
+
+**Input（受け入れ条件）:**
+```json
+POST /api/ai/chat
+{
+  "message": "来週月曜の空きスロットを教えて",
+  "organizationSlug": "acme-corp"
+}
+```
+
+**Output（期待値）:**
+```json
+HTTP 200
+{
+  "response": "来週月曜（3/11）の空きスロットは 09:00〜12:00 と 14:00〜17:00 です。",
+  "creditsUsed": 1,
+  "provider": "openai"
+}
+```
+
+**Acceptance:**
+- `creditsUsed` は整数 ≥ 1
+- `provider` は `openai | claude | gemini` のいずれか
+- `response` は日本語で 1 〜 1000 文字
+
+---
+
+### 13-2. ツール呼び出し（search_schedules）
+
+**Input:**
+```json
+{ "message": "今週の現場配置を確認して" }
+```
+
+**Output（期待値）:**
+- AIが `search_schedules` ツールを実行し、結果を自然言語で返す
+- ツール実行ログが `ai_usage_logs` に記録される
+
+**Acceptance:**
+- ツール呼び出しが 1 回以上発生
+- レスポンスに現場名・日付・担当者が含まれる
+
+---
+
+### 13-3. エラー系（入出力例）
+
+| ケース | Input | Expected Output |
+|--------|-------|-----------------|
+| 未認証 | Cookie なし | `401 UNAUTHORIZED` |
+| クレジット不足 | `aiCredits = 0` | `402 { error: "INSUFFICIENT_CREDITS" }` |
+| 空メッセージ | `message: ""` | `400 { error: "MESSAGE_REQUIRED" }` |
+| 超過メッセージ | 2001文字 | `400 { error: "MESSAGE_TOO_LONG" }` |
+| 全プロバイダー障害 | LLM API タイムアウト | `503 { error: "AI_UNAVAILABLE" }` |
