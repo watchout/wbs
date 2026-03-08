@@ -266,3 +266,8 @@ layouts/default.vue
 | 2026-02-03 | ai-dev-framework v3.0 準拠で新規作成。SSOT_UI_NAVIGATION.md + UI_ROUTING_MAP.md + pages/ から統合 | AI（Claude Code） |
 | 2026-02-03 | 監査指摘修正: RFC 2119準拠（§4,§5追加）、ロール表記定義、検証方法追加 | AI（Claude Code） |
 | 2026-02-24 | Phase 1 画面追加: SITE/AISITE画面5件 + コンポーネント4件 + Platform管理画面5件 + 課金/AI管理画面2件 | AI（Claude Code） |
+
+## §3-E 受け入れ条件・入出力例
+
+本ドキュメントに記載の仕様は、実装がSSOT定義と一致することをもって受け入れとする。
+各機能の具体的な入出力例は関連するSSOT_*.mdまたはテスト仕様に記載する。
