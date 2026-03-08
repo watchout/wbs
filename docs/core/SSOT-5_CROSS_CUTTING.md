@@ -393,3 +393,8 @@ PO判断により、4ロール体系（ADMIN, LEADER, MEMBER, DEVICE）に統一
 | 2026-02-03 | ai-dev-framework v3.0 準拠で新規作成。.cursorrules + DONE_DEFINITION.md + server/utils/ から統合 | AI（Claude Code） |
 | 2026-02-03 | 監査指摘修正: ログ出力ルール追加、ファイル行数をSHOULDに修正、SUPER_ADMIN乖離事項記載、検証方法追加 | AI（Claude Code） |
 | 2026-02-03 | SUPER_ADMIN/MANAGER削除完了。§10を「ロール整理履歴」に更新 | AI（Claude Code） |
+
+## §3-E 受け入れ条件・入出力例
+
+本ドキュメントに記載の仕様は、実装がSSOT定義と一致することをもって受け入れとする。
+各機能の具体的な入出力例は関連するSSOT_*.mdまたはテスト仕様に記載する。
