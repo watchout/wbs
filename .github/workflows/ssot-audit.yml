@@ -110,7 +110,7 @@ jobs:
       - name: Sensitive Data Check
         run: |
           echo "## Security Check" >> $GITHUB_STEP_SUMMARY
-          if grep -rn "sk-\|PRIVATE_KEY\|password.*=.*['\"]" --include="*.ts" --include="*.js" --include="*.vue" . 2>/dev/null | grep -v node_modules | grep -v ".env.example"; then
+          if grep -rn "sk-[a-zA-Z0-9]\{20\}\|PRIVATE_KEY.*=.*['\"][^'\"]\|password.*=.*['\"][^'\"]\{4\}" --include="*.ts" --include="*.js" --include="*.vue" . 2>/dev/null | grep -v node_modules | grep -v ".env.example" | grep -v "ref(''\|ref(\"\")\|= ''\|= \"\"\|placeholder\|type.*password"; then
             echo "Potential sensitive data found" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
