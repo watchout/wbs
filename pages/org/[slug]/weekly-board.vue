@@ -56,17 +56,23 @@
       />
 
       <!-- 現場ベース（Sprint 1 新機能） -->
-      <SiteAllocationBoard
-        v-if="activeTab === 'site'"
-        :sites="siteAllocation.sites.value"
-        :unassigned="siteAllocation.unassigned.value"
-        :week-days="weekDays"
-        :loading="siteAllocation.loading.value"
-        :is-fullscreen="isFullscreen"
-        :sort="siteSort"
-        :total-allocated="siteAllocation.totalAllocated.value"
-        @update:sort="handleSiteSortChange"
-      />
+      <template v-if="activeTab === 'site'">
+        <!-- AI提案パネル（現場ビュータブが選択されているときのみ表示） -->
+        <SiteAllocationAI
+          v-if="!isFullscreen"
+          :week="currentWeek"
+        />
+        <SiteAllocationBoard
+          :sites="siteAllocation.sites.value"
+          :unassigned="siteAllocation.unassigned.value"
+          :week-days="weekDays"
+          :loading="siteAllocation.loading.value"
+          :is-fullscreen="isFullscreen"
+          :sort="siteSort"
+          :total-allocated="siteAllocation.totalAllocated.value"
+          @update:sort="handleSiteSortChange"
+        />
+      </template>
     </main>
 
     <!-- スケジュール入力モーダル（人ベースのみ） -->
@@ -91,6 +97,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import WeeklyScheduleBoard from '~/components/genba/WeeklyScheduleBoard.vue'
 import SiteAllocationBoard from '~/components/genba/SiteAllocationBoard.vue'
+import SiteAllocationAI from '~/components/genba/SiteAllocationAI.vue'
 import ScheduleFormModal from '~/components/ScheduleFormModal.vue'
 import { useSiteAllocation } from '~/composables/useSiteAllocation'
 
@@ -188,6 +195,17 @@ const weekLabel = computed(() => {
   const end = new Date(start)
   end.setDate(end.getDate() + 6)
   return `${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}`
+})
+
+// AI提案パネル用: 現在週の start/end（YYYY-MM-DD形式）
+const currentWeek = computed(() => {
+  const start = getWeekStart(weekOffset.value)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 6)
+  return {
+    start: formatLocalDate(start),
+    end: formatLocalDate(end),
+  }
 })
 
 // 週の開始日を計算（月曜日）
