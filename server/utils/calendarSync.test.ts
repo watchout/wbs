@@ -85,6 +85,7 @@ describe('calendarSync utility', () => {
         externalUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        siteId: null,
         deletedAt: null
       })
 
@@ -135,6 +136,7 @@ describe('calendarSync utility', () => {
         externalUpdatedAt: existingUpdatedAt,
         createdAt: new Date(),
         updatedAt: new Date(),
+        siteId: null,
         deletedAt: null
       })
 
@@ -179,7 +181,8 @@ describe('calendarSync utility', () => {
           externalUpdatedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
-          deletedAt: null
+          siteId: null,
+        deletedAt: null
         }
       ])
 
@@ -330,6 +333,7 @@ describe('calendarSync utility', () => {
         externalUpdatedAt: existingUpdatedAt, // Same time
         createdAt: new Date(),
         updatedAt: new Date(),
+        siteId: null,
         deletedAt: null
       })
 

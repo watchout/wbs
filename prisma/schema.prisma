@@ -28,6 +28,38 @@ enum Source {
   CSV
 }
 
+// ------------ 現場配置 ENUMS（Sprint 2）------------
+
+enum SiteStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+}
+
+enum TimeSlot {
+  ALL_DAY
+  AM
+  PM
+  NIGHT
+}
+
+enum DemandPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum DemandSourceType {
+  MANUAL
+  AI_PARSED
+  IMPORTED
+}
+
+enum ConfirmationStatus {
+  UNCONFIRMED
+  CONFIRMED
+}
+
 // ------------ 課金関連 ENUMS ------------
 
 enum SubscriptionStatus {
@@ -69,6 +101,8 @@ model Organization {
   users       User[]
   devices     Device[]
   schedules   Schedule[]
+  sites       Site[]
+  siteDemands SiteDemand[]
   auditLogs   AuditLog[]
   departments Department[]
   meetingRequests MeetingRequest[]
@@ -231,6 +265,10 @@ model Schedule {
   color          String?      // Tailwind color key  e.g. "wasabi"
   source         Source       @default(INTERNAL)
 
+  // Sprint 2: 現場紐付け（nullable — 移行期間は未設定許容, AC-S2-07）
+  site           Site?        @relation(fields: [siteId], references: [id])
+  siteId         String?
+
   // 外部カレンダー同期用フィールド
   externalId        String?   // Googleカレンダーのevent.id
   externalSource    String?   // "google"
@@ -244,6 +282,63 @@ model Schedule {
 
   @@index([organizationId, start])
   @@index([externalId, externalSource])
+}
+
+// ------------ 現場配置モデル（Sprint 2）------------
+
+model Site {
+  id             String       @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  name           String       // 現場名（例: "品川ホテル新館"）
+  address        String?      // 住所
+  clientName     String?      // 元請/顧客名
+  status         SiteStatus   @default(ACTIVE)
+  startDate      DateTime?    // 工期開始
+  endDate        DateTime?    // 工期終了
+  note           String?      // 備考
+
+  createdBy      String       // 作成者ID
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?    // 論理削除
+
+  schedules      Schedule[]
+  demands        SiteDemand[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, name])
+}
+
+model SiteDemand {
+  id                 String             @id @default(uuid())
+  organization       Organization       @relation(fields: [organizationId], references: [id])
+  organizationId     String
+
+  site               Site               @relation(fields: [siteId], references: [id])
+  siteId             String
+
+  date               DateTime           @db.Date // 対象日
+  tradeType          String             // 工種（例: "電気工事"）
+  requiredCount      Int                // 必要人数
+  timeSlot           TimeSlot           @default(ALL_DAY)
+  priority           DemandPriority     @default(MEDIUM)
+
+  sourceType         DemandSourceType   @default(MANUAL)
+  sourceDocumentId   String?            // 工程表からの場合の元ドキュメントID
+  confidence         Float?             // AI抽出信頼度（0.0-1.0）
+  confirmationStatus ConfirmationStatus @default(CONFIRMED)
+
+  note               String?
+  createdBy          String             // 作成者ID
+  updatedBy          String?            // 更新者ID
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@unique([siteId, date, tradeType, timeSlot])
+  @@index([organizationId, siteId, date])
+  @@index([organizationId, date])
 }
 
 model ScheduleVersion {
