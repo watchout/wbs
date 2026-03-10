@@ -52,13 +52,15 @@ export default defineEventHandler(async (event) => {
       const targetDate = new Date(item.date)
 
       // 既存スケジュールに siteName を設定（descriptionのmetadata更新）
+      const dayStart = new Date(targetDate)
+      dayStart.setHours(0, 0, 0, 0)
+      const dayEnd = new Date(targetDate)
+      dayEnd.setHours(23, 59, 59, 999)
+
       const existing = await prisma.schedule.findFirst({
         where: {
           authorId: item.userId,
-          startTime: {
-            gte: new Date(targetDate.setHours(0, 0, 0, 0)),
-            lt: new Date(targetDate.setHours(23, 59, 59, 999)),
-          },
+          start: { gte: dayStart, lt: dayEnd },
           organization: { slug: organizationId },
         },
       })
@@ -83,10 +85,10 @@ export default defineEventHandler(async (event) => {
           where: { slug: organizationId },
         })
         if (org) {
-          const start = new Date(item.date)
-          start.setHours(8, 0, 0, 0)
-          const end = new Date(item.date)
-          end.setHours(17, 0, 0, 0)
+          const schedStart = new Date(item.date)
+          schedStart.setHours(8, 0, 0, 0)
+          const schedEnd = new Date(item.date)
+          schedEnd.setHours(17, 0, 0, 0)
 
           await prisma.schedule.create({
             data: {
@@ -94,9 +96,8 @@ export default defineEventHandler(async (event) => {
               organizationId: org.id,
               title: item.siteName,
               description: JSON.stringify({ siteName: item.siteName, source: 'ai_assign' }),
-              startTime: start,
-              endTime: end,
-              isAllDay: false,
+              start: schedStart,
+              end: schedEnd,
             },
           })
         }
@@ -112,7 +113,7 @@ export default defineEventHandler(async (event) => {
   createAuditLog({
     organizationId: auth.organizationId,
     userId: auth.userId,
-    action: AUDIT_ACTIONS.AI_COMMAND,
+    action: AUDIT_ACTIONS.AI_ASSIGNMENT,
     meta: {
       type: 'ai_assignment_execute',
       assignments: assignments.map(a => ({
