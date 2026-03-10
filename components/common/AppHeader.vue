@@ -54,6 +54,9 @@
     <!-- Right: User Menu + Mobile Hamburger -->
     <div class="header-right">
       <template v-if="isAuthenticated">
+        <!-- AI Command Bar (Sprint 3) -->
+        <AICommandBar />
+
         <!-- User Menu (desktop) -->
         <div class="user-menu" ref="userMenuRef">
           <button
@@ -230,6 +233,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { useCsrf } from '~/composables/useCsrf'
+import AICommandBar from '~/components/common/AICommandBar.vue'
 
 const route = useRoute()
 const router = useRouter()
