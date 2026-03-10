@@ -1,0 +1,11 @@
+{
+  "currentTaskId": "sprint2-site-demand",
+  "tasks": [
+    {
+      "taskId": "sprint2-site-demand",
+      "status": "in_progress",
+      "description": "Sprint 2: Site/SiteDemand CRUD + 不足一覧 + 色分けUI",
+      "startedAt": "2026-03-10T00:00:00.000Z"
+    }
+  ]
+}

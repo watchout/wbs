@@ -148,7 +148,9 @@ export async function createTestDevice(
  */
 export async function cleanupTestData(orgId: string): Promise<void> {
   // 依存関係の順序でdeleteする必要がある
+  await prisma.siteDemand.deleteMany({ where: { organizationId: orgId } })
   await prisma.schedule.deleteMany({ where: { organizationId: orgId } })
+  await prisma.site.deleteMany({ where: { organizationId: orgId } })
   await prisma.device.deleteMany({ where: { organizationId: orgId } })
   await prisma.user.deleteMany({ where: { organizationId: orgId } })
   await prisma.department.deleteMany({ where: { organizationId: orgId } })

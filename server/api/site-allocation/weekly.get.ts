@@ -1,18 +1,18 @@
 /**
- * 現場配置サマリーAPI（Sprint 1）
+ * 現場配置サマリーAPI（Sprint 1 + Sprint 2 拡張）
  *
  * GET /api/site-allocation/weekly
  *
  * 現場×日のピボット形式で配置状況を取得する。
- * Sprint 1 では Schedule.description.siteName から現場名を集計。
- * siteId, required, gap は null（Sprint 2 以降で有効化）。
+ * Sprint 1: Schedule.description.siteName から現場名を集計。
+ * Sprint 2: Site テーブル + SiteDemand から required/gap を算出。
  *
  * クエリパラメータ:
  * - weekStart: 週の開始日（YYYY-MM-DD）。省略時は今週月曜
  * - departmentId: 部門フィルタ（optional）
  * - sort: ソート順 'name' | 'count'（default: 'name'）
  *
- * SSOT参照: SSOT_SITE_ALLOCATION.md §10.3, §6 Sprint 1
+ * SSOT参照: SSOT_SITE_ALLOCATION.md §10.3, §6 Sprint 1-2
  */
 
 import { createLogger } from '~/server/utils/logger'
@@ -30,7 +30,7 @@ const log = createLogger('site-allocation-weekly')
 interface SiteWorker {
   userId: string
   name: string
-  status: 'CONFIRMED'  // Sprint 1 は全て CONFIRMED（assignmentStatus 未導入）
+  status: 'CONFIRMED'  // Sprint 5 で assignmentStatus 導入後に拡張
 }
 
 /** 現場の1日分データ */
@@ -38,15 +38,15 @@ interface SiteDayData {
   date: string          // YYYY-MM-DD
   dayKey: string        // 'monday' | 'tuesday' | ...
   allocated: number     // 配置人数
-  required: null        // Sprint 1 では null（Sprint 2 で SiteDemand 導入後に有効化）
-  gap: null             // Sprint 1 では null
+  required: number | null  // Sprint 2: SiteDemand からの必要人数（なければ null）
+  gap: number | null       // Sprint 2: allocated - required（なければ null）
   workers: SiteWorker[]
 }
 
 /** 1現場分のデータ */
 interface SiteRow {
-  siteId: null           // Sprint 1 では null（Site テーブル未導入）
-  siteName: string       // description.siteName または '未設定'
+  siteId: string | null    // Sprint 2: Site.id（存在する場合）
+  siteName: string         // description.siteName または '未設定'
   days: SiteDayData[]
 }
 
@@ -153,16 +153,60 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
       },
     })
 
+    // Sprint 2: Site マスタを取得（テナントスコープ）
+    const allSites = await prisma.site.findMany({
+      where: {
+        organizationId: authContext.organizationId,
+        deletedAt: null,
+      },
+      select: { id: true, name: true },
+    })
+    const siteNameToId = new Map<string, string>()
+    const siteIdToName = new Map<string, string>()
+    for (const s of allSites) {
+      siteNameToId.set(s.name, s.id)
+      siteIdToName.set(s.id, s.name)
+    }
+
+    // Sprint 2: SiteDemand を取得（テナントスコープ）
+    const demands = await prisma.siteDemand.findMany({
+      where: {
+        organizationId: authContext.organizationId,
+        date: {
+          gte: weekStart,
+          lt: weekEnd,
+        },
+      },
+    })
+
+    // SiteDemand を siteId + date でグルーピング → 日毎の合計必要人数
+    // key: "siteId:YYYY-MM-DD"
+    const demandMap = new Map<string, number>()
+    for (const d of demands) {
+      const dateStr = formatDate(new Date(d.date))
+      const key = `${d.siteId}:${dateStr}`
+      demandMap.set(key, (demandMap.get(key) || 0) + d.requiredCount)
+    }
+
     // 現場名ごとにグルーピング
     // key: siteName（未設定は特別扱い）
-    const siteMap = new Map<string, Map<string, SiteWorker[]>>()
-    // siteMap: siteName → (dayKey → workers[])
-
+    const siteMap = new Map<string, { siteId: string | null; dayMap: Map<string, SiteWorker[]> }>()
     const unassignedMap = new Map<string, SiteWorker[]>()
 
     for (const schedule of schedules) {
       const metadata = parseScheduleMetadata(schedule.description)
-      const siteName = metadata.siteName?.trim() || ''
+      let siteName = metadata.siteName?.trim() || ''
+      let siteId: string | null = null
+
+      // Sprint 2: siteId が設定されている場合はそちらを優先
+      if ('siteId' in schedule && schedule.siteId) {
+        siteId = schedule.siteId as string
+        const name = siteIdToName.get(siteId)
+        if (name) siteName = name
+      } else if (siteName) {
+        // siteName → siteId 逆引き
+        siteId = siteNameToId.get(siteName) || null
+      }
 
       // 曜日キーを計算
       const scheduleDate = new Date(schedule.start)
@@ -183,12 +227,24 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
       } else {
         // 通常の現場
         if (!siteMap.has(siteName)) {
-          siteMap.set(siteName, new Map<string, SiteWorker[]>())
+          siteMap.set(siteName, { siteId, dayMap: new Map<string, SiteWorker[]>() })
         }
-        const dayMap = siteMap.get(siteName)!
-        const existing = dayMap.get(dayKey) ?? []
+        const entry = siteMap.get(siteName)!
+        if (siteId && !entry.siteId) entry.siteId = siteId
+        const existing = entry.dayMap.get(dayKey) ?? []
         existing.push(worker)
-        dayMap.set(dayKey, existing)
+        entry.dayMap.set(dayKey, existing)
+      }
+    }
+
+    // Sprint 2: SiteDemandがあるがScheduleがない現場もサイトマップに追加
+    for (const s of allSites) {
+      if (!siteMap.has(s.name)) {
+        // この現場にdemandがあるか確認
+        const hasDemand = demands.some((d) => d.siteId === s.id)
+        if (hasDemand) {
+          siteMap.set(s.name, { siteId: s.id, dayMap: new Map<string, SiteWorker[]>() })
+        }
       }
     }
 
@@ -203,22 +259,36 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
     const sites: SiteRow[] = []
     let totalAllocated = 0
 
-    for (const [siteName, dayMap] of siteMap) {
+    for (const [siteName, entry] of siteMap) {
       const days: SiteDayData[] = ORDERED_DAY_KEYS.map((dayKey, index) => {
-        const workers = dayMap.get(dayKey) ?? []
+        const workers = entry.dayMap.get(dayKey) ?? []
         totalAllocated += workers.length
+
+        // Sprint 2: required/gap を算出
+        let required: number | null = null
+        let gap: number | null = null
+
+        if (entry.siteId) {
+          const demandKey = `${entry.siteId}:${dayDates[index]}`
+          const demandTotal = demandMap.get(demandKey)
+          if (demandTotal !== undefined) {
+            required = demandTotal
+            gap = workers.length - required
+          }
+        }
+
         return {
           date: dayDates[index],
           dayKey,
           allocated: workers.length,
-          required: null,
-          gap: null,
+          required,
+          gap,
           workers,
         }
       })
 
       sites.push({
-        siteId: null,
+        siteId: entry.siteId,
         siteName,
         days,
       })

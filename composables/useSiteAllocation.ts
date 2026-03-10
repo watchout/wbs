@@ -1,5 +1,5 @@
 /**
- * 現場配置データ取得 Composable（Sprint 1）
+ * 現場配置データ取得 Composable（Sprint 1 + Sprint 2）
  *
  * 現場ベースの週間配置サマリーを取得・管理する。
  * SSOT参照: SSOT_SITE_ALLOCATION.md §10.3
@@ -19,14 +19,14 @@ export interface SiteDayData {
   date: string
   dayKey: string
   allocated: number
-  required: null       // Sprint 1: null
-  gap: null            // Sprint 1: null
+  required: number | null   // Sprint 2: SiteDemandからの必要人数
+  gap: number | null         // Sprint 2: allocated - required
   workers: SiteWorker[]
 }
 
 /** 1現場分のデータ */
 export interface SiteRow {
-  siteId: null          // Sprint 1: null
+  siteId: string | null       // Sprint 2: Site.id
   siteName: string
   days: SiteDayData[]
 }

@@ -36,7 +36,18 @@
             class="allocation-cell"
             :class="getAllocationCellClass(day)"
           >
-            <div v-if="day.allocated > 0" class="allocation-content">
+            <div v-if="day.required !== null" class="allocation-content demand-content">
+              <div class="demand-ratio" :class="getDemandRatioClass(day)">
+                {{ day.allocated }}/{{ day.required }}
+              </div>
+              <div v-if="day.gap !== null" class="demand-gap" :class="getDemandGapClass(day)">
+                {{ day.gap > 0 ? '+' : '' }}{{ day.gap }}
+              </div>
+              <div v-if="day.workers.length > 0" class="worker-names">
+                {{ formatWorkerNames(day.workers) }}
+              </div>
+            </div>
+            <div v-else-if="day.allocated > 0" class="allocation-content">
               <div class="worker-count">{{ day.allocated }}名</div>
               <div class="worker-names">
                 {{ formatWorkerNames(day.workers) }}
@@ -109,14 +120,37 @@ const hasUnassignedWorkers = computed(() => {
   return props.unassigned.days.some((d) => d.allocated > 0)
 })
 
-/** セルのクラス（Sprint 2 で色分け追加予定） */
+/** セルのクラス（Sprint 2: 色分け対応） */
 function getAllocationCellClass(day: SiteDayData): Record<string, boolean> {
+  if (day.required !== null && day.gap !== null) {
+    return {
+      'has-workers': day.allocated > 0,
+      'no-workers': day.allocated === 0 && day.required === 0,
+      'shortage': day.gap < 0,
+      'sufficient': day.gap === 0 && day.required > 0,
+      'surplus': day.gap > 0,
+    }
+  }
   return {
     'has-workers': day.allocated > 0,
     'no-workers': day.allocated === 0,
-    // Sprint 2: 'shortage': day.gap !== null && day.gap < 0,
-    // Sprint 2: 'fulfilled': day.gap !== null && day.gap >= 0,
   }
+}
+
+/** 配置数/必要数の色クラス */
+function getDemandRatioClass(day: SiteDayData): string {
+  if (day.gap === null) return ''
+  if (day.gap < 0) return 'ratio-shortage'
+  if (day.gap > 0) return 'ratio-surplus'
+  return 'ratio-sufficient'
+}
+
+/** 過不足数の色クラス */
+function getDemandGapClass(day: SiteDayData): string {
+  if (day.gap === null) return ''
+  if (day.gap < 0) return 'gap-shortage'
+  if (day.gap > 0) return 'gap-surplus'
+  return 'gap-sufficient'
 }
 
 /** 配置者名をカンマ区切りで表示 */
@@ -234,10 +268,61 @@ function formatWorkerNames(workers: SiteWorker[]): string {
   background: #f9fbe7;
 }
 
+/* Sprint 2: 過不足色分け */
+.allocation-cell.shortage {
+  background: #fef2f2; /* bg-red-50 */
+}
+
+.allocation-cell.sufficient {
+  background: #f0fdf4; /* bg-green-50 */
+}
+
+.allocation-cell.surplus {
+  background: #fefce8; /* bg-yellow-50 */
+}
+
 .allocation-content {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.demand-content {
+  gap: 0.15rem;
+}
+
+.demand-ratio {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.ratio-shortage {
+  color: #dc2626; /* red-600 */
+}
+
+.ratio-sufficient {
+  color: #16a34a; /* green-600 */
+}
+
+.ratio-surplus {
+  color: #ca8a04; /* yellow-600 */
+}
+
+.demand-gap {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.gap-shortage {
+  color: #dc2626;
+}
+
+.gap-sufficient {
+  color: #16a34a;
+}
+
+.gap-surplus {
+  color: #ca8a04;
 }
 
 .worker-count {
@@ -287,6 +372,18 @@ function formatWorkerNames(workers: SiteWorker[]): string {
 
 .site-allocation-board.fullscreen .allocation-cell.has-workers {
   background: #1a2e1a;
+}
+
+.site-allocation-board.fullscreen .allocation-cell.shortage {
+  background: #2e1a1a;
+}
+
+.site-allocation-board.fullscreen .allocation-cell.sufficient {
+  background: #1a2e1a;
+}
+
+.site-allocation-board.fullscreen .allocation-cell.surplus {
+  background: #2e2a1a;
 }
 
 .site-allocation-board.fullscreen .worker-count {

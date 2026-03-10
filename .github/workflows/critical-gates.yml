@@ -7,7 +7,8 @@ on:
   pull_request:
     branches: [main, develop]
   push:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**', 'feature/**']
+  workflow_dispatch:
 
 jobs:
   # Gate 1: Framework Gate Check
