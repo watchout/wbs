@@ -17,7 +17,7 @@
           :class="{ 'is-dragging': isDragging }"
         >
           <div class="upload-content">
-            <Icon name="carbon:cloud-upload" size="48" class="upload-icon" />
+            <div class="upload-icon">📁</div>
             <p class="drag-text">
               ファイルをドラッグ&ドロップするか、クリックして選択
             </p>
@@ -29,7 +29,7 @@
               class="file-input"
               aria-label="工程表ファイル選択"
             />
-            <button type="button" @click="$refs.fileInput?.click()" class="btn btn-primary">
+            <button type="button" @click="handleFileInputClick" class="btn btn-primary">
               ファイルを選択
             </button>
             <p class="file-info">
@@ -48,7 +48,7 @@
 
         <!-- エラーメッセージ -->
         <div v-if="uploadError" class="error-message">
-          <Icon name="carbon:warning-fill" size="20" />
+          <span class="error-icon">⚠️</span>
           <span>{{ uploadError }}</span>
           <button type="button" @click="uploadError = ''" class="btn-close">×</button>
         </div>
@@ -64,7 +64,7 @@
         </div>
 
         <div v-else-if="documents.length === 0" class="empty-state">
-          <Icon name="carbon:inbox" size="48" />
+          <div class="empty-icon">📭</div>
           <p>工程表がまだアップロードされていません</p>
         </div>
 
@@ -133,7 +133,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import Icon from '~icons/carbon/cloud-upload'
 
 interface PlanningDocument {
   id: string
@@ -152,6 +151,11 @@ const uploadProgress = ref(0)
 const uploadError = ref('')
 const loading = ref(false)
 const documents = ref<PlanningDocument[]>([])
+
+// ファイル入力クリックハンドラー
+const handleFileInputClick = () => {
+  fileInput.value?.click()
+}
 
 // ファイル選択（クリック）
 const handleFileSelect = (event: Event) => {
@@ -255,8 +259,8 @@ const deleteDocument = async (documentId: string) => {
 
   try {
     await $fetch(`/api/planning-documents/${documentId}`, {
-      method: 'DELETE',
-    })
+      method: 'delete',
+    } as any)
     fetchDocuments()
   } catch (error) {
     uploadError.value = '削除に失敗しました'

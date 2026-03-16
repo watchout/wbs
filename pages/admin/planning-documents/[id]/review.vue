@@ -20,12 +20,12 @@
         <div class="info-grid">
           <div class="info-item">
             <label>プロジェクト名</label>
-            <p>{{ parseResults.projectName || '（未指定）' }}</p>
+            <p>{{ parseResults?.projectName || '（未指定）' }}</p>
           </div>
           <div class="info-item">
             <label>工期</label>
-            <p v-if="parseResults.duration?.startDate && parseResults.duration?.endDate">
-              {{ parseResults.duration.startDate }} ～ {{ parseResults.duration.endDate }}
+            <p v-if="parseResults?.duration?.startDate && parseResults?.duration?.endDate">
+              {{ parseResults?.duration?.startDate }} ～ {{ parseResults?.duration?.endDate }}
             </p>
             <p v-else>（未指定）</p>
           </div>
@@ -39,7 +39,7 @@
         </div>
 
         <!-- 警告メッセージ -->
-        <div v-if="parseResults.warnings?.length" class="warnings">
+        <div v-if="parseResults?.warnings?.length" class="warnings">
           <h3>⚠️ 注意事項</h3>
           <ul>
             <li v-for="(warning, idx) in parseResults.warnings" :key="idx">
@@ -200,7 +200,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import Icon from '~icons/carbon/warning-fill'
 
 interface Site {
   id: string
