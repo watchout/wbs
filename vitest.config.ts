@@ -25,7 +25,12 @@ export default defineConfig({
         '.nuxt/',
         '.output/',
         'coverage/'
-      ]
+      ],
+      all: false,
+      lines: 15,
+      functions: 15,
+      branches: 10,
+      statements: 15
     }
   }
 })

@@ -53,7 +53,7 @@ jobs:
         run: npm run typecheck
 
   # ============================================================
-  # Tests
+  # Tests with Coverage and Performance Monitoring
   # ============================================================
   test:
     name: Tests
@@ -100,6 +100,40 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Run tests with coverage
+        if: success()
+        run: npm run test:coverage
+        
+      - name: Check coverage threshold
+        if: success()
+        run: |
+          # Parse coverage output from the test run and check threshold
+          if [ -f coverage/coverage-summary.json ]; then
+            # Extract lines coverage from JSON
+            coverage=$(node -e "console.log(Math.round(require('./coverage/coverage-summary.json').total.lines.pct))")
+            echo "📊 Coverage: ${coverage}%"
+            if [ ${coverage} -lt 15 ]; then
+              echo "❌ Coverage is ${coverage}%, which is below the 15% threshold"
+              exit 1
+            fi
+            echo "✅ Coverage is ${coverage}%, meeting the 15% threshold"
+          else
+            echo "⚠️ Coverage report not found"
+          fi
+
+      - name: Analyze test execution time
+        if: always()
+        run: |
+          npm run test:perf || true
+
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
 
   # ============================================================
   # Build Check
