@@ -18,7 +18,7 @@ vi.mock('@anthropic-ai/sdk', () => {
 
 // Logger のモック
 vi.mock('./logger', () => ({
-  default: {
+  logger: {
     error: vi.fn(),
     warn: vi.fn(),
     info: vi.fn(),
