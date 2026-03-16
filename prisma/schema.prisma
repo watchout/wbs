@@ -60,6 +60,19 @@ enum ConfirmationStatus {
   CONFIRMED
 }
 
+enum DocumentFileType {
+  PDF
+  IMAGE
+}
+
+enum DocumentParseStatus {
+  PENDING
+  PARSING
+  PARSED
+  FAILED
+  NEEDS_REVIEW
+}
+
 // ------------ 課金関連 ENUMS ------------
 
 enum SubscriptionStatus {
@@ -103,6 +116,7 @@ model Organization {
   schedules   Schedule[]
   sites       Site[]
   siteDemands SiteDemand[]
+  planningDocuments PlanningDocument[]  // Sprint 4: 工程表ドキュメント
   auditLogs   AuditLog[]
   departments Department[]
   meetingRequests MeetingRequest[]
@@ -304,8 +318,9 @@ model Site {
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?    // 論理削除
 
-  schedules      Schedule[]
-  demands        SiteDemand[]
+  schedules        Schedule[]
+  demands          SiteDemand[]
+  planningDocuments PlanningDocument[]  // Sprint 4: 工程表
 
   @@index([organizationId, status])
   @@index([organizationId, name])
@@ -336,9 +351,63 @@ model SiteDemand {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
+  planningDocuments  PlanningDocument[] // Sprint 4: 逆参照
+
   @@unique([siteId, date, tradeType, timeSlot])
   @@index([organizationId, siteId, date])
   @@index([organizationId, date])
+}
+
+// ------------ 工程表AI読み取り（Sprint 4）------------
+
+model PlanningDocument {
+  id             String               @id @default(uuid())
+  organization   Organization         @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  site           Site?                @relation(fields: [siteId], references: [id])
+  siteId         String?              // nullable（紐付け前は NULL許容）
+
+  fileName       String               // 元ファイル名
+  fileType       DocumentFileType     // PDF or IMAGE
+  storagePath    String               // ファイル保存パス
+  fileSize       Int                  // バイト数
+  
+  parseStatus    DocumentParseStatus  @default(PENDING)
+  parserVersion  String?              // 使用したAIモデル/バージョン
+  rawExtractJson Json?                // AI抽出結果の生データ
+  summaryText    String?              // 人が読む要約
+  errorMessage   String?              // 解析失敗時のエラーメッセージ
+
+  uploadedBy     String               // 作成者ID
+  uploadedAt     DateTime             @default(now())
+  parsedAt       DateTime?            // 解析完了日時
+
+  // 逆参照
+  siteDemands    SiteDemand[]
+  reviews        PlanningParseReview[]
+
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?            // 論理削除
+
+  @@index([organizationId, siteId])
+  @@index([organizationId, parseStatus])
+}
+
+model PlanningParseReview {
+  id               String             @id @default(uuid())
+  
+  planningDocument PlanningDocument   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId       String
+
+  fieldPath        String             // 修正箇所（例: "demands[3].requiredCount"）
+  beforeValue      String?            // 修正前の値
+  afterValue       String             // 修正後の値
+
+  reviewedBy       String             // 修正者ID
+  reviewedAt       DateTime           @default(now())
+
+  @@index([documentId])
 }
 
 model ScheduleVersion {
