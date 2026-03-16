@@ -7,6 +7,11 @@
 import { vi } from 'vitest'
 import * as h3 from 'h3'
 
+// Set DATABASE_URL for tests if not already set
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'postgresql://wbs_dev:wbs_dev_password@localhost:5432/wbs_test'
+}
+
 // Nuxt auto-imports をグローバルに定義
 // @ts-ignore
 globalThis.defineEventHandler = h3.defineEventHandler
