@@ -5,7 +5,7 @@ import { defineEventHandler, readBody } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth } from '~/server/utils/authMiddleware'
 import { getUserOrganizationId } from '~/server/utils/authMiddleware'
-import logger from '~/server/utils/logger'
+import { logger } from '~/server/utils/logger'
 
 interface DemandRevision {
   demandId: string // 既存 SiteDemand ID
@@ -27,7 +27,7 @@ interface DemandsUpdateResponse {
 export default defineEventHandler(async (event) => {
   try {
     const user = await requireAuth(event)
-    const organizationId = await getUserOrganizationId(user.id)
+    const organizationId = user.organizationId
 
     if (!organizationId) {
       throw new Error('User organization not found')
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 確定前のみ修正可能
-    if (planningDoc.parseStatus === 'CONFIRMED') {
+    if (planningDoc.parseStatus === 'PARSED') {
       throw new Error('Cannot modify confirmed document')
     }
 
@@ -117,7 +117,7 @@ export default defineEventHandler(async (event) => {
       }
 
       updateData[dbField] = parsedValue
-      updateData.updatedBy = user.id
+      updateData.updatedBy = user.userId || ''
 
       // SiteDemand 更新
       await prisma.siteDemand.update({
@@ -134,7 +134,7 @@ export default defineEventHandler(async (event) => {
           fieldPath: revision.fieldPath,
           beforeValue: String(revision.beforeValue),
           afterValue: String(revision.afterValue),
-          reviewedBy: user.id,
+          reviewedBy: user.userId || '',
         },
         select: { id: true },
       })
@@ -146,7 +146,7 @@ export default defineEventHandler(async (event) => {
       documentId: id,
       updatedCount: updatedDemandIds.length,
       reviewCount: reviewIds.length,
-      userId: user.id,
+      userId: user.userId,
     })
 
     const response: DemandsUpdateResponse = {

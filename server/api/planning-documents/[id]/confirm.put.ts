@@ -5,7 +5,7 @@ import { defineEventHandler, readBody } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth } from '~/server/utils/authMiddleware'
 import { getUserOrganizationId } from '~/server/utils/authMiddleware'
-import logger from '~/server/utils/logger'
+import { logger } from '~/server/utils/logger'
 
 interface ConfirmDemand {
   index: number
@@ -32,7 +32,7 @@ interface ConfirmResponse {
 export default defineEventHandler(async (event) => {
   try {
     const user = await requireAuth(event)
-    const organizationId = await getUserOrganizationId(user.id)
+    const organizationId = user.organizationId
 
     if (!organizationId) {
       throw new Error('User organization not found')
@@ -83,21 +83,27 @@ export default defineEventHandler(async (event) => {
     // SiteDemand を一括作成（トランザクション）
     const createdDemands: string[] = []
 
-    const siteDemands = body.demands.map((demand) => ({
-      organizationId,
-      siteId: body.siteId,
-      date: new Date(demand.date),
-      tradeType: demand.taskName,
-      requiredCount: demand.requiredCount,
-      timeSlot: demand.timeSlots[0] || 'ALL_DAY', // 最初のタイムスロットを使用
-      priority: demand.priority,
-      sourceType: 'AI_PARSED' as const,
-      sourceDocumentId: id,
-      confidence: (planningDoc.rawExtractJson as any)?.confidence || 0.5,
-      confirmationStatus: 'CONFIRMED' as const,
-      note: demand.notes || null,
-      createdBy: user.id,
-    }))
+    const siteDemands = body.demands.map((demand) => {
+      const timeSlotValue = demand.timeSlots[0] || 'ALL_DAY'
+      const validTimeSlots = ['ALL_DAY', 'AM', 'PM', 'NIGHT']
+      const timeSlot = validTimeSlots.includes(timeSlotValue) ? timeSlotValue : 'ALL_DAY'
+      
+      return {
+        organizationId,
+        siteId: body.siteId,
+        date: new Date(demand.date),
+        tradeType: demand.taskName,
+        requiredCount: demand.requiredCount,
+        timeSlot: timeSlot as any, // TimeSlot enum型に型キャスト
+        priority: demand.priority,
+        sourceType: 'AI_PARSED' as const,
+        sourceDocumentId: id,
+        confidence: (planningDoc.rawExtractJson as any)?.confidence || 0.5,
+        confirmationStatus: 'CONFIRMED' as const,
+        note: demand.notes || null,
+        createdBy: user.userId || '',
+      }
+    })
 
     // 既存の同じドキュメントからの SiteDemand を削除
     await prisma.siteDemand.deleteMany({
@@ -119,7 +125,7 @@ export default defineEventHandler(async (event) => {
     await prisma.planningDocument.update({
       where: { id },
       data: {
-        parseStatus: 'CONFIRMED',
+        parseStatus: 'PARSED',
         siteId: body.siteId, // Site を紐付け
       },
     })
@@ -128,14 +134,14 @@ export default defineEventHandler(async (event) => {
       documentId: id,
       siteId: body.siteId,
       createdDemands: createdDemands.length,
-      userId: user.id,
+      userId: user.userId,
     })
 
     const response: ConfirmResponse = {
       documentId: id,
       confirmedCount: createdDemands.length,
       createdSiteDemands: createdDemands,
-      parseStatus: 'CONFIRMED',
+      parseStatus: 'PARSED',
     }
 
     return response

@@ -37,7 +37,7 @@ export async function resetDatabase() {
       // Clear tables in dependency order (reverse FK order)
       await tx.auditLog.deleteMany({})
       await tx.calendarWebhookChannel.deleteMany({})
-      await tx.calendarConnection.deleteMany({})
+      await tx.userCalendarConnection.deleteMany({})
       await tx.schedule.deleteMany({})
       await tx.sessionOtp.deleteMany({})
       await tx.session.deleteMany({})
@@ -82,7 +82,6 @@ export async function createTestOrganization(slug: string = 'test-org') {
     create: {
       name: `Test Org ${slug}`,
       slug,
-      settings: {},
     },
   })
 

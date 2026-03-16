@@ -4,7 +4,7 @@
 import fs from 'fs'
 import path from 'path'
 import Anthropic from '@anthropic-ai/sdk'
-import logger from './logger'
+import { logger } from './logger'
 
 /**
  * 工程表から抽出された需要情報

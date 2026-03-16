@@ -126,10 +126,12 @@ model Organization {
   subscription         Subscription?
   aiCreditBalance      AiCreditBalance?
   aiCreditTransactions AiCreditTransaction[]
+  aiCreditHistories    AiCreditHistory[]
 
   // AI アシスタント設定
   llmProvider  String   @default("openai")  // "claude" | "openai" | "gemini"
   llmModel     String?  // カスタムモデル名（null=デフォルト使用）
+  llmSettings  LlmSetting?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -186,6 +188,7 @@ model User {
 
   schedulesAuthored Schedule[]   @relation("author")
   auditLogs      AuditLog[]
+  sessions       Session[]
 
   // 日程調整関連
   meetingsOrganized MeetingRequest[] @relation("meetingOrganizer")
@@ -239,6 +242,8 @@ model UserCalendarConnection {
   lastSyncedAt   DateTime?
 
   status         String   @default("active")  // active / error / disconnected
+
+  webhookChannels CalendarWebhookChannel[]
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -658,4 +663,80 @@ model CohortConfig {
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+// ------------ 欠落モデル（Sprint 4）  -----------
+
+model Session {
+  id             String   @id @default(uuid())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  token          String   @unique
+  expiresAt      DateTime
+
+  otps           SessionOtp[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, expiresAt])
+}
+
+model SessionOtp {
+  id             String   @id @default(uuid())
+  session        Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId      String
+
+  code           String           // 6桁コード（ハッシュ化）
+  attempts       Int      @default(0)
+  expiresAt      DateTime
+
+  createdAt      DateTime @default(now())
+
+  @@index([sessionId, expiresAt])
+}
+
+model AiCreditHistory {
+  id              String   @id @default(uuid())
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  organizationId  String
+
+  type            String   // "usage" | "grant" | "adjustment"
+  amount          Int
+  description     String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+model LlmSetting {
+  id              String   @id @default(uuid())
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  organizationId  String   @unique
+
+  provider        String   // "openai" | "anthropic" | etc
+  model           String   // "gpt-4", "claude-3" etc
+  apiKey          String?  // 暗号化保存
+  temperature     Float    @default(0.7)
+  maxTokens       Int      @default(4000)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model CalendarWebhookChannel {
+  id              String   @id @default(uuid())
+  userConnection  UserCalendarConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connectionId    String
+
+  channelId       String   @unique
+  resourceId      String
+  token           String
+  expiresAt       DateTime
+
+  createdAt       DateTime @default(now())
+
+  @@index([connectionId])
 }

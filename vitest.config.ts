@@ -14,9 +14,14 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     exclude: ['node_modules/**', 'tests/e2e/**', '**/*.spec.ts'],
     // Optimization: parallel execution with optimal thread count
-    threads: true,
-    maxThreads: 4,
-    minThreads: 2,
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        maxThreads: 4,
+        minThreads: 2,
+        singleThread: false,
+      }
+    },
     // Increase timeout for slow crypto operations
     testTimeout: 15000,
     hookTimeout: 15000,
@@ -36,10 +41,12 @@ export default defineConfig({
         'coverage/'
       ],
       all: false,
-      lines: 15,
-      functions: 15,
-      branches: 10,
-      statements: 15
+      thresholds: {
+        lines: 15,
+        functions: 15,
+        branches: 10,
+        statements: 15
+      }
     }
   }
 })

@@ -5,7 +5,7 @@ import { defineEventHandler, getQuery } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth } from '~/server/utils/authMiddleware'
 import { getUserOrganizationId } from '~/server/utils/authMiddleware'
-import logger from '~/server/utils/logger'
+import { logger } from '~/server/utils/logger'
 
 interface ParseResultItem {
   index: number
@@ -35,7 +35,7 @@ interface ParseResultsResponse {
 export default defineEventHandler(async (event) => {
   try {
     const user = await requireAuth(event)
-    const organizationId = await getUserOrganizationId(user.id)
+    const organizationId = user.organizationId
 
     if (!organizationId) {
       throw new Error('User organization not found')

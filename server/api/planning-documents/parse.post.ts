@@ -4,7 +4,7 @@
 import { defineEventHandler, readMultipartFormData, sendError } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { visionParser } from '~/server/utils/visionParser'
-import logger from '~/server/utils/logger'
+import { logger } from '~/server/utils/logger'
 import { requireAuth } from '~/server/utils/authMiddleware'
 import type { PlanningDocumentParseResult } from '~/server/utils/visionParser'
 import * as fs from 'fs'
@@ -84,7 +84,7 @@ export default defineEventHandler(async (event) => {
       siteId,
       fileName,
       fileSize,
-      userId: user.id,
+      userId: user.userId,
     })
 
     // 一時ファイルに保存
@@ -119,7 +119,7 @@ export default defineEventHandler(async (event) => {
           parserVersion: 'claude-sonnet-4-vision-v1',
           rawExtractJson: parseResult as any,
           summaryText: generateSummary(parseResult),
-          uploadedBy: user.id,
+          uploadedBy: user.userId || '',
           parsedAt: new Date(),
         },
       })
