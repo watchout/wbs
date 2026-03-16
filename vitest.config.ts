@@ -12,6 +12,20 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    exclude: ['node_modules/**', 'tests/e2e/**', '**/*.spec.ts']
+    exclude: ['node_modules/**', 'tests/e2e/**', '**/*.spec.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.spec.ts',
+        '**/*.test.ts',
+        'dist/',
+        '.nuxt/',
+        '.output/',
+        'coverage/'
+      ]
+    }
   }
 })
