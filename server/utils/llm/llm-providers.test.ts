@@ -35,21 +35,21 @@ const mockPrisma = vi.hoisted(() => ({
 }))
 
 vi.mock('@anthropic-ai/sdk', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    messages: { create: mockClaudeCreate },
-  })),
+  default: class {
+    messages = { create: mockClaudeCreate }
+  },
 }))
 
 vi.mock('openai', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    chat: { completions: { create: mockOpenAiCreate } },
-  })),
+  default: class {
+    chat = { completions: { create: mockOpenAiCreate } }
+  },
 }))
 
 vi.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
-    getGenerativeModel: mockGetGenerativeModel,
-  })),
+  GoogleGenerativeAI: class {
+    getGenerativeModel = mockGetGenerativeModel
+  },
   SchemaType: {
     STRING: 'STRING',
     NUMBER: 'NUMBER',

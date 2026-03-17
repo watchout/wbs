@@ -8,11 +8,9 @@ import { VisionParser, type PlanningDocumentParseResult } from './visionParser'
 const mockCreate = vi.fn()
 vi.mock('@anthropic-ai/sdk', () => {
   return {
-    default: vi.fn(() => ({
-      messages: {
-        create: mockCreate,
-      },
-    })),
+    default: class {
+      messages = { create: mockCreate }
+    },
   }
 })
 

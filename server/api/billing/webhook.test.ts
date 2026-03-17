@@ -64,8 +64,8 @@ vi.mock('~/server/utils/logger', () => ({
 }))
 
 // h3 モック
-vi.mock('h3', async () => {
-  const actual = await vi.importActual('h3')
+vi.mock('h3', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>
   return {
     ...actual,
     readRawBody: (event: { _rawBody: unknown }) => Promise.resolve(event._rawBody),
@@ -185,17 +185,6 @@ describe('POST /api/billing/webhook', () => {
         debug: vi.fn(),
       }),
     }))
-    vi.doMock('h3', async () => {
-      const actual = await vi.importActual('h3')
-      return {
-        ...actual,
-        readRawBody: (event: { _rawBody: unknown }) => Promise.resolve(event._rawBody),
-        getHeader: (_event: unknown, name: string) => {
-          const headers = (_event as { _headers?: Record<string, string> })._headers || {}
-          return headers[name]
-        },
-      }
-    })
     const mod = await import('./webhook.post')
     handler = mod.default
   })
