@@ -112,12 +112,12 @@ export function getClientIp(event: { node: { req: { headers: Record<string, stri
     const ips = Array.isArray(xForwardedFor)
       ? xForwardedFor[0]
       : xForwardedFor.split(',')[0]
-    return ips.trim()
+    return (ips as string).trim()
   }
 
   const xRealIp = event.node.req.headers['x-real-ip']
   if (xRealIp) {
-    return Array.isArray(xRealIp) ? xRealIp[0] : xRealIp
+    return Array.isArray(xRealIp) ? xRealIp[0]! : xRealIp
   }
 
   return event.node.req.socket?.remoteAddress || 'unknown'

@@ -48,7 +48,7 @@ setInterval(() => {
 /** preview_assignment ブロックをパースする */
 function extractPreviewData(reply: string): Record<string, unknown> | null {
   const match = reply.match(/```preview_assignment\s*([\s\S]*?)```/)
-  if (match) {
+  if (match && match[1]) {
     try {
       return JSON.parse(match[1]) as Record<string, unknown>
     } catch {

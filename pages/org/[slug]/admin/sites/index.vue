@@ -184,8 +184,8 @@ function openEditModal(site: Site) {
     address: site.address || '',
     clientName: site.clientName || '',
     status: site.status,
-    startDate: site.startDate ? site.startDate.split('T')[0] : '',
-    endDate: site.endDate ? site.endDate.split('T')[0] : '',
+    startDate: site.startDate ? String(site.startDate).split('T')[0] : '',
+    endDate: site.endDate ? String(site.endDate).split('T')[0] : '',
     note: site.note || '',
   }
   formError.value = ''

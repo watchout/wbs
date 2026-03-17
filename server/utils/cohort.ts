@@ -75,7 +75,7 @@ export async function determineCohort(): Promise<CohortInfo> {
 
   // コホートを順番にチェック
   for (let i = 0; i < cohorts.length; i++) {
-    const cohort = cohorts[i]
+    const cohort = cohorts[i]!
 
     // このコホートにまだ空きがあるか
     if (currentPaidOrgs < cohort.maxOrgs) {

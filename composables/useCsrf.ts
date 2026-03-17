@@ -12,7 +12,7 @@ function getCsrfToken(): string | null {
   if (typeof document === 'undefined') return null
 
   const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/)
-  return match ? decodeURIComponent(match[1]) : null
+  return match && match[1] ? decodeURIComponent(match[1]) : null
 }
 
 /**
@@ -29,7 +29,7 @@ export function useCsrf() {
     const token = getCsrfToken()
     const headers = {
       ...(options.headers as Record<string, string> || {}),
-      ...(token ? { 'X-CSRF-Token': token } : {}),
+      ...(token ? { 'X-CSRF-Token': token as string } : {}),
     }
 
     const result = await $fetch(url, {

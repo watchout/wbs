@@ -177,7 +177,7 @@ describe('ClaudeProvider', () => {
 
       await provider.chat(messages)
 
-      const callArgs = mockClaudeCreate.mock.calls[0][0]
+      const callArgs = mockClaudeCreate.mock.calls[0]![0]
       const messageRoles = callArgs.messages.map(
         (m: { role: string }) => m.role
       )

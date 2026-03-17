@@ -69,7 +69,7 @@ export async function syncPlanToStripe(planConfig: PlanConfig): Promise<PlanConf
 
   if (existingProducts.data.length > 0) {
     // 既存の Product を更新
-    productId = existingProducts.data[0].id
+    productId = existingProducts.data[0]!.id
     await stripe.products.update(productId, {
       name: `ミエルボード ${planConfig.name}プラン`,
       description: planConfig.description || undefined,
@@ -151,7 +151,7 @@ export async function syncCreditPackToStripe(packConfig: CreditPackConfig): Prom
   let productId: string
 
   if (existingProducts.data.length > 0) {
-    productId = existingProducts.data[0].id
+    productId = existingProducts.data[0]!.id
     await stripe.products.update(productId, {
       name: `AI クレジット追加パック ${packConfig.name}`,
       description: `+${packConfig.credits}回/月`,

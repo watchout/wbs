@@ -69,7 +69,14 @@ export function decrypt(encryptedData: string): string {
     throw new Error('Invalid encrypted data format')
   }
 
-  const [ivBase64, authTagBase64, ciphertext] = parts
+  const ivBase64 = parts[0]
+  const authTagBase64 = parts[1]
+  const ciphertext = parts[2]
+
+  if (!ivBase64 || !authTagBase64 || !ciphertext) {
+    throw new Error('Invalid encrypted data format')
+  }
+
   const iv = Buffer.from(ivBase64, 'base64')
   const authTag = Buffer.from(authTagBase64, 'base64')
 
@@ -145,7 +152,14 @@ export function decryptWithKey(encryptedData: string, keyHex: string): string {
     throw new Error('Invalid encrypted data format')
   }
 
-  const [ivBase64, authTagBase64, ciphertext] = parts
+  const ivBase64 = parts[0]
+  const authTagBase64 = parts[1]
+  const ciphertext = parts[2]
+
+  if (!ivBase64 || !authTagBase64 || !ciphertext) {
+    throw new Error('Invalid encrypted data format')
+  }
+
   const iv = Buffer.from(ivBase64, 'base64')
   const authTag = Buffer.from(authTagBase64, 'base64')
 

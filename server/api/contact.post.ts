@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. Organizationの作成
     // 会社名が提供されればそれを使用、なければメールドメインから生成
-    const domain = email.split('@')[1]
+    const domain = email.split('@')[1]!
     const orgName = companyName?.trim() || `${domain.split('.')[0]} (仮)`
 
     const slug = generateOrgSlug(orgName)

@@ -59,7 +59,7 @@ function loadWeather() {
     { icon: '⛅', temp: 10 },
     { icon: '🌧️', temp: 8 }
   ]
-  weather.value = weathers[Math.floor(Math.random() * weathers.length)]
+  weather.value = weathers[Math.floor(Math.random() * weathers.length)] ?? { icon: '☀️', temp: 12 }
 }
 
 onMounted(() => {

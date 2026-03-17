@@ -290,7 +290,7 @@ async function getSiteAllocationData(
   for (const s of schedules) {
     const meta = parseScheduleMetadata(s.description ?? '')
     const siteName = meta.siteName ?? '未設定'
-    const dateStr = s.start.toISOString().split('T')[0]
+    const dateStr = s.start.toISOString().split('T')[0]!
 
     if (!siteMap[siteName]) {
       siteMap[siteName] = { workers: [] }

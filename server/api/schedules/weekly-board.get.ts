@@ -166,7 +166,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
         'friday',
         'saturday'
       ] as const
-      const dayKey = dayKeys[dayOfWeek]
+      const dayKey = dayKeys[dayOfWeek]!
 
       // DaySchedule オブジェクトを作成
       const daySchedule: DaySchedule = {
