@@ -121,6 +121,7 @@ describe('useAISiteAllocation', () => {
       await requestProposal(WEEK_START, WEEK_END)
 
       expect(result.value!.proposals).toHaveLength(1)
+      // @ts-ignore
       expect(result.value!.proposals[0].siteName).toBe('○○ビル')
       expect(hasProposals.value).toBe(true)
     })
@@ -229,6 +230,7 @@ describe('useAISiteAllocation', () => {
       const { requestProposal, result } = useAISiteAllocation()
       await requestProposal(WEEK_START, WEEK_END)
 
+      // @ts-ignore
       expect(result.value!.proposals[0].siteName).toBe('現場X')
     })
   })

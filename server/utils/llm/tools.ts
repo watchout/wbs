@@ -355,8 +355,9 @@ async function executeSearchSiteAllocation(
       // 日付ごとにグループ化
       const byDate: Record<string, string[]> = {}
       for (const w of workers) {
-        if (!byDate[w.date]) byDate[w.date] = []
-        byDate[w.date].push(w.name)
+        const dateKey = w.date!
+        if (!byDate[dateKey]) byDate[dateKey] = []
+        byDate[dateKey].push(w.name)
       }
       return {
         siteName,

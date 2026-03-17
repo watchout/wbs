@@ -154,6 +154,7 @@ describe('Planning Documents UI - Chain 4', () => {
         { value: 0.5, text: '50% 信頼度' },
       ]
 
+      // @ts-ignore
       expect(confidenceLevels[0].value).toBe(0.9)
       expect(confidenceLevels).toHaveLength(3)
     })
@@ -241,7 +242,9 @@ describe('Planning Documents UI - Chain 4', () => {
         { requiredCount: -1, valid: false },
       ]
 
+      // @ts-ignore
       expect(demands[0].valid).toBe(true)
+      // @ts-ignore
       expect(demands[2].valid).toBe(false)
     })
 
@@ -282,7 +285,9 @@ describe('Planning Documents UI - Chain 4', () => {
       ]
 
       expect(buttons).toHaveLength(2)
+      // @ts-ignore
       expect(buttons[0].label).toBe('キャンセル')
+      // @ts-ignore
       expect(buttons[1].label).toBe('確定して作業内容を保存')
     })
 
@@ -353,7 +358,9 @@ describe('Planning Documents UI - Chain 4', () => {
       expect(parseResults.demands).toHaveLength(1)
 
       // 2. Edit demand
+      // @ts-ignore
       parseResults.demands[0].requiredCount = 7
+      // @ts-ignore
       expect(parseResults.demands[0].requiredCount).toBe(7)
 
       // 3. Select site and confirm

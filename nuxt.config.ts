@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   // TypeScript設定
   typescript: {
     strict: true,
-    typeCheck: false
+    typeCheck: true
   },
 
   // サーバー設定

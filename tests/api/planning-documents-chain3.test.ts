@@ -39,9 +39,13 @@ describe('Planning Documents API - Chain 3', () => {
       )
 
       expect(demands).toHaveLength(1)
+      // @ts-ignore
       expect(demands[0].taskName).toBe('電気工事')
+      // @ts-ignore
       expect(demands[0].requiredCount).toBe(5)
+      // @ts-ignore
       expect(demands[0].priority).toBe('HIGH')
+      // @ts-ignore
       expect(demands[0].confidence).toBe(0.92)
     })
 
@@ -68,8 +72,11 @@ describe('Planning Documents API - Chain 3', () => {
         })
       )
 
+      // @ts-ignore
       expect(demands[0].priority).toBe('MEDIUM')
+      // @ts-ignore
       expect(demands[0].timeSlots).toEqual(['ALL_DAY'])
+      // @ts-ignore
       expect(demands[0].notes).toBeUndefined()
     })
 
@@ -138,9 +145,13 @@ describe('Planning Documents API - Chain 3', () => {
       }))
 
       expect(siteDemands).toHaveLength(1)
+      // @ts-ignore
       expect(siteDemands[0].tradeType).toBe('電気工事')
+      // @ts-ignore
       expect(siteDemands[0].requiredCount).toBe(5)
+      // @ts-ignore
       expect(siteDemands[0].sourceType).toBe('AI_PARSED')
+      // @ts-ignore
       expect(siteDemands[0].sourceDocumentId).toBe('doc-123')
     })
 
@@ -185,8 +196,11 @@ describe('Planning Documents API - Chain 3', () => {
       ]
 
       expect(demands).toHaveLength(3)
+      // @ts-ignore
       expect(demands[0].taskName).toBe('工事A')
+      // @ts-ignore
       expect(demands[1].taskName).toBe('工事B')
+      // @ts-ignore
       expect(demands[2].taskName).toBe('工事C')
     })
 
@@ -269,9 +283,13 @@ describe('Planning Documents API - Chain 3', () => {
       }))
 
       expect(reviews).toHaveLength(2)
+      // @ts-ignore
       expect(reviews[0].fieldPath).toBe('requiredCount')
+      // @ts-ignore
       expect(reviews[0].beforeValue).toBe('5')
+      // @ts-ignore
       expect(reviews[0].afterValue).toBe('7')
+      // @ts-ignore
       expect(reviews[1].fieldPath).toBe('priority')
     })
 
@@ -322,7 +340,9 @@ describe('Planning Documents API - Chain 3', () => {
         ...d,
       }))
 
+      // @ts-ignore
       expect(demands[0].index).toBe(0)
+      // @ts-ignore
       expect(demands[0].taskName).toBe('電気工事')
 
       // Step 3: Confirm and create SiteDemands
@@ -336,6 +356,7 @@ describe('Planning Documents API - Chain 3', () => {
 
       expect(confirmRequest.siteId).toBe('site-123')
       expect(confirmRequest.demands).toHaveLength(1)
+      // @ts-ignore
       expect(confirmRequest.demands[0].date).toBe('2026-03-20')
     })
 
@@ -378,7 +399,9 @@ describe('Planning Documents API - Chain 3', () => {
       ]
 
       expect(revisions).toHaveLength(2)
+      // @ts-ignore
       expect(revisions[0].beforeValue).toBe(initialState.requiredCount)
+      // @ts-ignore
       expect(revisions[1].beforeValue).toBe(initialState.priority)
     })
   })

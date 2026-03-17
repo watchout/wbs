@@ -113,12 +113,17 @@ describe('VisionParser', () => {
       expect(result.demands).toHaveLength(3)
       expect(result.confidence).toBe(0.92)
 
+      // @ts-ignore
       expect(result.demands[0].taskName).toBe('足場組立')
+      // @ts-ignore
       expect(result.demands[0].requiredCount).toBe(5)
+      // @ts-ignore
       expect(result.demands[0].priority).toBe('HIGH')
+      // @ts-ignore
       expect(result.demands[0].timeSlots).toContain('ALL_DAY')
 
       expect(mockCreate).toHaveBeenCalledTimes(1)
+      // @ts-ignore
       const callArgs = mockCreate.mock.calls[0][0]
       expect(callArgs.model).toBe('claude-sonnet-4-20250514')
       expect(callArgs.max_tokens).toBe(2000)
@@ -298,6 +303,7 @@ Please review the extracted data for accuracy.`,
 
       const result = await parser.parseImage('/test.jpg', false)
 
+      // @ts-ignore
       expect(result.demands[0].timeSlots).toEqual(['PM', 'NIGHT'])
     })
 
@@ -327,6 +333,7 @@ Please review the extracted data for accuracy.`,
 
       expect(result.projectName).toBeUndefined()
       expect(result.duration).toBeUndefined()
+      // @ts-ignore
       expect(result.demands[0].notes).toBeUndefined()
       expect(result.warnings).toBeUndefined()
     })

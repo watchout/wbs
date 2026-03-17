@@ -111,7 +111,7 @@ export async function getLaunchDiscountStatus(): Promise<LaunchDiscountStatus> {
   const cohortConfigs = await getCohortConfigFromDB()
 
   const cohorts = cohortConfigs.map((cohort, index) => {
-    const prevMax = index === 0 ? 0 : cohortConfigs[index - 1].maxOrgs
+    const prevMax = index === 0 ? 0 : cohortConfigs[index - 1]!.maxOrgs
     const cohortCapacity = cohort.maxOrgs - prevMax
 
     let filledOrgs = 0

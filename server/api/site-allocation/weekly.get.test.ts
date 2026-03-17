@@ -199,6 +199,7 @@ describe('GET /api/site-allocation/weekly', () => {
       expect(mondayData).toBeDefined()
       expect(mondayData!.allocated).toBeGreaterThanOrEqual(1)
       expect(mondayData!.workers.length).toBeGreaterThanOrEqual(1)
+      // @ts-ignore
       expect(mondayData!.workers[0].name).toBeDefined()
     })
 
@@ -324,7 +325,7 @@ describe('GET /api/site-allocation/weekly', () => {
         s.days.reduce((sum, d) => sum + d.allocated, 0)
       )
       for (let i = 0; i < totals.length - 1; i++) {
-        expect(totals[i]).toBeGreaterThanOrEqual(totals[i + 1])
+        expect(totals[i]).toBeGreaterThanOrEqual(totals[i + 1]!)
       }
     })
   })

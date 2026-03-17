@@ -218,6 +218,7 @@ describe('POST /api/calendar/sync', () => {
 
       // Verify orgB's connection was NOT used
       const calls = vi.mocked(syncCalendar).mock.calls
+      // @ts-ignore
       const connectionUsed = calls[0][0]
       expect(connectionUsed.organizationId).toBe(ctxA.org.id)
       expect(connectionUsed.organizationId).not.toBe(ctxB.org.id)
