@@ -3,7 +3,6 @@
 
 import type { LlmToolDefinition } from './provider'
 import { prisma } from '../prisma'
-import { parseScheduleMetadata, getWeekStart, getWeekEnd } from '../scheduleFormatter'
 
 // ===== ツール定義 =====
 
@@ -260,22 +259,36 @@ async function executeSearchUsers(
   }
 }
 
-// ===== 現場配置AIツール ハンドラー（Phase 1） =====
+// ===== 現場配置AIツール ハンドラー（Sprint 2: Site/SiteDemandテーブル活用） =====
 
-/** 現場ごとのワーカー（日付付き）のマップ型 */
-type SiteWorkerEntry = { userId: string; name: string; date: string }
-type SiteAllocationMap = Record<string, { workers: SiteWorkerEntry[] }>
-
-/** スケジュールから現場×日の集計を取得する共通ロジック */
+/** Site/SiteDemandテーブルから現場×日の配置・需要データを取得 */
 async function getSiteAllocationData(
   startDate: string,
   endDate: string,
-  organizationId: string
-): Promise<SiteAllocationMap> {
+  organizationId: string,
+  siteId?: string
+) {
+  const siteWhere: Record<string, unknown> = {
+    organizationId,
+    status: 'ACTIVE',
+    deletedAt: null,
+  }
+  if (siteId) siteWhere.id = siteId
+
+  const sites = await prisma.site.findMany({
+    where: siteWhere,
+    select: { id: true, name: true },
+  })
+
+  const siteIds = sites.map((s) => s.id)
+  const siteNameMap = new Map(sites.map((s) => [s.id, s.name]))
+
+  // 配置（Schedule）を取得
   const schedules = await prisma.schedule.findMany({
     where: {
       organizationId,
       deletedAt: null,
+      siteId: { in: siteIds },
       start: { gte: new Date(startDate) },
       end: { lte: new Date(`${endDate}T23:59:59`) },
     },
@@ -285,24 +298,16 @@ async function getSiteAllocationData(
     orderBy: { start: 'asc' },
   })
 
-  const siteMap: SiteAllocationMap = {}
+  // 需要（SiteDemand）を取得
+  const demands = await prisma.siteDemand.findMany({
+    where: {
+      organizationId,
+      siteId: { in: siteIds },
+      date: { gte: new Date(startDate), lte: new Date(endDate) },
+    },
+  })
 
-  for (const s of schedules) {
-    const meta = parseScheduleMetadata(s.description ?? '')
-    const siteName = meta.siteName ?? '未設定'
-    const dateStr = s.start.toISOString().split('T')[0]!
-
-    if (!siteMap[siteName]) {
-      siteMap[siteName] = { workers: [] }
-    }
-    siteMap[siteName].workers.push({
-      userId: s.author?.id ?? '',
-      name: s.author?.name ?? '不明',
-      date: dateStr,
-    })
-  }
-
-  return siteMap
+  return { sites, siteNameMap, schedules, demands }
 }
 
 async function executeSearchSiteDemand(
@@ -311,27 +316,34 @@ async function executeSearchSiteDemand(
 ): Promise<ToolResult> {
   const startDate = typeof args.startDate === 'string' ? args.startDate : ''
   const endDate = typeof args.endDate === 'string' ? args.endDate : ''
-  const siteIdFilter = typeof args.siteId === 'string' ? args.siteId : undefined
+  const siteId = typeof args.siteId === 'string' ? args.siteId : undefined
 
   if (!startDate || !endDate) {
     return { success: false, data: null, message: 'startDate と endDate は必須です' }
   }
 
-  const siteMap = await getSiteAllocationData(startDate, endDate, organizationId)
+  const { sites, schedules, demands } = await getSiteAllocationData(startDate, endDate, organizationId, siteId)
 
-  const results = Object.entries(siteMap)
-    .filter(([siteName]) => !siteIdFilter || siteName === siteIdFilter)
-    .map(([siteName, { workers }]) => ({
-      siteName,
-      siteId: null, // Sprint 2 で Site テーブル導入後に有効化
-      allocated: workers.length,
-      required: null, // Sprint 2 で SiteDemand 導入後に有効化
-    }))
+  // 現場ごとに集計
+  const results = sites.map((site) => {
+    const siteSchedules = schedules.filter((s) => s.siteId === site.id)
+    const siteDemands = demands.filter((d) => d.siteId === site.id)
+    const totalRequired = siteDemands.reduce((sum, d) => sum + d.requiredCount, 0)
+    const totalAllocated = siteSchedules.length
+
+    return {
+      siteName: site.name,
+      siteId: site.id,
+      allocated: totalAllocated,
+      required: totalRequired,
+      shortage: totalRequired - totalAllocated,
+    }
+  })
 
   return {
     success: true,
     data: results,
-    message: `${results.length}件の現場の配置状況（需要データはSprint 2以降）`,
+    message: `${results.length}件の現場の需要・配置状況`,
   }
 }
 
@@ -341,27 +353,26 @@ async function executeSearchSiteAllocation(
 ): Promise<ToolResult> {
   const startDate = typeof args.startDate === 'string' ? args.startDate : ''
   const endDate = typeof args.endDate === 'string' ? args.endDate : ''
-  const siteNameFilter = typeof args.siteId === 'string' ? args.siteId : undefined
+  const siteId = typeof args.siteId === 'string' ? args.siteId : undefined
 
   if (!startDate || !endDate) {
     return { success: false, data: null, message: 'startDate と endDate は必須です' }
   }
 
-  const siteMap = await getSiteAllocationData(startDate, endDate, organizationId)
+  const { sites, schedules } = await getSiteAllocationData(startDate, endDate, organizationId, siteId)
 
-  const results = Object.entries(siteMap)
-    .filter(([siteName]) => !siteNameFilter || siteName === siteNameFilter)
-    .map(([siteName, { workers }]) => {
-      // 日付ごとにグループ化
+  const results = sites
+    .map((site) => {
+      const siteSchedules = schedules.filter((s) => s.siteId === site.id)
       const byDate: Record<string, string[]> = {}
-      for (const w of workers) {
-        const dateKey = w.date!
-        if (!byDate[dateKey]) byDate[dateKey] = []
-        byDate[dateKey].push(w.name)
+      for (const s of siteSchedules) {
+        const dateStr = s.start.toISOString().split('T')[0]!
+        if (!byDate[dateStr]) byDate[dateStr] = []
+        byDate[dateStr].push(s.author?.name ?? '不明')
       }
       return {
-        siteName,
-        siteId: null,
+        siteName: site.name,
+        siteId: site.id,
         days: Object.entries(byDate).map(([date, names]) => ({
           date,
           allocated: names.length,
@@ -369,6 +380,7 @@ async function executeSearchSiteAllocation(
         })),
       }
     })
+    .filter((r) => r.days.length > 0)
 
   return {
     success: true,
@@ -388,29 +400,48 @@ async function executeSearchShortages(
     return { success: false, data: null, message: 'startDate と endDate は必須です' }
   }
 
-  // Sprint 1: 既存現場で配置が少ない日（1人以下）を不足とみなす
-  const siteMap = await getSiteAllocationData(startDate, endDate, organizationId)
+  const { sites, siteNameMap, schedules, demands } = await getSiteAllocationData(startDate, endDate, organizationId)
 
-  // 日付ごとに集計して配置0人の日を含む現場を不足候補とする
-  const shortages: Array<{ siteName: string; date: string; allocated: number }> = []
+  // SiteDemand ベースで不足を検出
+  const shortages: Array<{
+    siteName: string
+    siteId: string
+    date: string
+    tradeType: string
+    required: number
+    allocated: number
+    shortage: number
+  }> = []
 
-  for (const [siteName, { workers }] of Object.entries(siteMap)) {
-    const byDate: Record<string, number> = {}
-    for (const w of workers) {
-      byDate[w.date] = (byDate[w.date] ?? 0) + 1
-    }
-    for (const [date, count] of Object.entries(byDate)) {
-      if (count < 1) {
-        shortages.push({ siteName, date, allocated: count })
-      }
+  for (const demand of demands) {
+    const dateStr = demand.date.toISOString().split('T')[0]!
+    // 同じ現場・同日の配置数をカウント
+    const allocated = schedules.filter(
+      (s) => s.siteId === demand.siteId && s.start.toISOString().split('T')[0] === dateStr
+    ).length
+    const shortage = demand.requiredCount - allocated
+
+    if (shortage > 0) {
+      shortages.push({
+        siteName: siteNameMap.get(demand.siteId) ?? '不明',
+        siteId: demand.siteId,
+        date: dateStr,
+        tradeType: demand.tradeType,
+        required: demand.requiredCount,
+        allocated,
+        shortage,
+      })
     }
   }
+
+  // 不足数の大きい順にソート
+  shortages.sort((a, b) => b.shortage - a.shortage)
 
   return {
     success: true,
     data: shortages,
     message: shortages.length > 0
-      ? `${shortages.length}件の不足が見つかりました（Sprint 1: 配置0人の日を不足として検出）`
+      ? `${shortages.length}件の人員不足が見つかりました`
       : '指定期間に人員不足は検出されませんでした',
   }
 }

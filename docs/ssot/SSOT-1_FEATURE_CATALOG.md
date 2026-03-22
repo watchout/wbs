@@ -422,8 +422,8 @@ OPS-005:
 
 | ID | 機能 | レベル | 優先度 | 状態 | 備考 |
 |----|------|--------|-------|------|------|
-| AISITE-001 | AIコマンドバー（検索） | MUST | P0 | Designing | 現場別照会、空き検索、不足検索 |
-| AISITE-002 | AIコマンドバー（書き込み） | MUST | P0 | Designing | 配置変更プレビュー+確定 |
+| AISITE-001 | AIコマンドバー（検索） | MUST | P0 | Done | 現場別照会、空き検索、不足検索 |
+| AISITE-002 | AIコマンドバー（書き込み） | MUST | P0 | Done | 配置変更プレビュー+確定 |
 | AISITE-003 | 工程表アップロード | MUST | P0 | Done | PDF/画像、PlanningDocument |
 | AISITE-004 | 工程表AI解析 | MUST | P0 | Done | Vision AI→構造化データ変換 |
 | AISITE-005 | 解析結果確認・修正 | MUST | P0 | Done | 表形式UI、行単位修正 |
@@ -514,8 +514,8 @@ OPS-005:
 | SITE-001 | 現場マスタCRUD | MUST | Designing | 2 |
 | SITE-002 | 必要人員管理 | MUST | Designing | 2 |
 | SITE-003 | 現場ビュー | MUST | Designing | 1 |
-| AISITE-001 | AIコマンドバー（検索） | MUST | Designing | 3 |
-| AISITE-002 | AIコマンドバー（書き込み） | MUST | Designing | 3 |
+| AISITE-001 | AIコマンドバー（検索） | MUST | Done | 3 |
+| AISITE-002 | AIコマンドバー（書き込み） | MUST | Done | 3 |
 | AISITE-003 | 工程表アップロード | MUST | Done | 4 |
 | AISITE-004 | 工程表AI解析 | MUST | Done | 4 |
 | AISITE-005 | 解析結果確認・修正 | MUST | Done | 4 |
