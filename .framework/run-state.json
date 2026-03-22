@@ -21,6 +21,13 @@
       "description": "Sprint 4: 施工計画書DB・マイグレーション・AI解析",
       "startedAt": "2026-03-16T00:00:00.000Z",
       "completedAt": "2026-03-23T00:00:00.000Z"
+    },
+    {
+      "taskId": "sprint5-ai-allocation",
+      "status": "done",
+      "description": "Sprint 5: AI配置提案・仮配置フロー",
+      "startedAt": "2026-03-23T00:00:00.000Z",
+      "completedAt": "2026-03-23T00:00:00.000Z"
     }
   ]
 }

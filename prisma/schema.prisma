@@ -288,6 +288,10 @@ model Schedule {
   site           Site?        @relation(fields: [siteId], references: [id])
   siteId         String?
 
+  // Sprint 5: 仮配置フラグ（DRAFT=仮配置、false=確定配置）
+  isDraft        Boolean      @default(false)
+  proposalId     String?      // AI提案元のID（提案からの仮配置の場合）
+
   // 外部カレンダー同期用フィールド
   externalId        String?   // Googleカレンダーのevent.id
   externalSource    String?   // "google"

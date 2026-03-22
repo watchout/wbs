@@ -49,6 +49,7 @@ interface DaySchedule {
   end: string
   title: string
   isHoliday: boolean
+  isDraft?: boolean
 }
 
 interface Employee {
@@ -105,7 +106,8 @@ function isAllDay(schedule: DaySchedule | undefined): boolean {
 function getCellClass(schedule: DaySchedule | undefined): Record<string, boolean> {
   return {
     holiday: schedule?.isHoliday ?? false,
-    'all-day': isAllDay(schedule)
+    'all-day': isAllDay(schedule),
+    'is-draft': schedule?.isDraft ?? false,
   }
 }
 
@@ -209,6 +211,16 @@ function formatCellContent(schedule: DaySchedule | undefined): string {
 
 .schedule-cell.all-day {
   background: #e3f2fd;
+}
+
+/* Sprint 5: 仮配置の視覚的区別（AC-S5-05） */
+.schedule-cell.is-draft {
+  background: #fefce8;
+  border: 2px dashed #d97706;
+}
+.schedule-cell.is-draft .schedule-content {
+  color: #92400e;
+  font-style: italic;
 }
 
 .schedule-content {

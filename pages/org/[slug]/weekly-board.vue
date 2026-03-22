@@ -124,6 +124,7 @@ interface DaySchedule {
   end: string
   title: string
   isHoliday: boolean
+  isDraft?: boolean
 }
 
 interface Employee {

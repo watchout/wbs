@@ -427,8 +427,8 @@ OPS-005:
 | AISITE-003 | 工程表アップロード | MUST | P0 | Done | PDF/画像、PlanningDocument |
 | AISITE-004 | 工程表AI解析 | MUST | P0 | Done | Vision AI→構造化データ変換 |
 | AISITE-005 | 解析結果確認・修正 | MUST | P0 | Done | 表形式UI、行単位修正 |
-| AISITE-006 | AI配置提案 | MUST | P0 | Designing | 不足セル候補、スコア付き |
-| AISITE-007 | 仮配置フロー | MUST | P0 | Designing | draft→confirmed 2ステップ |
+| AISITE-006 | AI配置提案 | MUST | P0 | Done | 不足セル候補、スコア付き |
+| AISITE-007 | 仮配置フロー | MUST | P0 | Done | draft→confirmed 2ステップ |
 
 ---
 
@@ -519,8 +519,8 @@ OPS-005:
 | AISITE-003 | 工程表アップロード | MUST | Done | 4 |
 | AISITE-004 | 工程表AI解析 | MUST | Done | 4 |
 | AISITE-005 | 解析結果確認・修正 | MUST | Done | 4 |
-| AISITE-006 | AI配置提案 | MUST | Designing | 5 |
-| AISITE-007 | 仮配置フロー | MUST | Designing | 5 |
+| AISITE-006 | AI配置提案 | MUST | Done | 5 |
+| AISITE-007 | 仮配置フロー | MUST | Done | 5 |
 
 ---
 
