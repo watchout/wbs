@@ -540,3 +540,12 @@ npm run dev
 # 品質監査
 framework audit all
 ```
+
+---
+
+## CTO判断の参照先
+~/Developer/tech-lead/docs/decisions/CURRENT.md
+
+## ショートタグ
+このプロジェクトのタグは &wbs です。
+メッセージの先頭が & で始まり、かつ &wbs でない場合は「このメッセージは別プロジェクト宛です。該当のBotに転送してください。」と返して、それ以上の処理をしないでください。

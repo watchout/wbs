@@ -133,6 +133,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '~/composables/useAuth'
 
 interface PlanningDocument {
   id: string
@@ -145,6 +146,7 @@ interface PlanningDocument {
 }
 
 const router = useRouter()
+const { state: authState } = useAuth()
 const fileInput = ref<HTMLInputElement>()
 const isDragging = ref(false)
 const uploadProgress = ref(0)
@@ -202,7 +204,7 @@ const uploadFile = async (file: File) => {
   try {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('organizationId', 'org-placeholder') // 実装時は動的に取得
+    formData.append('organizationId', authState.value.organizationId || '')
 
     // アップロード進度シミュレーション
     const progressInterval = setInterval(() => {

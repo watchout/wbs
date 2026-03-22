@@ -4,7 +4,6 @@
 import { defineEventHandler } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth } from '~/server/utils/authMiddleware'
-import { getUserOrganizationId } from '~/server/utils/authMiddleware'
 import { logger } from '~/server/utils/logger'
 
 interface DocumentListResponse {

@@ -1,11 +1,18 @@
 {
-  "currentTaskId": "sprint2-site-demand",
+  "currentTaskId": null,
   "tasks": [
     {
       "taskId": "sprint2-site-demand",
-      "status": "in_progress",
+      "status": "done",
       "description": "Sprint 2: Site/SiteDemand CRUD + 不足一覧 + 色分けUI",
-      "startedAt": "2026-03-10T00:00:00.000Z"
+      "startedAt": "2026-03-10T00:00:00.000Z",
+      "completedAt": "2026-03-16T00:00:00.000Z"
+    },
+    {
+      "taskId": "sprint4-planning-db",
+      "status": "in_progress",
+      "description": "Sprint 4: 施工計画書DB・マイグレーション",
+      "startedAt": "2026-03-16T00:00:00.000Z"
     }
   ]
 }
