@@ -73,6 +73,21 @@ enum DocumentParseStatus {
   NEEDS_REVIEW
 }
 
+// ------------ 通知 ENUMS（Sprint 6）------------
+
+enum NotifChannel {
+  EMAIL
+  TOAST
+  PUSH
+}
+
+enum NotifStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
 // ------------ 課金関連 ENUMS ------------
 
 enum SubscriptionStatus {
@@ -128,6 +143,9 @@ model Organization {
   aiCreditTransactions AiCreditTransaction[]
   aiCreditHistories    AiCreditHistory[]
 
+  // 通知（Sprint 6）
+  notificationLogs     NotificationLog[]
+
   // AI アシスタント設定
   llmProvider  String   @default("openai")  // "claude" | "openai" | "gemini"
   llmModel     String?  // カスタムモデル名（null=デフォルト使用）
@@ -172,6 +190,9 @@ model User {
 
   // プラットフォーム管理: 横断管理者フラグ
   isPlatformAdmin  Boolean   @default(false)
+
+  // 通知設定（Sprint 6）
+  notifyEmail    Boolean   @default(true)
 
   // アカウントロック
   loginAttempts  Int       @default(0)
@@ -743,4 +764,26 @@ model CalendarWebhookChannel {
   createdAt       DateTime @default(now())
 
   @@index([connectionId])
+}
+
+// ------------ 通知ログ（Sprint 6）------------
+
+model NotificationLog {
+  id              String       @id @default(uuid())
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  organizationId  String
+
+  recipientId     String
+  channel         NotifChannel
+  eventType       String
+  subject         String?
+  body            String
+  status          NotifStatus  @default(PENDING)
+  sentAt          DateTime?
+  failReason      String?
+
+  createdAt       DateTime     @default(now())
+
+  @@index([organizationId, recipientId])
+  @@index([status])
 }

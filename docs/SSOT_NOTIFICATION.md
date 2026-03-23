@@ -9,8 +9,8 @@
 | 項目 | 内容 |
 |------|------|
 | Document ID | SSOT_NOTIFICATION |
-| Version | v0.1.0 (Draft) |
-| Status | Draft |
+| Version | v1.0.0 |
+| Status | Approved |
 | Owner | kaneko |
 | Created | 2026-03-23 |
 | Phase | Phase 2（横断機能強化） |

@@ -8,6 +8,7 @@ import { readBody, createError } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth, requireLeader } from '~/server/utils/authMiddleware'
 import { findAvailableSlots } from '~/server/utils/meetingScheduler'
+import { sendNotification, buildMeetingInviteEmail } from '~/server/utils/notification'
 
 interface CreateMeetingRequest {
   title: string
@@ -135,6 +136,35 @@ export default defineEventHandler(async (event): Promise<CreateMeetingResponse> 
     where: { id: meeting.id },
     data: { status: 'OPEN' }
   })
+
+  // 会議招待メール通知（Sprint 6: AC-N1-02）
+  const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'https://app.mielboard.com'
+  const organizer = await prisma.user.findUnique({
+    where: { id: auth.userId! },
+    select: { name: true },
+  })
+
+  for (const inviteeId of body.inviteeUserIds) {
+    const invitee = await prisma.user.findUnique({
+      where: { id: inviteeId },
+      select: { name: true },
+    })
+    const email = buildMeetingInviteEmail({
+      recipientName: invitee?.name || '参加者',
+      organizerName: organizer?.name || '主催者',
+      title: body.title,
+      proposedDates: [`${body.dateRangeStart} 〜 ${body.dateRangeEnd}`],
+      respondUrl: `${appUrl}/meetings/${meeting.id}`,
+    })
+    sendNotification({
+      organizationId: auth.organizationId,
+      recipientId: inviteeId,
+      channel: 'EMAIL',
+      eventType: 'meeting_invite',
+      subject: email.subject,
+      body: email.body,
+    })
+  }
 
   return {
     success: true,

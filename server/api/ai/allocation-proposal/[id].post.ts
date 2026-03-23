@@ -6,6 +6,7 @@ import { requireAuth } from '~/server/utils/authMiddleware'
 import { prisma } from '~/server/utils/prisma'
 import { createAuditLog, AUDIT_ACTIONS } from '~/server/utils/auditLog'
 import { logger } from '~/server/utils/logger'
+import { sendNotification, buildAssignmentChangeEmail } from '~/server/utils/notification'
 
 interface ApplyRequest {
   siteId: string
@@ -116,6 +117,26 @@ export default defineEventHandler(async (event) => {
       createdScheduleIds: createdSchedules,
     },
   })
+
+  // メール通知（Sprint 6: AC-N1-01）
+  const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'https://app.mielboard.com'
+  for (const user of users) {
+    const email = buildAssignmentChangeEmail({
+      recipientName: user.name || '担当者',
+      siteName: site.name,
+      date: body.date,
+      isDraft: true,
+      appUrl: `${appUrl}/org/${auth.organizationId}/weekly-board`,
+    })
+    sendNotification({
+      organizationId: auth.organizationId,
+      recipientId: user.id,
+      channel: 'EMAIL',
+      eventType: 'assignment_change',
+      subject: email.subject,
+      body: email.body,
+    })
+  }
 
   logger.info('AI proposal applied as draft', {
     proposalId,

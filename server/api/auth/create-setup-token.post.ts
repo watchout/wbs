@@ -11,6 +11,7 @@ import { readBody, createError } from 'h3'
 import { prisma } from '~/server/utils/prisma'
 import { requireAuth, requireAdmin } from '~/server/utils/authMiddleware'
 import { randomUUID } from 'crypto'
+import { sendNotification, buildPasswordResetEmail } from '~/server/utils/notification'
 
 interface CreateSetupTokenRequest {
   userId: string
@@ -74,6 +75,23 @@ export default defineEventHandler(async (event): Promise<CreateSetupTokenRespons
       setupTokenExpiry: expiresAt
     }
   })
+
+  // パスワードリセット通知メール（Sprint 6: AC-N1-03）
+  if (body.forReset) {
+    const appUrl = process.env.NUXT_PUBLIC_APP_URL || 'https://app.mielboard.com'
+    const email = buildPasswordResetEmail({
+      recipientName: user.name || 'ユーザー',
+      resetUrl: `${appUrl}/setup?token=${setupToken}`,
+    })
+    sendNotification({
+      organizationId: auth.organizationId,
+      recipientId: body.userId,
+      channel: 'EMAIL',
+      eventType: 'password_reset',
+      subject: email.subject,
+      body: email.body,
+    })
+  }
 
   return {
     success: true,

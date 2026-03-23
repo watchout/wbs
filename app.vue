@@ -2,9 +2,12 @@
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+  <ToastContainer />
 </template>
 
 <script setup lang="ts">
+import ToastContainer from '~/components/common/ToastContainer.vue'
+
 // ミエルボード for 現場 - メインアプリケーション
 useHead({
   titleTemplate: '%s | ミエルボード for 現場',

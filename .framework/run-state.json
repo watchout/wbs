@@ -1,27 +1,6 @@
 {
-  "currentTaskId": "phase2-tech-debt-p0",
+  "currentTaskId": "sprint6-notification",
   "tasks": [
-    {
-      "taskId": "sprint2-site-demand",
-      "status": "done",
-      "description": "Sprint 2: Site/SiteDemand CRUD + 不足一覧 + 色分けUI",
-      "startedAt": "2026-03-10T00:00:00.000Z",
-      "completedAt": "2026-03-16T00:00:00.000Z"
-    },
-    {
-      "taskId": "sprint3-ai-command-bar",
-      "status": "done",
-      "description": "Sprint 3: AIコマンドバー（検索・書き込み）",
-      "startedAt": "2026-03-13T00:00:00.000Z",
-      "completedAt": "2026-03-23T00:00:00.000Z"
-    },
-    {
-      "taskId": "sprint4-planning-db",
-      "status": "done",
-      "description": "Sprint 4: 施工計画書DB・マイグレーション・AI解析",
-      "startedAt": "2026-03-16T00:00:00.000Z",
-      "completedAt": "2026-03-23T00:00:00.000Z"
-    },
     {
       "taskId": "sprint5-ai-allocation",
       "status": "done",
@@ -31,8 +10,15 @@
     },
     {
       "taskId": "phase2-tech-debt-p0",
+      "status": "done",
+      "description": "Phase 2準備: 技術的負債P0修正",
+      "startedAt": "2026-03-23T00:00:00.000Z",
+      "completedAt": "2026-03-23T00:00:00.000Z"
+    },
+    {
+      "taskId": "sprint6-notification",
       "status": "in_progress",
-      "description": "Phase 2準備: 技術的負債P0修正（console.log除去、any型修正）",
+      "description": "Sprint 6: 通知基盤（メール通知 + トースト通知）",
       "startedAt": "2026-03-23T00:00:00.000Z"
     }
   ]
