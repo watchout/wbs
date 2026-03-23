@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
         (doc): DocumentListResponse => {
           let confidence: number | undefined
           if (doc.rawExtractJson && typeof doc.rawExtractJson === 'object') {
-            confidence = (doc.rawExtractJson as any).confidence
+            confidence = (doc.rawExtractJson as Record<string, unknown>).confidence as number | undefined
           }
 
           return {

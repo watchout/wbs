@@ -71,29 +71,30 @@ export default defineEventHandler(async (event) => {
     }
 
     // rawExtractJson から構造化データを抽出
-    const extractedData = planningDoc.rawExtractJson as any
-    const demands: ParseResultItem[] = (extractedData.demands || []).map(
-      (demand: any, index: number) => ({
+    const extractedData = planningDoc.rawExtractJson as Record<string, unknown>
+    const rawDemands = (extractedData.demands || []) as Array<Record<string, unknown>>
+    const demands: ParseResultItem[] = rawDemands.map(
+      (demand: Record<string, unknown>, index: number) => ({
         index,
-        taskName: demand.taskName || '',
-        requiredCount: demand.requiredCount || 0,
-        priority: demand.priority || 'MEDIUM',
-        timeSlots: demand.timeSlots || ['ALL_DAY'],
-        notes: demand.notes,
-        confidence: demand.confidence,
+        taskName: (demand.taskName as string) || '',
+        requiredCount: (demand.requiredCount as number) || 0,
+        priority: (demand.priority as 'HIGH' | 'MEDIUM' | 'LOW') || 'MEDIUM',
+        timeSlots: (demand.timeSlots as string[]) || ['ALL_DAY'],
+        notes: demand.notes as string | undefined,
+        confidence: demand.confidence as number | undefined,
       })
     )
 
     const response: ParseResultsResponse = {
       documentId: planningDoc.id,
       fileName: planningDoc.fileName,
-      projectName: extractedData.projectName,
-      duration: extractedData.duration,
+      projectName: extractedData.projectName as string | undefined,
+      duration: extractedData.duration as { startDate?: string; endDate?: string } | undefined,
       demands,
-      overallConfidence: extractedData.confidence || 0.5,
+      overallConfidence: (extractedData.confidence as number) || 0.5,
       parseStatus: planningDoc.parseStatus,
       uploadedAt: planningDoc.uploadedAt.toISOString(),
-      warnings: extractedData.warnings,
+      warnings: extractedData.warnings as string[] | undefined,
     }
 
     logger.info('Planning document parse results retrieved', {

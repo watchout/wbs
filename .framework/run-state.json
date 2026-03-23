@@ -1,5 +1,5 @@
 {
-  "currentTaskId": null,
+  "currentTaskId": "phase2-tech-debt-p0",
   "tasks": [
     {
       "taskId": "sprint2-site-demand",
@@ -28,6 +28,12 @@
       "description": "Sprint 5: AI配置提案・仮配置フロー",
       "startedAt": "2026-03-23T00:00:00.000Z",
       "completedAt": "2026-03-23T00:00:00.000Z"
+    },
+    {
+      "taskId": "phase2-tech-debt-p0",
+      "status": "in_progress",
+      "description": "Phase 2準備: 技術的負債P0修正（console.log除去、any型修正）",
+      "startedAt": "2026-03-23T00:00:00.000Z"
     }
   ]
 }

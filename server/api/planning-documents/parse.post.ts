@@ -117,7 +117,7 @@ export default defineEventHandler(async (event) => {
           fileSize,
           parseStatus: 'PARSED',
           parserVersion: 'claude-sonnet-4-vision-v1',
-          rawExtractJson: parseResult as any,
+          rawExtractJson: JSON.parse(JSON.stringify(parseResult)),
           summaryText: generateSummary(parseResult),
           uploadedBy: user.userId || '',
           parsedAt: new Date(),

@@ -93,11 +93,11 @@ export default defineEventHandler(async (event) => {
         date: new Date(demand.date),
         tradeType: demand.taskName,
         requiredCount: demand.requiredCount,
-        timeSlot: timeSlot as any, // TimeSlot enum型に型キャスト
+        timeSlot: timeSlot as 'ALL_DAY' | 'AM' | 'PM' | 'NIGHT',
         priority: demand.priority,
         sourceType: 'AI_PARSED' as const,
         sourceDocumentId: id,
-        confidence: (planningDoc.rawExtractJson as any)?.confidence || 0.5,
+        confidence: ((planningDoc.rawExtractJson as Record<string, unknown>)?.confidence as number) || 0.5,
         confirmationStatus: 'CONFIRMED' as const,
         note: demand.notes || null,
         createdBy: user.userId || '',
