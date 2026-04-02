@@ -179,8 +179,8 @@
 
 | ID | 機能 | レベル | 優先度 | 状態 | 備考 |
 |----|------|--------|-------|------|------|
-| NOTIF-001 | メール通知 | SHOULD | P2 | Backlog | Phase 2。WBS-004 AC7（会議招待）で初期実装 |
-| NOTIF-002 | トースト通知 | MAY | P2 | Out of Scope | Phase 2 |
+| NOTIF-001 | メール通知 | SHOULD | P2 | Done | Resend連携、リトライ3回、レート制限 |
+| NOTIF-002 | トースト通知 | MAY | P2 | Done | useToast composable + ToastContainer |
 | NOTIF-003 | 通知センター | MAY | P2 | Out of Scope | Phase 2 |
 | NOTIF-004 | プッシュ通知 | MAY | P2 | Out of Scope | Phase 2 |
 | NOTIF-005 | 通知再送 | MAY | P2 | Out of Scope | Phase 2 |
@@ -422,13 +422,13 @@ OPS-005:
 
 | ID | 機能 | レベル | 優先度 | 状態 | 備考 |
 |----|------|--------|-------|------|------|
-| AISITE-001 | AIコマンドバー（検索） | MUST | P0 | Designing | 現場別照会、空き検索、不足検索 |
-| AISITE-002 | AIコマンドバー（書き込み） | MUST | P0 | Designing | 配置変更プレビュー+確定 |
-| AISITE-003 | 工程表アップロード | MUST | P0 | Designing | PDF/画像、PlanningDocument |
-| AISITE-004 | 工程表AI解析 | MUST | P0 | Designing | Vision AI→構造化データ変換 |
-| AISITE-005 | 解析結果確認・修正 | MUST | P0 | Designing | 表形式UI、行単位修正 |
-| AISITE-006 | AI配置提案 | MUST | P0 | Designing | 不足セル候補、スコア付き |
-| AISITE-007 | 仮配置フロー | MUST | P0 | Designing | draft→confirmed 2ステップ |
+| AISITE-001 | AIコマンドバー（検索） | MUST | P0 | Done | 現場別照会、空き検索、不足検索 |
+| AISITE-002 | AIコマンドバー（書き込み） | MUST | P0 | Done | 配置変更プレビュー+確定 |
+| AISITE-003 | 工程表アップロード | MUST | P0 | Done | PDF/画像、PlanningDocument |
+| AISITE-004 | 工程表AI解析 | MUST | P0 | Done | Vision AI→構造化データ変換 |
+| AISITE-005 | 解析結果確認・修正 | MUST | P0 | Done | 表形式UI、行単位修正 |
+| AISITE-006 | AI配置提案 | MUST | P0 | Done | 不足セル候補、スコア付き |
+| AISITE-007 | 仮配置フロー | MUST | P0 | Done | draft→confirmed 2ステップ |
 
 ---
 
@@ -514,13 +514,13 @@ OPS-005:
 | SITE-001 | 現場マスタCRUD | MUST | Designing | 2 |
 | SITE-002 | 必要人員管理 | MUST | Designing | 2 |
 | SITE-003 | 現場ビュー | MUST | Designing | 1 |
-| AISITE-001 | AIコマンドバー（検索） | MUST | Designing | 3 |
-| AISITE-002 | AIコマンドバー（書き込み） | MUST | Designing | 3 |
-| AISITE-003 | 工程表アップロード | MUST | Designing | 4 |
-| AISITE-004 | 工程表AI解析 | MUST | Designing | 4 |
-| AISITE-005 | 解析結果確認・修正 | MUST | Designing | 4 |
-| AISITE-006 | AI配置提案 | MUST | Designing | 5 |
-| AISITE-007 | 仮配置フロー | MUST | Designing | 5 |
+| AISITE-001 | AIコマンドバー（検索） | MUST | Done | 3 |
+| AISITE-002 | AIコマンドバー（書き込み） | MUST | Done | 3 |
+| AISITE-003 | 工程表アップロード | MUST | Done | 4 |
+| AISITE-004 | 工程表AI解析 | MUST | Done | 4 |
+| AISITE-005 | 解析結果確認・修正 | MUST | Done | 4 |
+| AISITE-006 | AI配置提案 | MUST | Done | 5 |
+| AISITE-007 | 仮配置フロー | MUST | Done | 5 |
 
 ---
 

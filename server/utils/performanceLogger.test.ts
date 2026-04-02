@@ -73,6 +73,7 @@ describe('performanceLogger', () => {
       logPerformanceMetrics(metrics)
 
       expect(consoleSpy).toHaveBeenCalledTimes(1)
+      // @ts-ignore
       const output = consoleSpy.mock.calls[0][0]
       const parsed = JSON.parse(output)
 
@@ -95,6 +96,7 @@ describe('performanceLogger', () => {
 
       logPerformanceMetrics(metrics)
 
+      // @ts-ignore
       const output = consoleSpy.mock.calls[0][0]
       const parsed = JSON.parse(output)
 

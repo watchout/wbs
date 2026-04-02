@@ -1,4 +1,7 @@
 import { io, Socket } from 'socket.io-client'
+import { createClientLogger } from '~/utils/clientLogger'
+
+const log = createClientLogger('Socket.IO')
 
 // イベント定数（サーバー側と同期）
 export const EVENTS = {
@@ -37,23 +40,23 @@ export default defineNuxtPlugin(() => {
 
           // 接続イベント
           socket.on('connect', () => {
-            console.log('[Socket.IO] Connected:', socket?.id)
+            log.info('Connected', { socketId: socket?.id })
           })
 
           socket.on('disconnect', (reason) => {
-            console.log('[Socket.IO] Disconnected:', reason)
+            log.info('Disconnected', { reason })
           })
 
           socket.on('connect_error', (error) => {
-            console.error('[Socket.IO] Connection error:', error.message)
+            log.error('Connection error', { message: error.message })
           })
 
           socket.on('reconnect', (attemptNumber) => {
-            console.log('[Socket.IO] Reconnected after', attemptNumber, 'attempts')
+            log.info('Reconnected', { attemptNumber })
           })
 
           socket.on('reconnect_attempt', (attemptNumber) => {
-            console.log('[Socket.IO] Reconnection attempt:', attemptNumber)
+            log.debug('Reconnection attempt', { attemptNumber })
           })
 
           return socket
@@ -64,7 +67,7 @@ export default defineNuxtPlugin(() => {
           if (socket) {
             socket.disconnect()
             socket = null
-            console.log('[Socket.IO] Manually disconnected')
+            log.info('Manually disconnected')
           }
         },
 
@@ -72,14 +75,14 @@ export default defineNuxtPlugin(() => {
         joinOrganization(organizationId: string): void {
           const s = this.connect()
           s.emit(EVENTS.ROOM_JOIN, { organizationId })
-          console.log('[Socket.IO] Joining organization:', organizationId)
+          log.info('Joining organization', { organizationId })
         },
 
         // 組織ルームから退出
         leaveOrganization(organizationId: string): void {
           if (socket) {
             socket.emit(EVENTS.ROOM_LEAVE, { organizationId })
-            console.log('[Socket.IO] Leaving organization:', organizationId)
+            log.info('Leaving organization', { organizationId })
           }
         },
 
@@ -88,7 +91,7 @@ export default defineNuxtPlugin(() => {
           const s = this.connect()
 
           const handler = (data: { scheduleId: string; organizationId: string }) => {
-            console.log('[Socket.IO] Schedule change received:', data)
+            log.debug('Schedule change received', { scheduleId: data.scheduleId, organizationId: data.organizationId })
             callback(data)
           }
 

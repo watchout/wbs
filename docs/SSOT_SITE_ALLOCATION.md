@@ -9,8 +9,8 @@
 | 項目 | 内容 |
 |------|------|
 | Document ID | SSOT_SITE_ALLOCATION |
-| Version | v0.1.0 (Draft) |
-| Status | Draft |
+| Version | v1.0.0 |
+| Status | Approved |
 | Owner | kaneko |
 | Created | 2026-02-24 |
 | Phase | Phase 1（現場配置AIファースト） |

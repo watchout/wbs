@@ -66,7 +66,7 @@ export function sanitizeHtml(html: string): string {
       let attrMatch: RegExpExecArray | null = null
 
       while ((attrMatch = attrRegex.exec(match)) !== null) {
-        const attrName = attrMatch[1].toLowerCase()
+        const attrName = attrMatch[1]!.toLowerCase()
         const attrValue = attrMatch[2] ?? attrMatch[3] ?? attrMatch[4] ?? ''
         if (allowedAttrs.has(attrName)) {
           // href に javascript: が含まれていないか再チェック

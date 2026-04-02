@@ -39,14 +39,15 @@ async function findOrCreateProduct(
   })
 
   if (existing.data.length > 0) {
-    console.log(`  ✓ Product already exists: ${name} (${existing.data[0].id})`)
+    const existingProduct = existing.data[0]!
+    console.log(`  ✓ Product already exists: ${name} (${existingProduct.id})`)
     // 更新
-    await stripe.products.update(existing.data[0].id, {
+    await stripe.products.update(existingProduct.id, {
       name,
       description: description || undefined,
       metadata: { ...metadata, lookupKey },
     })
-    return existing.data[0]
+    return existingProduct
   }
 
   const product = await stripe.products.create({

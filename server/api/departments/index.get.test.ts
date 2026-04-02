@@ -178,8 +178,8 @@ describe('GET /api/departments', () => {
 
       // sortOrderでソートされていることを確認
       for (let i = 1; i < response.departments.length; i++) {
-        const prev = response.departments[i - 1]
-        const curr = response.departments[i]
+        const prev = response.departments[i - 1]!
+        const curr = response.departments[i]!
 
         // sortOrderが同じ場合は名前順
         if (prev.sortOrder === curr.sortOrder) {

@@ -44,37 +44,8 @@ const {
 }))
 
 // モック登録
-vi.mock('~/server/utils/prisma', () => ({ prisma: mockPrisma }))
-vi.mock('~/server/utils/stripe', () => ({
-  stripe: mockStripe,
-  PLAN_LIMITS: {
-    STARTER: { maxUsers: 10, monthlyAiCredits: 150, features: ['board'] },
-    BUSINESS: { maxUsers: 30, monthlyAiCredits: 400, features: ['board', 'calendar', 'signage'] },
-    ENTERPRISE: { maxUsers: -1, monthlyAiCredits: -1, features: ['board', 'calendar', 'signage', 'api'] },
-  },
-}))
-vi.mock('~/server/utils/aiCredits', () => mockAiCredits)
-vi.mock('~/server/utils/logger', () => ({
-  createLogger: () => ({
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  }),
-}))
-
-// h3 モック
-vi.mock('h3', async () => {
-  const actual = await vi.importActual('h3')
-  return {
-    ...actual,
-    readRawBody: (event: { _rawBody: unknown }) => Promise.resolve(event._rawBody),
-    getHeader: (_event: unknown, name: string) => {
-      const headers = (_event as { _headers?: Record<string, string> })._headers || {}
-      return headers[name]
-    },
-  }
-})
+// Note: All mocks are registered in beforeEach to handle module resets
+// vi.mock() at top-level is incompatible with vi.resetModules() + vi.doMock()
 
 // ================================================================
 // ヘルパー
@@ -167,6 +138,23 @@ describe('POST /api/billing/webhook', () => {
     // モジュールをリセットして再インポート（環境変数の変更を反映）
     vi.resetModules()
     // モック再登録
+    vi.doMock('h3', async (importOriginal) => {
+      const actual = await importOriginal() as Record<string, unknown>
+      return {
+        ...actual,
+        defineEventHandler: (handler: unknown) => handler,
+        readRawBody: (event: { _rawBody: unknown }) => Promise.resolve(event._rawBody),
+        getHeader: (_event: unknown, name: string) => {
+          const headers = (_event as { _headers?: Record<string, string> })._headers || {}
+          return headers[name]
+        },
+        createError: (options: { statusCode: number; message: string }) => {
+          const error = new Error(options.message) as Error & { statusCode?: number }
+          error.statusCode = options.statusCode
+          return error
+        },
+      }
+    })
     vi.doMock('~/server/utils/prisma', () => ({ prisma: mockPrisma }))
     vi.doMock('~/server/utils/stripe', () => ({
       stripe: mockStripe,
@@ -185,17 +173,6 @@ describe('POST /api/billing/webhook', () => {
         debug: vi.fn(),
       }),
     }))
-    vi.doMock('h3', async () => {
-      const actual = await vi.importActual('h3')
-      return {
-        ...actual,
-        readRawBody: (event: { _rawBody: unknown }) => Promise.resolve(event._rawBody),
-        getHeader: (_event: unknown, name: string) => {
-          const headers = (_event as { _headers?: Record<string, string> })._headers || {}
-          return headers[name]
-        },
-      }
-    })
     const mod = await import('./webhook.post')
     handler = mod.default
   })
@@ -253,10 +230,16 @@ describe('POST /api/billing/webhook', () => {
         const actual = await vi.importActual('h3')
         return {
           ...actual,
+          defineEventHandler: (handler: unknown) => handler,
           readRawBody: (event: { _rawBody: unknown }) => Promise.resolve(event._rawBody),
           getHeader: (_event: unknown, name: string) => {
             const headers = (_event as { _headers?: Record<string, string> })._headers || {}
             return headers[name]
+          },
+          createError: (options: { statusCode: number; message: string }) => {
+            const error = new Error(options.message) as Error & { statusCode?: number }
+            error.statusCode = options.statusCode
+            return error
           },
         }
       })

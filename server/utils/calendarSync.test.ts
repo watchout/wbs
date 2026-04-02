@@ -86,6 +86,8 @@ describe('calendarSync utility', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         siteId: null,
+        isDraft: false,
+        proposalId: null,
         deletedAt: null
       })
 
@@ -137,6 +139,8 @@ describe('calendarSync utility', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         siteId: null,
+        isDraft: false,
+        proposalId: null,
         deletedAt: null
       })
 
@@ -182,7 +186,9 @@ describe('calendarSync utility', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           siteId: null,
-        deletedAt: null
+          isDraft: false,
+          proposalId: null,
+          deletedAt: null
         }
       ])
 
@@ -334,6 +340,8 @@ describe('calendarSync utility', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         siteId: null,
+        isDraft: false,
+        proposalId: null,
         deletedAt: null
       })
 

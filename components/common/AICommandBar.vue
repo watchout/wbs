@@ -239,7 +239,10 @@ async function confirmAssignment(preview: PreviewItem[], msgIndex: number) {
       method: 'POST',
       body: { assignments: preview, organizationId: orgSlug.value },
     })
-    messages.value[msgIndex] = { ...messages.value[msgIndex], confirmed: true, preview: undefined }
+    const msg = messages.value[msgIndex]
+    if (msg) {
+      messages.value[msgIndex] = { role: msg.role ?? 'ai', content: msg.content ?? '', confirmed: true, preview: undefined }
+    }
     messages.value.push({ role: 'ai', content: '✅ 配置変更を確定しました。' })
   } catch {
     messages.value.push({ role: 'ai', content: '⚠️ 配置変更に失敗しました。' })
@@ -250,7 +253,10 @@ async function confirmAssignment(preview: PreviewItem[], msgIndex: number) {
 }
 
 function cancelPreview(msgIndex: number) {
-  messages.value[msgIndex] = { ...messages.value[msgIndex], preview: undefined }
+  const msg = messages.value[msgIndex]
+  if (msg) {
+    messages.value[msgIndex] = { role: msg.role ?? 'ai', content: msg.content ?? '', preview: undefined }
+  }
   messages.value.push({ role: 'ai', content: 'キャンセルしました。' })
 }
 

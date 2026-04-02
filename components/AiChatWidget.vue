@@ -274,31 +274,31 @@ function getAiResponse(query: string): string {
   
   // キーワードマッチング
   if (lowerQuery.includes('ai') || lowerQuery.includes('コンシェルジュ') || lowerQuery.includes('クレジット') || lowerQuery.includes('回数')) {
-    return aiResponses['AI']
+    return aiResponses['AI']!
   }
   if (lowerQuery.includes('料金') || lowerQuery.includes('価格') || lowerQuery.includes('プラン') || lowerQuery.includes('いくら')) {
-    return aiResponses['料金']
+    return aiResponses['料金']!
   }
   if (lowerQuery.includes('トライアル') || lowerQuery.includes('無料') || lowerQuery.includes('試') || lowerQuery.includes('始め')) {
-    return aiResponses['トライアル']
+    return aiResponses['トライアル']!
   }
   if (lowerQuery.includes('機能') || lowerQuery.includes('できる') || lowerQuery.includes('できること') || lowerQuery.includes('何が')) {
-    return aiResponses['機能']
+    return aiResponses['機能']!
   }
   if (lowerQuery.includes('サポート') || lowerQuery.includes('導入') || lowerQuery.includes('説明')) {
-    return aiResponses['サポート']
+    return aiResponses['サポート']!
   }
   if (lowerQuery.includes('カレンダー') || lowerQuery.includes('連携') || lowerQuery.includes('google') || lowerQuery.includes('outlook')) {
-    return aiResponses['カレンダー']
+    return aiResponses['カレンダー']!
   }
   if (lowerQuery.includes('セキュリティ') || lowerQuery.includes('安全') || lowerQuery.includes('データ')) {
-    return aiResponses['セキュリティ']
+    return aiResponses['セキュリティ']!
   }
   if (lowerQuery.includes('他社') || lowerQuery.includes('違い') || lowerQuery.includes('差別化')) {
-    return aiResponses['AI'] // AI標準搭載が差別化ポイント
+    return aiResponses['AI']! // AI標準搭載が差別化ポイント
   }
   
-  return aiResponses['default']
+  return aiResponses['default']!
 }
 
 function scrollToBottom() {

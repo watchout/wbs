@@ -124,6 +124,7 @@ interface DaySchedule {
   end: string
   title: string
   isHoliday: boolean
+  isDraft?: boolean
 }
 
 interface Employee {
@@ -182,7 +183,7 @@ const weekDays = computed(() => {
     const date = new Date(start)
     date.setDate(date.getDate() + index)
     return {
-      key: keys[index],
+      key: keys[index]!,
       label: `${label} ${date.getMonth() + 1}/${date.getDate()}`,
       date: formatLocalDate(date)
     }

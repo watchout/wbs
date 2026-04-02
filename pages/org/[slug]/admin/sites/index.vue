@@ -179,13 +179,15 @@ async function fetchSites() {
 
 function openEditModal(site: Site) {
   editingSite.value = site
+  const startDate = site.startDate ? String(site.startDate).split('T')[0] : ''
+  const endDate = site.endDate ? String(site.endDate).split('T')[0] : ''
   form.value = {
     name: site.name,
     address: site.address || '',
     clientName: site.clientName || '',
     status: site.status,
-    startDate: site.startDate ? site.startDate.split('T')[0] : '',
-    endDate: site.endDate ? site.endDate.split('T')[0] : '',
+    startDate: startDate as string,
+    endDate: endDate as string,
     note: site.note || '',
   }
   formError.value = ''

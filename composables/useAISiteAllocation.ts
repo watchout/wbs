@@ -58,7 +58,7 @@ export interface AISiteAllocationResult {
 function parseProposalsFromReply(reply: string): SiteProposal[] {
   // ```json ブロックがあれば抽出
   const jsonBlockMatch = reply.match(/```json\s*([\s\S]*?)```/)
-  if (jsonBlockMatch) {
+  if (jsonBlockMatch && jsonBlockMatch[1]) {
     try {
       const parsed = JSON.parse(jsonBlockMatch[1])
       if (Array.isArray(parsed)) return parsed as SiteProposal[]

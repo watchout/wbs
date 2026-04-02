@@ -60,9 +60,13 @@ describe('OPS-003: バックアップユーティリティ', () => {
 
       expect(result).toHaveLength(2)
       // Newer first
+      // @ts-ignore
       expect(result[0].filename).toBe('backup_auto_2025-06-02_09-00-00.sql.gz')
+      // @ts-ignore
       expect(result[0].type).toBe('auto')
+      // @ts-ignore
       expect(result[1].filename).toBe('backup_manual_2025-06-01_09-00-00.sql.gz')
+      // @ts-ignore
       expect(result[1].type).toBe('manual')
     })
 
@@ -93,6 +97,7 @@ describe('OPS-003: バックアップユーティリティ', () => {
       } as import('fs').Stats)
 
       const result = listBackups()
+      // @ts-ignore
       expect(result[0].sizeHuman).toBe('1.0 MB')
     })
   })

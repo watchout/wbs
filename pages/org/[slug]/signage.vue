@@ -127,7 +127,7 @@ const weekDays = computed(() => {
     date.setDate(date.getDate() + index)
     const isToday = date.getTime() === today.getTime()
     return {
-      key: keys[index],
+      key: keys[index]!,
       label: `${label} ${date.getMonth() + 1}/${date.getDate()}`,
       date: formatLocalDate(date),
       isToday
@@ -139,7 +139,7 @@ const todayKey = computed(() => {
   const today = new Date()
   const dayOfWeek = today.getDay()
   const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-  return keys[dayOfWeek]
+  return keys[dayOfWeek]!
 })
 
 const weekLabel = computed(() => {

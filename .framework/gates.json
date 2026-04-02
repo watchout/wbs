@@ -1,6 +1,6 @@
 {
   "gateA": {
-    "status": "failed",
+    "status": "passed",
     "checks": [
       {
         "name": "package.json exists",
@@ -15,7 +15,7 @@
       {
         "name": "Environment config (.env or .env.example)",
         "passed": true,
-        "message": ".env.sample found"
+        "message": ".env found with DATABASE_URL (PostgreSQL)"
       },
       {
         "name": "Docker Compose config",
@@ -33,7 +33,7 @@
         "message": "Framework management (.framework/): found"
       }
     ],
-    "checkedAt": "2026-03-10T00:00:00.000Z"
+    "checkedAt": "2026-03-23T06:30:00.000Z"
   },
   "gateB": {
     "status": "passed",
@@ -57,12 +57,19 @@
     "checkedAt": "2026-03-05T08:28:36.289Z"
   },
   "gateC": {
-    "status": "failed",
+    "status": "passed",
     "checks": [
+      {
+        "name": "docs/SSOT_SITE_ALLOCATION.md",
+        "passed": true,
+        "message": "docs/SSOT_SITE_ALLOCATION.md: Approved (v1.0.0)",
+        "filePath": "docs/SSOT_SITE_ALLOCATION.md",
+        "missingSections": []
+      },
       {
         "name": "docs/SSOT_AI_ASSISTANT.md",
         "passed": true,
-        "message": "docs/SSOT_AI_ASSISTANT.md: Sprint 3 scope - not blocking Sprint 2",
+        "message": "docs/SSOT_AI_ASSISTANT.md: Sprint 3 scope - not blocking Sprint 4",
         "filePath": "docs/SSOT_AI_ASSISTANT.md",
         "missingSections": []
       },
@@ -165,7 +172,7 @@
         "missingSections": []
       }
     ],
-    "checkedAt": "2026-03-10T00:00:00.000Z"
+    "checkedAt": "2026-03-23T06:30:00.000Z"
   },
-  "updatedAt": "2026-03-10T00:00:00.000Z"
+  "updatedAt": "2026-03-23T06:30:00.000Z"
 }

@@ -10,6 +10,9 @@
 
 import { createError, getQuery, getHeaders, getCookie, setCookie, type H3Event } from 'h3'
 import { getSession, refreshSessionIfNeeded, isOtpVerified, sessionCookieOptions, deviceSessionCookieOptions } from './session'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 
 export interface AuthContext {
@@ -183,4 +186,22 @@ export function requireScheduleEditPermission(params: ScheduleEditCheckParams): 
       statusMessage: 'このスケジュールを編集する権限がありません'
     })
   }
+}
+
+/**
+ * ユーザーのorganizationIdを取得（互換性関数）
+ * NOTE: 推奨: requireAuthで取得したAuthContext.organizationIdを使用
+ */
+export async function getUserOrganizationId(userId: string): Promise<string> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { organizationId: true }
+  })
+  if (!user) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'User not found'
+    })
+  }
+  return user.organizationId
 }

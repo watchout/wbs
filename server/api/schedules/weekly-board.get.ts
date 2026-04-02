@@ -166,7 +166,7 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
         'friday',
         'saturday'
       ] as const
-      const dayKey = dayKeys[dayOfWeek]
+      const dayKey = dayKeys[dayOfWeek]!
 
       // DaySchedule オブジェクトを作成
       const daySchedule: DaySchedule = {
@@ -202,8 +202,8 @@ export default defineEventHandler(async (event): Promise<WeeklyBoardResponse> =>
 
     return {
       success: true,
-      weekStart: weekStart.toISOString().split('T')[0], // YYYY-MM-DD
-      weekEnd: weekEnd.toISOString().split('T')[0],
+      weekStart: weekStart.toISOString().split('T')[0]!, // YYYY-MM-DD
+      weekEnd: weekEnd.toISOString().split('T')[0]!,
       employees,
       organizationId: authContext.organizationId
     }

@@ -134,7 +134,7 @@ async function main() {
 
     let product: Stripe.Product
     if (existingProducts.data.length > 0) {
-      product = existingProducts.data[0]
+      product = existingProducts.data[0]!
       console.log(`  ✅ Product 既存: ${product.id}`)
     } else {
       product = await stripe.products.create({
@@ -247,7 +247,7 @@ async function main() {
 
     let product: Stripe.Product
     if (existingProducts.data.length > 0) {
-      product = existingProducts.data[0]
+      product = existingProducts.data[0]!
       console.log(`    ✅ Product 既存: ${product.id}`)
     } else {
       product = await stripe.products.create({
@@ -269,7 +269,7 @@ async function main() {
 
     let price: Stripe.Price
     if (existingPrices.data.length > 0) {
-      price = existingPrices.data[0]
+      price = existingPrices.data[0]!
       console.log(`    ✅ Price 既存: ${price.id}`)
     } else {
       price = await stripe.prices.create({

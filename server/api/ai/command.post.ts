@@ -48,7 +48,7 @@ setInterval(() => {
 /** preview_assignment ブロックをパースする */
 function extractPreviewData(reply: string): Record<string, unknown> | null {
   const match = reply.match(/```preview_assignment\s*([\s\S]*?)```/)
-  if (match) {
+  if (match && match[1]) {
     try {
       return JSON.parse(match[1]) as Record<string, unknown>
     } catch {
@@ -106,14 +106,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 今日の日付をコンテキストに含める
+  // 今日の日付とロール情報をコンテキストに含める
   const today = new Date().toISOString().split('T')[0]
-  const systemPrompt = `${COMMAND_BAR_SYSTEM_PROMPT}\n\n今日の日付: ${today}`
+  const roleContext = auth.role === 'MEMBER'
+    ? '\n\nユーザーロール: MEMBER（検索のみ可能。配置変更は「配置変更には管理者権限が必要です」と返答してください）'
+    : `\n\nユーザーロール: ${auth.role}（検索・配置変更ともに可能）`
+  const systemPrompt = `${COMMAND_BAR_SYSTEM_PROMPT}\n\n今日の日付: ${today}${roleContext}`
 
-  // コマンドバー用ツール（execute_assignment は含めない — §12 AI Interaction Policy 準拠）
-  const commandBarTools = ASSISTANT_TOOLS.filter(
-    (t) => t.name !== 'propose_allocation'
-  )
+  // コマンドバー用ツール — MEMBERはwrite系ツール(preview_assignment)を除外（AC-S3-07）
+  const writeTools = ['propose_allocation', 'preview_assignment']
+  const commandBarTools = ASSISTANT_TOOLS.filter((t) => {
+    if (auth.role === 'MEMBER' && writeTools.includes(t.name)) return false
+    if (t.name === 'propose_allocation') return false
+    return true
+  })
 
   const messages: LlmMessage[] = [
     { role: 'user', content: message },

@@ -1,11 +1,25 @@
 {
-  "currentTaskId": "sprint2-site-demand",
+  "currentTaskId": "sprint6-notification",
   "tasks": [
     {
-      "taskId": "sprint2-site-demand",
+      "taskId": "sprint5-ai-allocation",
+      "status": "done",
+      "description": "Sprint 5: AI配置提案・仮配置フロー",
+      "startedAt": "2026-03-23T00:00:00.000Z",
+      "completedAt": "2026-03-23T00:00:00.000Z"
+    },
+    {
+      "taskId": "phase2-tech-debt-p0",
+      "status": "done",
+      "description": "Phase 2準備: 技術的負債P0修正",
+      "startedAt": "2026-03-23T00:00:00.000Z",
+      "completedAt": "2026-03-23T00:00:00.000Z"
+    },
+    {
+      "taskId": "sprint6-notification",
       "status": "in_progress",
-      "description": "Sprint 2: Site/SiteDemand CRUD + 不足一覧 + 色分けUI",
-      "startedAt": "2026-03-10T00:00:00.000Z"
+      "description": "Sprint 6: 通知基盤（メール通知 + トースト通知）",
+      "startedAt": "2026-03-23T00:00:00.000Z"
     }
   ]
 }

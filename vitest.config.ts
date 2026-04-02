@@ -12,6 +12,33 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    exclude: ['node_modules/**', 'tests/e2e/**', '**/*.spec.ts']
+    exclude: ['node_modules/**', 'tests/e2e/**', '**/*.spec.ts'],
+    // Optimization: parallel execution with optimal thread count
+    pool: 'threads',
+    // Increase timeout for slow crypto operations
+    testTimeout: 15000,
+    hookTimeout: 15000,
+    // Isolate tests per thread to avoid state leaks
+    isolate: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.spec.ts',
+        '**/*.test.ts',
+        'dist/',
+        '.nuxt/',
+        '.output/',
+        'coverage/'
+      ],
+      thresholds: {
+        lines: 15,
+        functions: 15,
+        branches: 10,
+        statements: 15
+      }
+    }
   }
 })

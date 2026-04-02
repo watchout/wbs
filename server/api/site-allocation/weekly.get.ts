@@ -211,7 +211,7 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
       // 曜日キーを計算
       const scheduleDate = new Date(schedule.start)
       const dayOfWeek = scheduleDate.getDay()
-      const dayKey = DAY_KEYS[dayOfWeek]
+      const dayKey = DAY_KEYS[dayOfWeek]!
 
       const worker: SiteWorker = {
         userId: schedule.author?.id ?? 'unknown',
@@ -278,7 +278,7 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
         }
 
         return {
-          date: dayDates[index],
+          date: dayDates[index]!,
           dayKey,
           allocated: workers.length,
           required,
@@ -312,7 +312,7 @@ export default defineEventHandler(async (event): Promise<SiteAllocationWeeklyRes
       const workers = unassignedMap.get(dayKey) ?? []
       totalAllocated += workers.length
       return {
-        date: dayDates[index],
+        date: dayDates[index]!,
         dayKey,
         allocated: workers.length,
         required: null,
