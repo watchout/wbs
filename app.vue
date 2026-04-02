@@ -10,7 +10,13 @@ useHead({
   titleTemplate: '%s | ミエルボード for 現場',
   htmlAttrs: {
     lang: 'ja'
-  }
+  },
+  link: [
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined'
+    }
+  ]
 })
 </script>
 
