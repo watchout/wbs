@@ -70,7 +70,7 @@
             <tbody>
               <tr v-for="(demand, idx) in demands" :key="idx" class="demand-row">
                 <td class="index-col">{{ idx + 1 }}</td>
-                <td class="task-col">
+                <td class="demand-name-col">
                   <input
                     v-if="editingIdx === idx"
                     v-model="demand.taskName"
@@ -533,7 +533,7 @@ onMounted(() => {
       color: #999;
     }
 
-    .task-col {
+    .demand-name-col {
       min-width: 150px;
     }
 
